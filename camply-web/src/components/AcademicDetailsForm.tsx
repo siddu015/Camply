@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import type { UserFormData, College, DepartmentData } from '../types/database';
 import { supabase } from '../lib/supabase';
+import { Input } from './ui/input';
+import { Label } from './ui/label';
+import { cn } from '../lib/utils';
+import { useMotionTemplate, useMotionValue, motion } from "framer-motion";
 
 interface AcademicDetailsFormProps {
   onSubmit: (data: UserFormData) => Promise<void>;
@@ -102,82 +106,129 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     }));
   };
 
+  const SelectInput = ({ children, disabled = false, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { disabled?: boolean }) => {
+    const radius = 100;
+    const [visible, setVisible] = useState(false);
+
+    let mouseX = useMotionValue(0);
+    let mouseY = useMotionValue(0);
+
+    function handleMouseMove({ currentTarget, clientX, clientY }: any) {
+      let { left, top } = currentTarget.getBoundingClientRect();
+
+      mouseX.set(clientX - left);
+      mouseY.set(clientY - top);
+    }
+
+    return (
+      <motion.div
+        style={{
+          background: useMotionTemplate`
+        radial-gradient(
+          ${visible ? radius + "px" : "0px"} circle at ${mouseX}px ${mouseY}px,
+          rgba(59, 130, 246, 0.6),
+          transparent 80%
+        )
+      `,
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        className="group/input rounded-lg p-[2px] transition duration-300"
+      >
+        <div className="relative">
+          <select
+            {...props}
+            disabled={disabled}
+            className={cn(
+              "shadow-input dark:placeholder-text-neutral-600 flex h-10 w-full rounded-md border border-white/10 bg-white/5 backdrop-blur-md px-3 py-2 pr-8 text-sm text-black transition duration-400 group-hover/input:shadow-none file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-neutral-400 focus-visible:ring-[2px] focus-visible:ring-neutral-400 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 dark:border-white/5 dark:bg-white/5 dark:backdrop-blur-md dark:text-white dark:shadow-[0px_0px_1px_1px_#404040] dark:focus-visible:ring-neutral-600 appearance-none",
+              disabled && "bg-white/2 dark:bg-white/2 cursor-not-allowed opacity-50"
+            )}
+          >
+            {children}
+          </select>
+          <div className="absolute inset-y-0 right-1 flex items-center pointer-events-none">
+            <svg className="h-4 w-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-secondary p-4">
-      <div className="max-w-2xl w-full space-y-8 p-8 bg-white rounded-lg shadow-lg">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">Academic Details</h1>
-          <p className="mt-2 text-gray-600">Please provide your academic information to continue</p>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black p-4">
+      <div className="mx-auto w-full max-w-2xl rounded-none border border-gray-300 bg-white p-4 shadow-input dark:border-gray-800 dark:bg-black md:rounded-2xl md:p-8">
+        <div className="text-left mb-8">
+          <h2 className="text-2xl font-black text-neutral-800 dark:text-neutral-200">
+            Welcome to Camply
+          </h2>
+          <p className="text-left mt-2 text-sm text-neutral-600 dark:text-neutral-300">
+            Please provide your academic information to get started with your campus adventures
+          </p>
         </div>
 
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md">
+          <div className="mb-6 p-4 rounded-md bg-red-50 border border-red-200 text-red-700 dark:bg-red-900/20 dark:border-red-800 dark:text-red-300">
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
-                Full Name *
-              </label>
-              <input
-                type="text"
+        <form onSubmit={handleSubmit} className="my-8">
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
+            <div className="flex flex-col space-y-2 w-full">
+              <Label htmlFor="name">Full Name</Label>
+              <Input
                 id="name"
                 name="name"
+                placeholder="Enter your full name"
+                type="text"
                 required
                 value={formData.name}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black"
               />
             </div>
-
-            <div>
-              <label htmlFor="phone_number" className="block text-sm font-medium text-gray-700">
-                Phone Number
-              </label>
-              <input
-                type="tel"
+            <div className="flex flex-col space-y-2 w-full">
+              <Label htmlFor="phone_number">Phone Number</Label>
+              <Input
                 id="phone_number"
                 name="phone_number"
+                placeholder="+91 99999 99999"
+                type="tel"
                 value={formData.phone_number}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black"
               />
             </div>
+          </div>
 
-            <div className="md:col-span-2">
-              <label htmlFor="college_id" className="block text-sm font-medium text-gray-700">
-                College/University *
-              </label>
-              <select
-                id="college_id"
-                name="college_id"
-                required
-                value={formData.college_id}
-                onChange={handleCollegeChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black"
-              >
-                <option value="">Select your college</option>
-                {colleges.map((college) => (
-                  <option key={college.college_id} value={college.college_id}>
-                    {college.name} {college.city && college.state && `- ${college.city}, ${college.state}`}
-                  </option>
-                ))}
-              </select>
-            </div>
+          <div className="flex flex-col space-y-2 mb-4 w-full">
+            <Label htmlFor="college_id">College/University</Label>
+            <SelectInput
+              id="college_id"
+              name="college_id"
+              className="bg-gray-100 dark:bg-zinc-900"
+              required
+              value={formData.college_id}
+              onChange={handleCollegeChange}
+            >
+              <option value="">Select your college</option>
+              {colleges.map((college) => (
+                <option key={college.college_id} value={college.college_id}>
+                  {college.name} {college.city && college.state && `- ${college.city}, ${college.state}`}
+                </option>
+              ))}
+            </SelectInput>
+          </div>
 
-            <div>
-              <label htmlFor="department_category" className="block text-sm font-medium text-gray-700">
-                Department Category *
-              </label>
-              <select
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
+            <div className="flex flex-col space-y-2 w-full">
+              <Label htmlFor="department_category">Department Category</Label>
+              <SelectInput
                 id="department_category"
                 required
                 value={selectedDepartmentCategory}
                 onChange={handleDepartmentCategoryChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black"
               >
                 <option value="">Select department category</option>
                 {Object.keys(departments).map((category) => (
@@ -185,21 +236,17 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
                     {category}
                   </option>
                 ))}
-              </select>
+              </SelectInput>
             </div>
-
-            <div>
-              <label htmlFor="branch_name" className="block text-sm font-medium text-gray-700">
-                Branch/Specialization *
-              </label>
-              <select
+            <div className="flex flex-col space-y-2 w-full">
+              <Label htmlFor="branch_name">Branch/Specialization</Label>
+              <SelectInput
                 id="branch_name"
                 name="branch_name"
                 required
                 value={formData.branch_name}
                 onChange={handleBranchChange}
                 disabled={!selectedDepartmentCategory}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black disabled:bg-gray-100 disabled:cursor-not-allowed"
               >
                 <option value="">Select your branch</option>
                 {availableBranches.map((branch) => (
@@ -207,72 +254,71 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
                     {branch}
                   </option>
                 ))}
-              </select>
+              </SelectInput>
             </div>
+          </div>
 
-            <div>
-              <label htmlFor="roll_number" className="block text-sm font-medium text-gray-700">
-                Roll Number *
-              </label>
-              <input
-                type="text"
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
+            <div className="flex flex-col space-y-2 w-full">
+              <Label htmlFor="roll_number">Roll Number</Label>
+              <Input
                 id="roll_number"
                 name="roll_number"
+                placeholder="Your roll number"
+                type="text"
                 required
                 value={formData.roll_number}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black"
               />
             </div>
+          </div>
 
-            <div>
-              <label htmlFor="admission_year" className="block text-sm font-medium text-gray-700">
-                Admission Year *
-              </label>
-              <input
-                type="number"
+          <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-8">
+            <div className="flex flex-col space-y-2 w-full">
+              <Label htmlFor="admission_year">Admission Year</Label>
+              <Input
                 id="admission_year"
                 name="admission_year"
+                placeholder="2020"
+                type="number"
                 required
                 min="2000"
                 max="2030"
                 value={formData.admission_year}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black"
               />
             </div>
-
-            <div>
-              <label htmlFor="graduation_year" className="block text-sm font-medium text-gray-700">
-                Expected Graduation Year *
-              </label>
-              <input
-                type="number"
+            <div className="flex flex-col space-y-2 w-full">
+              <Label htmlFor="graduation_year">Expected Graduation Year</Label>
+              <Input
                 id="graduation_year"
                 name="graduation_year"
+                placeholder="2024"
+                type="number"
                 required
                 min="2020"
                 max="2035"
                 value={formData.graduation_year}
                 onChange={handleChange}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-black focus:border-black"
               />
             </div>
           </div>
 
           <button
+            className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset]"
             type="submit"
             disabled={loading}
-            className="w-full flex justify-center py-3 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-black hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-black disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
-              <div className="flex items-center">
+              <div className="flex items-center justify-center">
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
+                Saving Details...
               </div>
             ) : (
-              'Save Academic Details'
+              'Save Academic Details →'
             )}
+            <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
+            <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
           </button>
         </form>
       </div>
