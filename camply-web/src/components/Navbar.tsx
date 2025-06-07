@@ -1,17 +1,18 @@
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { Link, useLocation } from 'react-router-dom';
+import type { Session } from '@supabase/supabase-js';
+import { signOut } from '../lib/supabase';
 
-const Navbar = () => {
+interface NavbarProps {
+  session?: Session;
+}
+
+const Navbar = ({ session }: NavbarProps) => {
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
-    try {
-      await signOut();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
+    const { error } = await signOut();
+    if (error) {
+      console.error('Error signing out:', error.message);
     }
   };
 
@@ -44,15 +45,19 @@ const Navbar = () => {
         </div>
 
         <div className="flex items-center gap-4">
-          <button 
-            onClick={handleSignOut}
-            className="text-sm text-gray-600 hover:text-gray-900"
-          >
-            Sign out
-          </button>
-          <div className="text-black bg-[#B0CFEE] border-2 border-black rounded-full w-10 h-10 flex items-center justify-center font-bold shadow-lg cursor-pointer"> 
-            {user?.email?.[0].toUpperCase() || 'S'}
-          </div>
+          {session && (
+            <>
+              <span className="text-sm text-gray-600">
+                {session.user.email}
+              </span>
+              <button
+                onClick={handleSignOut}
+                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+              >
+                Sign Out
+              </button>
+            </>
+          )}
         </div>
       </div>
     </nav>
