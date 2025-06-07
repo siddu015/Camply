@@ -19,6 +19,16 @@
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     
+    /* Aurora colors */
+    --white: rgba(255, 255, 255, 0.5);
+    --black: rgba(0, 0, 0, 0.5);
+    --transparent: rgba(255, 255, 255, 0);
+    --blue-500: rgba(59, 130, 246, 0.5);
+    --indigo-300: rgba(165, 180, 252, 0.5);
+    --blue-300: rgba(147, 197, 253, 0.5);
+    --violet-200: rgba(196, 181, 253, 0.5);
+    --blue-400: rgba(96, 165, 250, 0.5);
+    
     /* Design tokens */
     --radius: 0.5rem;
     --font-sans: 'Geist Sans', system-ui, sans-serif;
