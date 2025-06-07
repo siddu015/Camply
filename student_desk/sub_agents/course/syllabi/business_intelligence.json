@@ -1,0 +1,74 @@
+{
+  "course_name": "Business Intelligence and Analytics",
+  "course_code": "CS402",
+  "credits": 4,
+  "description": "Understanding business intelligence concepts and analytics techniques for data-driven decision making",
+  "prerequisites": ["Database Management", "Basic Statistics", "Data Visualization"],
+  "units": [
+    {
+      "unit": 1,
+      "title": "Introduction to Business Intelligence",
+      "topics": [
+        "BI Concepts and Framework",
+        "Data Warehousing",
+        "OLAP Systems",
+        "ETL Processes",
+        "Data Quality and Integration"
+      ]
+    },
+    {
+      "unit": 2,
+      "title": "Data Analytics and Visualization",
+      "topics": [
+        "Descriptive Analytics",
+        "Predictive Analytics",
+        "Prescriptive Analytics",
+        "Data Visualization Tools",
+        "Dashboard Design"
+      ]
+    },
+    {
+      "unit": 3,
+      "title": "Business Analytics Applications",
+      "topics": [
+        "Customer Analytics",
+        "Marketing Analytics",
+        "Financial Analytics",
+        "Supply Chain Analytics",
+        "Risk Analytics"
+      ]
+    },
+    {
+      "unit": 4,
+      "title": "Advanced BI Topics",
+      "topics": [
+        "Big Data Analytics",
+        "Real-time Analytics",
+        "Cloud BI Solutions",
+        "Mobile BI",
+        "BI Strategy and Governance"
+      ]
+    }
+  ],
+  "reference_books": [
+    "Business Intelligence: A Managerial Approach by Efraim Turban",
+    "Analytics in a Big Data World by Bart Baesens",
+    "Data Science for Business by Foster Provost"
+  ],
+  "evaluation": {
+    "internal_assessment": {
+      "ia_1": {
+        "weightage": 30,
+        "units_covered": [1, 2]
+      },
+      "ia_2": {
+        "weightage": 30,
+        "units_covered": [3, 4]
+      }
+    },
+    "semester_end_exam": {
+      "weightage": 40,
+      "units_covered": [1, 2, 3, 4]
+    }
+  }
+} 

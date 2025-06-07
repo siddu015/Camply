@@ -1,0 +1,116 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+## Agent Implementation Rules
+
+### 1. Main Agent Structure
+- Place in `agent.py`
+- Use `LlmAgent` for main coordinator agents
+- Use `Agent` for specialized sub-agents
+- Always export as `root_agent`
+
+```python
+from google.adk.agents import LlmAgent
+from google.adk.tools.agent_tool import AgentTool
+
+MODEL = "gemini-2.0-flash"  # Define model at top
+
+main_agent = LlmAgent(
+    name="descriptive_name",
+    model=MODEL,
+    description="Clear, detailed description",
+    instruction=prompt.MAIN_PROMPT,
+    output_key="response_key",
+    tools=[AgentTool(agent=sub_agent)],
+)
+
+root_agent = main_agent
+```
+
+### 2. Prompt Structure
+- Place in `prompt.py`
+- Use clear, structured prompts
+- Include responsibilities and behavior guidelines
+- Specify interaction patterns with sub-agents
+
+```python
+AGENT_PROMPT = """You are [Agent Description].
+
+You have access to:
+1. [Sub-agent 1] - [Purpose]
+2. [Sub-agent 2] - [Purpose]
+
+Your responsibilities:
+1. [Responsibility 1]
+2. [Responsibility 2]
+
+When handling queries:
+- [Guideline 1]
+- [Guideline 2]
+
+Remember: [Important context/behavior note]"""
+```
+
+### 3. Sub-Agent Organization
+- Each sub-agent in its own directory
+- Clear separation of concerns
+- Independent data and functionality
+- Proper exports in __init__.py files
+
+### 4. Import Structure
+```python
+# In sub_agents/__init__.py
+from .agent_name.agent import agent_name
+__all__ = ["agent_name"]
+
+# In main agent.py
+from .sub_agents.agent_name.agent import agent_name
+```
+
+### 5. Data Management
+- Store agent-specific data in agent's directory
+- Use clear data structures (JSON, YAML)
+- Implement data loading functions
+- Handle data errors gracefully
+
+### 6. Error Handling
+- Implement retry logic for API calls
+- Handle model overload gracefully
+- Provide clear error messages
+- Cache responses when possible
+
+### 7. Best Practices
+- Use descriptive names for agents and functions
+- Document all major components
+- Keep prompts focused and specific
+- Maintain clear agent hierarchy
+- Use consistent MODEL definition
+- Implement proper error handling
+- Follow Google's ADK documentation
+
+### 8. Testing
+- Test agent interactions independently
+- Verify data loading functions
+- Check error handling
+- Validate prompt effectiveness
+
+### 9. Security
+- Never hardcode API keys
+- Use environment variables for sensitive data
+- Implement proper access controls
+- Validate all inputs
+
+### 10. Performance
+- Implement caching where appropriate
+- Use efficient data structures
+- Monitor API usage
+- Implement rate limiting
+
+## Example Implementation
+See the student_desk implementation for a reference:
+- Main agent coordinates multiple sub-agents
+- Clear prompt structure and responsibilities
+- Proper data organization
+- Clean import hierarchy
