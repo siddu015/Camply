@@ -1,0 +1,88 @@
+{
+    "Computer Science & IT": [
+      "Computer Science and Engineering (CSE)",
+      "Information Science and Engineering (ISE)",
+      "Software Engineering",
+      "Artificial Intelligence (AI)",
+      "AI & Machine Learning (AI & ML)",
+      "AI & Data Science (AI & DS)",
+      "Data Science",
+      "Cybersecurity",
+      "Internet of Things (IoT)",
+      "Cloud Computing",
+      "Blockchain Technology",
+      "DevOps"
+    ],
+    "Electronics & Communication": [
+      "Electronics and Communication Engineering (ECE)",
+      "Electronics and Telecommunication",
+      "VLSI Design",
+      "Embedded Systems",
+      "Signal Processing",
+      "Wireless Communication",
+      "Robotics and Automation"
+    ],
+    "Electrical & Related Fields": [
+      "Electrical and Electronics Engineering (EEE)",
+      "Electrical Engineering (EE)",
+      "Power Electronics",
+      "Energy Systems"
+    ],
+    "Mechanical & Related": [
+      "Mechanical Engineering",
+      "Mechatronics",
+      "Robotics",
+      "Thermal Engineering",
+      "Manufacturing Engineering",
+      "Automotive Engineering"
+    ],
+    "Civil & Related": [
+      "Civil Engineering",
+      "Structural Engineering",
+      "Environmental Engineering",
+      "Construction Management",
+      "Transportation Engineering"
+    ],
+    "Chemical & Bio Fields": [
+      "Chemical Engineering",
+      "Biotechnology",
+      "Bioinformatics",
+      "Biomedical Engineering",
+      "Medical Electronics",
+      "Food Technology"
+    ],
+    "Aerospace & Allied": [
+      "Aerospace Engineering",
+      "Aeronautical Engineering",
+      "Avionics"
+    ],
+    "Industrial & Management": [
+      "Industrial Engineering and Management (IEM)",
+      "Engineering Management",
+      "Production Engineering"
+    ],
+    "Pure Sciences": [
+      "Physics",
+      "Chemistry",
+      "Mathematics",
+      "Statistics"
+    ],
+    "Applied Sciences & Interdisciplinary": [
+      "Applied Physics",
+      "Data Analytics",
+      "Computational Sciences",
+      "Cognitive Science"
+    ],
+    "Management & Humanities": [
+      "Business Administration (BBA, MBA)",
+      "Economics",
+      "Psychology",
+      "English Literature",
+      "Sociology",
+      "Public Policy"
+    ],
+    "Computer Applications": [
+      "Bachelor of Computer Applications (BCA)",
+      "Master of Computer Applications (MCA)"
+    ]
+  }
