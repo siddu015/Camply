@@ -12,7 +12,6 @@ export interface UserAcademicDetails {
   academic_id?: string;
   user_id: string;
   college_id?: string;
-  college_name: string;
   department_name: string;
   branch_name: string;
   admission_year: number;
@@ -27,7 +26,6 @@ export interface UserFormData {
   name: string;
   phone_number?: string;
   college_id: string;
-  college_name: string;
   department_name: string;
   branch_name: string;
   admission_year: number;
@@ -43,7 +41,10 @@ export interface UserStatus {
 
 export interface College {
   college_id: string;
-  college_name: string;
+  name: string;
+  city?: string;
+  state?: string;
+  university_name?: string;
 }
 
 export interface DepartmentData {

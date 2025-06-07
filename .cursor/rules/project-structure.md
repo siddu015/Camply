@@ -1,0 +1,338 @@
+# Project Structure Rules for Camply
+
+## Overall Architecture
+
+### Repository Structure
+
+```
+Camply/
+├── camply-web/          # React frontend application
+├── supabase/            # Database migrations and config
+├── student_desk/        # AI agent system (separate from web)
+├── .cursor/             # Cursor IDE rules and configuration
+└── README.md
+```
+
+### Frontend Structure (camply-web/)
+
+```
+camply-web/
+├── public/
+│   ├── Departments.json     # Static department/branch data
+│   └── Colleges.json        # Legacy college data (deprecated)
+├── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── AcademicDetailsForm.tsx
+│   │   └── [ComponentName].tsx
+│   ├── pages/              # Route-level components
+│   │   ├── Onboarding.tsx
+│   │   └── [PageName].tsx
+│   ├── hooks/              # Custom React hooks
+│   │   ├── useUserData.ts
+│   │   └── use[HookName].ts
+│   ├── lib/                # Utilities and configurations
+│   │   ├── supabase.ts     # Supabase client setup
+│   │   ├── database.ts     # Database operations
+│   │   └── [utility].ts
+│   ├── types/              # TypeScript type definitions
+│   │   ├── database.ts     # Database-related types
+│   │   └── [domain].ts
+│   └── assets/             # Static assets
+├── package.json
+├── tsconfig.json
+├── tailwind.config.js
+└── vite.config.ts
+```
+
+### Database Structure (supabase/)
+
+```
+supabase/
+├── migrations/
+│   ├── 20240325_create_tables.sql           # Initial schema
+│   ├── 20250607155204_add_colleges_table_and_update_schema.sql
+│   ├── 20250607155746_insert_sample_colleges_data.sql
+│   ├── 20250607160000_add_phone_unique_constraint.sql
+│   └── [YYYYMMDD_HHMMSS_description].sql
+├── config.toml
+└── .gitignore
+```
+
+## File Naming Conventions
+
+### React Components
+
+- **Components**: PascalCase - `AcademicDetailsForm.tsx`
+- **Pages**: PascalCase - `Onboarding.tsx`
+- **Hooks**: camelCase starting with 'use' - `useUserData.ts`
+- **Utilities**: camelCase - `database.ts`, `supabase.ts`
+- **Types**: camelCase - `database.ts`
+
+### Database Files
+
+- **Migrations**: `YYYYMMDD_HHMMSS_descriptive_name.sql`
+- **Config**: lowercase with dots - `config.toml`
+
+### Static Assets
+
+- **JSON Data**: PascalCase - `Departments.json`, `Colleges.json`
+- **Images**: kebab-case - `app-logo.png`
+
+## Component Organization Rules
+
+### Component File Structure
+
+```typescript
+// 1. Imports (in order)
+import React from "react";
+import { useState, useEffect } from "react";
+import type { ComponentProps } from "../types/database";
+import { supabase } from "../lib/supabase";
+
+// 2. Interface definitions
+interface ComponentProps {
+  // Props definition
+}
+
+// 3. Main component
+const ComponentName = ({ props }: ComponentProps) => {
+  // State declarations
+  // Effect hooks
+  // Event handlers
+  // Helper functions
+  // Render return
+};
+
+// 4. Sub-components (if any)
+const SubComponent = () => {};
+
+// 5. Default export
+export default ComponentName;
+```
+
+### Page Component Structure
+
+- Pages should be thin wrappers around components
+- Handle routing logic and data fetching at page level
+- Pass data down to presentational components
+
+## Database Schema Organization
+
+### Table Relationships
+
+```
+Auth Users (Supabase Auth)
+    ↓
+Users Table (user_id, name, email, phone_number, academic_id)
+    ↓
+User Academic Details (academic_id, college_id, department, branch, etc.)
+    ↓
+Semesters (semester_id, academic_id, semester_number)
+    ↓
+Courses (course_id, semester_id, course_name)
+
+Colleges (college_id, name, city, state, university_name)
+    ↑
+Referenced by User Academic Details
+```
+
+### Migration Organization
+
+- One migration per logical change
+- Include rollback information in comments
+- Always test migrations locally before pushing
+- Use descriptive names for migration files
+
+## API Layer Organization
+
+### Database Operations (lib/database.ts)
+
+```typescript
+// User-related operations
+export const checkUserStatus = async (userId: string): Promise<UserStatus> => {};
+export const createUserWithAcademicDetails = async (...): Promise<...> => {};
+export const updateUserAcademicDetails = async (...): Promise<...> => {};
+
+// Academic-related operations
+export const getAcademicDetails = async (userId: string): Promise<...> => {};
+export const updateAcademicDetails = async (...): Promise<...> => {};
+
+// College-related operations
+export const getColleges = async (): Promise<College[]> => {};
+export const getCollegeById = async (id: string): Promise<College> => {};
+```
+
+### Supabase Client (lib/supabase.ts)
+
+```typescript
+// Client setup
+export const supabase = createClient(url, key);
+
+// Auth helpers
+export const signInWithGoogle = async () => {};
+export const signOut = async () => {};
+```
+
+## Type Organization
+
+### Database Types (types/database.ts)
+
+```typescript
+// Core entity interfaces
+export interface User {}
+export interface College {}
+export interface UserAcademicDetails {}
+
+// Form and UI types
+export interface UserFormData {}
+export interface UserStatus {}
+
+// Utility types
+export interface DepartmentData {}
+```
+
+### Domain-specific Types
+
+- Create separate type files for different domains
+- Import only what's needed in each component
+- Use generic types where appropriate
+
+## Configuration Management
+
+### Environment Variables
+
+```typescript
+// Required environment variables
+VITE_SUPABASE_URL = your - supabase - url;
+VITE_SUPABASE_ANON_KEY = your - supabase - anon - key;
+```
+
+### Build Configuration
+
+- Vite for development and build
+- Tailwind CSS for styling
+- TypeScript for type safety
+- ESLint and Prettier for code quality
+
+## Testing Structure
+
+### Test File Organization
+
+```
+src/
+├── components/
+│   ├── AcademicDetailsForm.tsx
+│   └── AcademicDetailsForm.test.tsx
+├── hooks/
+│   ├── useUserData.ts
+│   └── useUserData.test.ts
+└── lib/
+    ├── database.ts
+    └── database.test.ts
+```
+
+### Test Naming
+
+- Test files: `[ComponentName].test.tsx`
+- Test descriptions: Use descriptive strings
+- Test organization: Group by functionality
+
+## Documentation Standards
+
+### Code Comments
+
+```typescript
+/**
+ * Creates a new user with academic details in the database
+ * @param userId - UUID of the authenticated user
+ * @param email - User's email address
+ * @param formData - Academic form data
+ * @returns Promise resolving to user and academic details
+ * @throws Error if creation fails or validation errors occur
+ */
+export const createUserWithAcademicDetails = async (
+  userId: string,
+  email: string,
+  formData: UserFormData
+): Promise<{ user: User; academicDetails: UserAcademicDetails }> => {
+  // Implementation
+};
+```
+
+### README Structure
+
+- Project overview
+- Setup instructions
+- Database schema overview
+- Development guidelines
+- Deployment instructions
+
+## Security Considerations
+
+### Environment Security
+
+- Never commit sensitive keys
+- Use environment variables for configuration
+- Implement proper RLS policies
+
+### Code Security
+
+- Validate all user inputs
+- Use TypeScript for type safety
+- Implement proper error handling
+- Follow principle of least privilege
+
+## Performance Guidelines
+
+### Bundle Optimization
+
+- Use dynamic imports for route splitting
+- Lazy load heavy components
+- Optimize image assets
+- Use proper caching strategies
+
+### Database Performance
+
+- Use appropriate indexes
+- Implement efficient queries
+- Use RLS for security and performance
+- Monitor query performance
+
+## Deployment Structure
+
+### Staging Environment
+
+- Separate Supabase project for staging
+- Environment-specific configurations
+- Automated testing before production
+
+### Production Environment
+
+- Production Supabase project
+- CDN for static assets
+- Monitoring and logging
+- Backup strategies
+
+## Version Control Guidelines
+
+### Branch Strategy
+
+```
+main          # Production-ready code
+develop       # Integration branch
+feature/*     # Feature branches
+hotfix/*      # Critical fixes
+```
+
+### Commit Messages
+
+- Use conventional commits format
+- Include scope when relevant
+- Be descriptive and concise
+
+### PR Guidelines
+
+- Include description of changes
+- Reference related issues
+- Ensure tests pass
+- Update documentation as needed

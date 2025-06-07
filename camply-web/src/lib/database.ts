@@ -78,12 +78,9 @@ export const createUserWithAcademicDetails = async (
     console.log('User record ready:', currentUser);
 
     // Step 2: Create academic details
-    // Note: college_id in schema is uuid, but we're getting string from form
-    // For now, let's set it to null and just use college_name
     const academicInsertData = {
       user_id: userId,
-      college_id: null, // Setting to null since schema expects uuid but form gives string
-      college_name: formData.college_name,
+      college_id: formData.college_id || null, // Use the actual UUID from form
       department_name: formData.department_name,
       branch_name: formData.branch_name,
       admission_year: formData.admission_year,
@@ -151,8 +148,7 @@ export const updateUserAcademicDetails = async (
     const { data: academicData, error: academicError } = await supabase
       .from('user_academic_details')
       .update({
-        college_id: null, // Setting to null since schema expects uuid
-        college_name: formData.college_name,
+        college_id: formData.college_id || null, // Use the actual UUID from form
         department_name: formData.department_name,
         branch_name: formData.branch_name,
         admission_year: formData.admission_year,

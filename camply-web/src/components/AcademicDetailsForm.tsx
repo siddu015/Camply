@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import type { UserFormData, College, DepartmentData } from '../types/database';
+import { supabase } from '../lib/supabase';
 
 interface AcademicDetailsFormProps {
   onSubmit: (data: UserFormData) => Promise<void>;
@@ -18,7 +19,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     name: initialData?.name || '',
     phone_number: initialData?.phone_number || '',
     college_id: initialData?.college_id || '',
-    college_name: initialData?.college_name || '',
     department_name: initialData?.department_name || '',
     branch_name: initialData?.branch_name || '',
     admission_year: initialData?.admission_year || new Date().getFullYear(),
@@ -31,14 +31,17 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     const loadData = async () => {
       try {
         const [collegesResponse, departmentsResponse] = await Promise.all([
-          fetch('/Colleges.json'),
+          supabase.from('colleges').select('college_id, name, city, state, university_name'),
           fetch('/Departments.json')
         ]);
 
-        const collegesData = await collegesResponse.json();
-        const departmentsData = await departmentsResponse.json();
+        if (collegesResponse.error) {
+          console.error('Error fetching colleges:', collegesResponse.error);
+        } else {
+          setColleges(collegesResponse.data || []);
+        }
 
-        setColleges(collegesData);
+        const departmentsData = await departmentsResponse.json();
         setDepartments(departmentsData);
       } catch (err) {
         console.error('Error loading data:', err);
@@ -72,12 +75,10 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
 
   const handleCollegeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const collegeId = e.target.value;
-    const selectedCollege = colleges.find(c => c.college_id === collegeId);
     
     setFormData(prev => ({
       ...prev,
-      college_id: collegeId,
-      college_name: selectedCollege?.college_name || ''
+      college_id: collegeId
     }));
   };
 
@@ -161,7 +162,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
                 <option value="">Select your college</option>
                 {colleges.map((college) => (
                   <option key={college.college_id} value={college.college_id}>
-                    {college.college_name}
+                    {college.name} {college.city && college.state && `- ${college.city}, ${college.state}`}
                   </option>
                 ))}
               </select>

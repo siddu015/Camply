@@ -1,7 +1,17 @@
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
--- Create tables
+-- Create colleges table
+create table public.colleges (
+  college_id uuid primary key default uuid_generate_v4(),
+  name varchar not null,
+  city varchar,
+  state varchar,
+  university_name varchar,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Users table
 create table public.users (
   user_id uuid references auth.users primary key,
   name varchar not null,
@@ -12,11 +22,11 @@ create table public.users (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Academic details table
 create table public.user_academic_details (
   academic_id uuid primary key default uuid_generate_v4(),
   user_id uuid references public.users not null,
-  college_id uuid,
-  college_name varchar not null,
+  college_id uuid references public.colleges,
   department_name varchar not null,
   branch_name varchar not null,
   admission_year integer not null,
@@ -27,6 +37,7 @@ create table public.user_academic_details (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Semesters table
 create table public.semesters (
   semester_id uuid primary key default uuid_generate_v4(),
   academic_id uuid references public.user_academic_details not null,
@@ -37,6 +48,7 @@ create table public.semesters (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Courses table
 create table public.courses (
   course_id uuid primary key default uuid_generate_v4(),
   semester_id uuid references public.semesters not null,
@@ -48,29 +60,26 @@ create table public.courses (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
--- Set up RLS policies
+-- Enable RLS
 alter table public.users enable row level security;
 alter table public.user_academic_details enable row level security;
 alter table public.semesters enable row level security;
 alter table public.courses enable row level security;
+alter table public.colleges enable row level security;
 
--- Users can view and update their own data
+-- Policies for users
 create policy "Users can view own data" on public.users
   for select using (auth.uid() = user_id);
-
 create policy "Users can update own data" on public.users
   for update using (auth.uid() = user_id);
-
 create policy "Users can insert own data" on public.users
   for insert with check (auth.uid() = user_id);
 
--- Academic details policies
+-- Policies for academic details
 create policy "Users can view own academic details" on public.user_academic_details
   for select using (user_id = auth.uid());
-
 create policy "Users can update own academic details" on public.user_academic_details
   for update using (user_id = auth.uid());
-
 create policy "Users can insert own academic details" on public.user_academic_details
   for insert with check (user_id = auth.uid());
 
@@ -83,7 +92,6 @@ create policy "Users can view own semesters" on public.semesters
       and user_id = auth.uid()
     )
   );
-
 create policy "Users can update own semesters" on public.semesters
   for update using (
     exists (
@@ -92,7 +100,6 @@ create policy "Users can update own semesters" on public.semesters
       and user_id = auth.uid()
     )
   );
-
 create policy "Users can insert own semesters" on public.semesters
   for insert with check (
     exists (
@@ -112,7 +119,6 @@ create policy "Users can view own courses" on public.courses
       and uad.user_id = auth.uid()
     )
   );
-
 create policy "Users can update own courses" on public.courses
   for update using (
     exists (
@@ -122,7 +128,6 @@ create policy "Users can update own courses" on public.courses
       and uad.user_id = auth.uid()
     )
   );
-
 create policy "Users can insert own courses" on public.courses
   for insert with check (
     exists (
@@ -133,7 +138,11 @@ create policy "Users can insert own courses" on public.courses
     )
   );
 
--- Add foreign key constraint after tables are created
+-- Colleges can be read by all
+create policy "Anyone can view colleges" on public.colleges
+  for select using (true);
+
+-- Add foreign key constraints after tables are created
 alter table public.users 
   add constraint fk_academic_details 
   foreign key (academic_id) 

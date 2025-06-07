@@ -1,0 +1,328 @@
+# TypeScript Rules for Camply Project
+
+## Type Definitions
+
+### Database Types Location
+
+- All database-related types in `src/types/database.ts`
+- Import types consistently: `import type { TypeName } from '../types/database'`
+
+### Required Type Exports
+
+```typescript
+// Core database interfaces
+export interface User { ... }
+export interface College { ... }
+export interface UserAcademicDetails { ... }
+export interface UserFormData { ... }
+export interface UserStatus { ... }
+
+// Additional types as needed
+export interface DepartmentData { ... }
+```
+
+### UUID Handling
+
+- All database IDs are strings (UUID format)
+- Never use number types for database IDs
+- Optional IDs use `id?: string` pattern
+
+## Supabase Integration
+
+### Client Usage
+
+```typescript
+import { supabase } from "../lib/supabase";
+
+// Always specify return types
+const { data, error }: { data: Type[] | null; error: any } = await supabase
+  .from("table_name")
+  .select("columns");
+```
+
+### Error Handling Pattern
+
+```typescript
+if (error && error.code !== "PGRST116") {
+  throw error;
+}
+```
+
+### Query Response Types
+
+- Use Supabase's generated types when possible
+- Fallback to custom interfaces for complex queries
+- Always handle null data responses
+
+## Form Handling
+
+### Form Data Types
+
+```typescript
+// Form state should match UserFormData interface
+const [formData, setFormData] = useState<UserFormData>({
+  // Initial values with proper types
+});
+
+// Event handlers with proper typing
+const handleChange = (
+  e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+) => {
+  const { name, value, type } = e.target;
+  setFormData((prev) => ({
+    ...prev,
+    [name]: type === "number" ? parseInt(value) || 0 : value,
+  }));
+};
+```
+
+### Async Function Types
+
+```typescript
+// Database operations
+export const functionName = async (param: ParamType): Promise<ReturnType> => {
+  // Implementation
+};
+
+// Form submission handlers
+const handleSubmit = async (formData: UserFormData): Promise<void> => {
+  // Implementation
+};
+```
+
+## React Component Types
+
+### Component Props
+
+```typescript
+interface ComponentProps {
+  onSubmit: (data: UserFormData) => Promise<void>;
+  loading: boolean;
+  error: string | null;
+  initialData?: Partial<UserFormData>; // Use Partial for optional initial data
+}
+
+const Component = ({
+  onSubmit,
+  loading,
+  error,
+  initialData,
+}: ComponentProps) => {
+  // Implementation
+};
+```
+
+### Hook Return Types
+
+```typescript
+export const useCustomHook = (param: ParamType) => {
+  // State with explicit types
+  const [state, setState] = useState<StateType>(initialValue);
+
+  // Return object with consistent typing
+  return {
+    state,
+    loading: boolean,
+    error: string | null,
+    actions: {
+      actionName: (param: ParamType) => Promise<ReturnType>,
+    },
+  };
+};
+```
+
+## Error Handling Types
+
+### Error Response Pattern
+
+```typescript
+interface ErrorResponse {
+  message: string;
+  code?: string;
+  details?: any;
+}
+
+// Error handling in try-catch
+try {
+  const result = await databaseOperation();
+  return result;
+} catch (err) {
+  const errorMessage = err instanceof Error ? err.message : "Unknown error";
+  throw new Error(errorMessage);
+}
+```
+
+## Import/Export Patterns
+
+### Type-only Imports
+
+```typescript
+import type { TypeName } from "./types/database";
+import { functionName } from "./lib/database";
+```
+
+### Consistent Export Pattern
+
+```typescript
+// Named exports for utilities
+export const utilityFunction = () => {};
+export { anotherFunction };
+
+// Default exports for components
+export default ComponentName;
+```
+
+## Strict Type Checking Rules
+
+### No `any` Types
+
+- Avoid `any` except for Supabase error objects (temporary)
+- Use `unknown` for truly unknown types
+- Create specific interfaces for complex objects
+
+### Null Safety
+
+```typescript
+// Handle potential null/undefined values
+const value = data?.property || defaultValue;
+
+// Use optional chaining consistently
+user?.academic_id && doSomething();
+
+// Proper null checks for database responses
+if (userData && userData.length > 0) {
+  // Process data
+}
+```
+
+### Type Guards
+
+```typescript
+const isValidUser = (user: any): user is User => {
+  return (
+    user &&
+    typeof user.user_id === "string" &&
+    typeof user.name === "string" &&
+    typeof user.email === "string"
+  );
+};
+```
+
+## Generic Types
+
+### API Response Wrapper
+
+```typescript
+interface ApiResponse<T> {
+  data: T | null;
+  error: string | null;
+  loading: boolean;
+}
+
+// Usage
+const userResponse: ApiResponse<User> = await getUserData();
+```
+
+### Reusable Form Types
+
+```typescript
+type FormField<T> = {
+  value: T;
+  error?: string;
+  required?: boolean;
+};
+
+interface FormState<T> {
+  [K in keyof T]: FormField<T[K]>;
+}
+```
+
+## Documentation Requirements
+
+### Function Documentation
+
+```typescript
+/**
+ * Creates a new user with academic details
+ * @param userId - UUID of the authenticated user
+ * @param email - User's email address
+ * @param formData - Academic form data
+ * @returns Promise resolving to user and academic details
+ * @throws Error if creation fails
+ */
+export const createUserWithAcademicDetails = async (
+  userId: string,
+  email: string,
+  formData: UserFormData
+): Promise<{ user: User; academicDetails: UserAcademicDetails }> => {
+  // Implementation
+};
+```
+
+### Interface Documentation
+
+```typescript
+/**
+ * Represents a college/university in the system
+ */
+interface College {
+  /** UUID primary key */
+  college_id: string;
+  /** Official name of the institution */
+  name: string;
+  /** City where college is located */
+  city?: string;
+  /** State where college is located */
+  state?: string;
+  /** Parent university name */
+  university_name?: string;
+}
+```
+
+## Linting & Formatting
+
+### Required ESLint Rules
+
+```json
+{
+  "@typescript-eslint/no-unused-vars": "error",
+  "@typescript-eslint/explicit-function-return-type": "warn",
+  "@typescript-eslint/no-explicit-any": "warn",
+  "@typescript-eslint/prefer-nullish-coalescing": "error"
+}
+```
+
+### Type Import Organization
+
+1. React imports
+2. Third-party library imports
+3. Type-only imports
+4. Local utility imports
+5. Relative imports
+
+## Performance Considerations
+
+### Lazy Loading Types
+
+```typescript
+// Use React.lazy for component code splitting
+const LazyComponent = React.lazy(() => import("./Component"));
+
+// Use dynamic imports for large type definitions
+type LargeType = import("./types/large").LargeType;
+```
+
+### Memoization with Types
+
+```typescript
+const memoizedValue = useMemo<ComputedType>(() => {
+  return expensiveComputation(data);
+}, [data]);
+
+const memoizedCallback = useCallback<(param: ParamType) => void>(
+  (param) => {
+    // Callback implementation
+  },
+  [dependency]
+);
+```
