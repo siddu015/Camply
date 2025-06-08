@@ -6,9 +6,8 @@ import { useUserData } from './hooks/useUserData';
 import Home from './pages/Home';
 import Campus from './pages/Campus';
 import Desk from './pages/Desk';
-import Login from './pages/Login';
 import Onboarding from './pages/Onboarding';
-import './App.css';
+import LandingPage from './pages/LandingPage';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -45,8 +44,8 @@ function App() {
         {!session ? (
           // Unauthenticated routes
           <>
-            <Route path="/login" element={<Login />} />
-            <Route path="*" element={<Navigate to="/login" replace />} />
+            <Route path="/" element={<LandingPage />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (
           // Authenticated routes with onboarding check
