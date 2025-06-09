@@ -230,7 +230,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
 
   return (
     <AuroraBackground>
-      <div className="mx-auto w-full max-w-2xl rounded-2xl bg-white/3 backdrop-blur-xl p-6 md:p-10 shadow-xl border border-white/5 relative overflow-hidden min-h-[450px]">
+      <div className="mx-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-3xl rounded-lg sm:rounded-xl md:rounded-2xl bg-white/[0.02] backdrop-blur-md p-4 sm:p-6 md:p-8 lg:p-10 shadow-xl border border-white/[0.03] relative overflow-hidden min-h-[400px] sm:min-h-[450px] md:min-h-[500px]">
         {/* Noise texture overlay */}
         <div className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none" 
              style={{
@@ -241,11 +241,11 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
         
         <div className="relative z-10">
           {/* Header */}
-          <div className="text-left mb-8">
-            <h2 className="text-2xl md:text-3xl font-black text-white drop-shadow-lg">
+          <div className="text-left mb-6 sm:mb-8">
+            <h2 className="text-responsive-2xl font-black text-white drop-shadow-lg">
               Welcome to Camply
             </h2>
-            <p className="text-left mt-3 text-base text-white/90 drop-shadow-md">
+            <p className="text-left mt-2 sm:mt-3 text-responsive-base text-white/90 drop-shadow-md">
               Let's set up your academic profile
             </p>
           </div>
@@ -254,13 +254,13 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
           <ProgressIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
           {error && (
-            <div className="mb-8 p-6 rounded-md bg-red-500/15 backdrop-blur-sm border border-red-300/20 text-red-100 shadow-lg">
-              {error}
+            <div className="mb-6 sm:mb-8 p-4 sm:p-6 rounded-lg sm:rounded-xl bg-red-500/15 backdrop-blur-sm border border-red-300/20 text-red-100 shadow-lg">
+              <p className="text-responsive-sm">{error}</p>
             </div>
           )}
 
-          {/* Step Content - Fixed height container to prevent layout shift */}
-          <div className="mb-8 min-h-[220px] relative">
+          {/* Step Content - Responsive height container */}
+          <div className="mb-6 sm:mb-8 min-h-[120px] sm:min-h-[140px] md:min-h-[160px] relative">
             <AnimatePresence mode="wait" onExitComplete={() => setNavigationDirection(null)}>
               <div key={currentStep}>
                 {renderStep()}

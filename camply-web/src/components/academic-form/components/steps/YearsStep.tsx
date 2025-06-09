@@ -64,13 +64,13 @@ export const YearsStep = ({ formData, validationErrors, onFieldChange, autoFocus
         opacity: { duration: 0.3 },
         scale: { duration: 0.4 }
       }}
-      className="flex flex-col space-y-6"
+      className="spacing-responsive-md"
     >
       <LargeLabel>When did you start and when will you graduate?</LargeLabel>
       
-      <div className="space-y-5">
+      <div className="spacing-responsive-sm">
         <div>
-          <label className="text-base text-white/90 mb-2 block">Admission Year</label>
+          <label className="text-responsive-base text-white/90 mb-2 block">Admission Year</label>
           <LargeInput
             name="admission_year"
             placeholder="2020"
@@ -84,12 +84,12 @@ export const YearsStep = ({ formData, validationErrors, onFieldChange, autoFocus
             autoFocus={autoFocus}
           />
           {validationErrors.admission_year && (
-            <span className="text-red-400 text-sm mt-2">{validationErrors.admission_year}</span>
+            <span className="form-error-responsive text-red-400">{validationErrors.admission_year}</span>
           )}
         </div>
 
         <div>
-          <label className="text-base text-white/90 mb-2 block">Expected Graduation Year</label>
+          <label className="text-responsive-base text-white/90 mb-2 block">Expected Graduation Year</label>
           <LargeInput
             name="graduation_year"
             placeholder="2024"
@@ -102,7 +102,7 @@ export const YearsStep = ({ formData, validationErrors, onFieldChange, autoFocus
             className={validationErrors.graduation_year ? 'border-red-400 focus-visible:ring-red-400' : ''}
           />
           {validationErrors.graduation_year && (
-            <span className="text-red-400 text-sm mt-2">{validationErrors.graduation_year}</span>
+            <span className="form-error-responsive text-red-400">{validationErrors.graduation_year}</span>
           )}
         </div>
       </div>

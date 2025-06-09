@@ -26,44 +26,46 @@ export const NavigationControls = ({
   const isFinalStep = currentStep === totalSteps - 1;
 
   return (
-    <div className="flex justify-between items-center">
+    <div className="flex flex-col-reverse sm:flex-row justify-between items-center gap-3 sm:gap-0">
       <button
         onClick={onPrev}
         disabled={isFirstStep}
         className={cn(
-          "flex items-center space-x-2 px-6 py-3 rounded-lg text-white transition-all duration-200",
+          "flex items-center justify-center space-x-2 form-button-responsive text-white transition-smooth w-full sm:w-auto touch-target",
           isFirstStep 
-            ? "opacity-0 cursor-not-allowed" 
+            ? "opacity-0 cursor-not-allowed pointer-events-none" 
             : "bg-white/10 hover:bg-white/20 backdrop-blur-sm"
         )}
       >
-        <ChevronLeft className="h-5 w-5" />
-        <span>Back</span>
+        <ChevronLeft className="h-4 w-4 sm:h-5 sm:w-5" />
+        <span className="text-responsive-sm">Back</span>
       </button>
 
       {isFinalStep ? (
         <button
           onClick={onSubmit}
           disabled={!canProceed || loading || isValidating}
-          className="group/btn relative px-8 py-4 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+          className="group/btn relative form-button-responsive bg-gradient-to-br from-cyan-500 to-blue-600 font-semibold text-white shadow-lg hover:shadow-xl transition-smooth disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto touch-target"
         >
           {loading || isValidating ? (
-            <div className="flex items-center space-x-2">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-              <span>{isValidating ? 'Validating...' : 'Creating Profile...'}</span>
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-4 w-4 sm:h-5 sm:w-5 border-b-2 border-white"></div>
+              <span className="text-responsive-sm">
+                {isValidating ? 'Validating...' : 'Creating Profile...'}
+              </span>
             </div>
           ) : (
-            'Complete Registration'
+            <span className="text-responsive-sm">Complete Registration</span>
           )}
         </button>
       ) : (
         <button
           onClick={onNext}
           disabled={!canProceed}
-          className="group/btn relative flex items-center space-x-2 px-8 py-4 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+          className="group/btn relative flex items-center justify-center space-x-2 form-button-responsive bg-gradient-to-br from-cyan-500 to-blue-600 font-semibold text-white shadow-lg hover:shadow-xl transition-smooth disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto touch-target"
         >
-          <span>Next</span>
-          <ChevronRight className="h-5 w-5" />
+          <span className="text-responsive-sm">Next</span>
+          <ChevronRight className="h-4 w-4 sm:h-5 sm:w-5" />
         </button>
       )}
     </div>

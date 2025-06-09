@@ -62,11 +62,11 @@ export const PhoneStep = ({ formData, validationErrors, onFieldChange, autoFocus
         opacity: { duration: 0.3 },
         scale: { duration: 0.4 }
       }}
-      className="flex flex-col space-y-6"
+      className="spacing-responsive-sm"
     >
       <div>
         <LargeLabel htmlFor="phone_number">What's your phone number?</LargeLabel>
-        <p className="text-white/70 text-sm mt-1">We'll use this to send you updates (optional)</p>
+        <p className="text-white/70 text-responsive-xs mt-1">We'll use this to send you updates (optional)</p>
       </div>
       <LargeInput
         id="phone_number"
@@ -79,7 +79,7 @@ export const PhoneStep = ({ formData, validationErrors, onFieldChange, autoFocus
         autoFocus={autoFocus}
       />
       {validationErrors.phone_number && (
-        <span className="text-red-400 text-sm mt-2">{validationErrors.phone_number}</span>
+        <span className="form-error-responsive text-red-400">{validationErrors.phone_number}</span>
       )}
     </motion.div>
   );

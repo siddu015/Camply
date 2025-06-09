@@ -49,7 +49,7 @@ export const CollegeStep = ({ formData, validationErrors, onFieldChange, autoFoc
         opacity: { duration: 0.3 },
         scale: { duration: 0.4 }
       }}
-      className="flex flex-col space-y-6"
+      className="spacing-responsive-md"
     >
       <LargeLabel htmlFor="college_id">Which college do you attend?</LargeLabel>
       <LargeSelect
@@ -68,7 +68,7 @@ export const CollegeStep = ({ formData, validationErrors, onFieldChange, autoFoc
         ))}
       </LargeSelect>
       {validationErrors.college_id && (
-        <span className="text-red-400 text-sm mt-2">{validationErrors.college_id}</span>
+        <span className="form-error-responsive text-red-400">{validationErrors.college_id}</span>
       )}
     </motion.div>
   );

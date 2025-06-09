@@ -44,11 +44,11 @@ export const RollNumberStep = ({ formData, validationErrors, onFieldChange, auto
         opacity: { duration: 0.3 },
         scale: { duration: 0.4 }
       }}
-      className="flex flex-col space-y-6"
+      className="spacing-responsive-sm"
     >
       <div>
         <LargeLabel htmlFor="roll_number">What's your roll number?</LargeLabel>
-        <p className="text-white/70 text-sm mt-1">Your student ID or roll number</p>
+        <p className="text-white/70 text-responsive-xs mt-1">Your student ID or roll number</p>
       </div>
       <LargeInput
         id="roll_number"
@@ -61,7 +61,7 @@ export const RollNumberStep = ({ formData, validationErrors, onFieldChange, auto
         autoFocus={autoFocus}
       />
       {validationErrors.roll_number && (
-        <span className="text-red-400 text-sm mt-2">{validationErrors.roll_number}</span>
+        <span className="form-error-responsive text-red-400">{validationErrors.roll_number}</span>
       )}
     </motion.div>
   );

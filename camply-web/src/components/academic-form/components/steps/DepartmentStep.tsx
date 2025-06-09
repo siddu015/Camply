@@ -69,13 +69,13 @@ export const DepartmentStep = ({
         opacity: { duration: 0.3 },
         scale: { duration: 0.4 }
       }}
-      className="flex flex-col space-y-6"
+      className="spacing-responsive-md"
     >
       <LargeLabel>What's your field of study?</LargeLabel>
       
-      <div className="space-y-5">
+      <div className="spacing-responsive-sm">
         <div>
-          <label className="text-base text-white/90 mb-2 block">Department Category</label>
+          <label className="text-responsive-base text-white/90 mb-2 block">Department Category</label>
           <LargeSelect
             name="department_category"
             value={selectedDepartmentCategory}
@@ -91,12 +91,12 @@ export const DepartmentStep = ({
             ))}
           </LargeSelect>
           {validationErrors.department_name && (
-            <span className="text-red-400 text-sm mt-2">{validationErrors.department_name}</span>
+            <span className="form-error-responsive text-red-400">{validationErrors.department_name}</span>
           )}
         </div>
 
         <div>
-          <label className="text-base text-white/90 mb-2 block">Branch/Specialization</label>
+          <label className="text-responsive-base text-white/90 mb-2 block">Branch/Specialization</label>
           <LargeSelect
             name="branch_name"
             value={formData.branch_name}
@@ -112,7 +112,7 @@ export const DepartmentStep = ({
             ))}
           </LargeSelect>
           {validationErrors.branch_name && (
-            <span className="text-red-400 text-sm mt-2">{validationErrors.branch_name}</span>
+            <span className="form-error-responsive text-red-400">{validationErrors.branch_name}</span>
           )}
         </div>
       </div>

@@ -44,7 +44,7 @@ export const NameStep = ({ formData, validationErrors, onFieldChange, autoFocus,
         opacity: { duration: 0.3 },
         scale: { duration: 0.4 }
       }}
-      className="flex flex-col space-y-6"
+      className="spacing-responsive-sm"
     >
       <LargeLabel htmlFor="name">What's your full name?</LargeLabel>
       <LargeInput
@@ -58,7 +58,7 @@ export const NameStep = ({ formData, validationErrors, onFieldChange, autoFocus,
         autoFocus={autoFocus}
       />
       {validationErrors.name && (
-        <span className="text-red-400 text-sm mt-2">{validationErrors.name}</span>
+        <span className="form-error-responsive text-red-400">{validationErrors.name}</span>
       )}
     </motion.div>
   );
