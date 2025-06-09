@@ -385,7 +385,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
           {...props}
           disabled={disabled}
           className={cn(
-            "flex h-16 md:h-20 w-full rounded-md border border-white/10 bg-white/5 backdrop-blur-xl px-6 py-4 text-lg md:text-xl text-white transition duration-400 group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 shadow-lg relative placeholder:text-white/50",
+            "flex h-12 md:h-14 w-full rounded-md border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3 text-base md:text-lg text-white transition duration-400 group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 shadow-lg relative placeholder:text-white/50",
             "before:absolute before:inset-0 before:rounded-md before:opacity-10 before:mix-blend-soft-light before:pointer-events-none",
             `before:bg-[url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")]`,
             disabled && "bg-white/2 cursor-not-allowed opacity-50",
@@ -431,7 +431,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             {...props}
             disabled={disabled}
             className={cn(
-              "flex h-16 md:h-20 w-full rounded-md border border-white/10 bg-white/5 backdrop-blur-xl px-6 py-4 pr-12 text-lg md:text-xl text-white transition duration-400 group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 appearance-none shadow-lg relative",
+              "flex h-12 md:h-14 w-full rounded-md border border-white/10 bg-white/5 backdrop-blur-xl px-4 py-3 pr-10 text-base md:text-lg text-white transition duration-400 group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 appearance-none shadow-lg relative",
               "before:absolute before:inset-0 before:rounded-md before:opacity-10 before:mix-blend-soft-light before:pointer-events-none",
               `before:bg-[url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")]`,
               disabled && "bg-white/2 cursor-not-allowed opacity-50"
@@ -452,7 +452,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     <label 
       {...props}
       className={cn(
-        "text-2xl md:text-3xl font-semibold text-white drop-shadow-lg mb-4 block",
+        "text-xl md:text-2xl font-semibold text-white drop-shadow-lg mb-3 block",
         props.className
       )}
     >
@@ -471,7 +471,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col space-y-8"
+            className="flex flex-col space-y-6"
           >
             <LargeLabel htmlFor="name">What's your full name?</LargeLabel>
             <LargeInput
@@ -498,11 +498,11 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col space-y-8"
+            className="flex flex-col space-y-6"
           >
             <div>
               <LargeLabel htmlFor="phone_number">What's your phone number?</LargeLabel>
-              <p className="text-white/70 text-lg mt-2">We'll use this to send you updates (optional)</p>
+              <p className="text-white/70 text-sm mt-1">We'll use this to send you updates (optional)</p>
             </div>
             <LargeInput
               id="phone_number"
@@ -528,7 +528,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col space-y-8"
+            className="flex flex-col space-y-6"
           >
             <LargeLabel htmlFor="college_id">Which college do you attend?</LargeLabel>
             <LargeSelect
@@ -560,13 +560,13 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col space-y-8"
+            className="flex flex-col space-y-6"
           >
             <LargeLabel>What's your field of study?</LargeLabel>
             
-            <div className="space-y-6">
+            <div className="space-y-5">
               <div>
-                <label className="text-lg text-white/90 mb-3 block">Department Category</label>
+                <label className="text-base text-white/90 mb-2 block">Department Category</label>
                 <LargeSelect
                   name="department_category"
                   value={selectedDepartmentCategory}
@@ -587,7 +587,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
               </div>
 
               <div>
-                <label className="text-lg text-white/90 mb-3 block">Branch/Specialization</label>
+                <label className="text-base text-white/90 mb-2 block">Branch/Specialization</label>
                 <LargeSelect
                   name="branch_name"
                   value={formData.branch_name}
@@ -618,11 +618,11 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col space-y-8"
+            className="flex flex-col space-y-6"
           >
             <div>
               <LargeLabel htmlFor="roll_number">What's your roll number?</LargeLabel>
-              <p className="text-white/70 text-lg mt-2">Your student ID or roll number</p>
+              <p className="text-white/70 text-sm mt-1">Your student ID or roll number</p>
             </div>
             <LargeInput
               id="roll_number"
@@ -648,13 +648,13 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -50 }}
             transition={{ duration: 0.3 }}
-            className="flex flex-col space-y-8"
+            className="flex flex-col space-y-6"
           >
             <LargeLabel>When did you start and when will you graduate?</LargeLabel>
             
-            <div className="space-y-6">
-                             <div>
-                 <label className="text-lg text-white/90 mb-3 block">Admission Year</label>
+                        <div className="space-y-5">
+              <div>
+                <label className="text-base text-white/90 mb-2 block">Admission Year</label>
                  <LargeInput
                    name="admission_year"
                    placeholder="2020"
@@ -672,8 +672,8 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
                  )}
                </div>
 
-               <div>
-                 <label className="text-lg text-white/90 mb-3 block">Expected Graduation Year</label>
+                             <div>
+                <label className="text-base text-white/90 mb-2 block">Expected Graduation Year</label>
                  <LargeInput
                    name="graduation_year"
                    placeholder="2024"
@@ -700,7 +700,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
 
   return (
     <AuroraBackground>
-      <div className="mx-auto w-full max-w-4xl rounded-2xl bg-white/5 backdrop-blur-2xl p-8 md:p-16 shadow-2xl border border-white/10 relative overflow-hidden min-h-[600px]">
+      <div className="mx-auto w-full max-w-2xl rounded-2xl bg-white/3 backdrop-blur-xl p-6 md:p-10 shadow-xl border border-white/5 relative overflow-hidden min-h-[450px]">
         {/* Noise texture overlay */}
         <div className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none" 
              style={{
@@ -711,24 +711,24 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
         
         <div className="relative z-10">
           {/* Header */}
-          <div className="text-left mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-white drop-shadow-lg">
+          <div className="text-left mb-8">
+            <h2 className="text-2xl md:text-3xl font-black text-white drop-shadow-lg">
               Welcome to Camply
             </h2>
-            <p className="text-left mt-4 text-lg text-white/90 drop-shadow-md">
+            <p className="text-left mt-3 text-base text-white/90 drop-shadow-md">
               Let's set up your academic profile
             </p>
           </div>
 
           {/* Progress Indicator */}
-          <div className="mb-12">
-            <div className="flex items-center justify-between mb-4">
-              <span className="text-white/70 text-sm">Step {currentStep + 1} of {TOTAL_STEPS}</span>
-              <span className="text-white/70 text-sm">{Math.round(((currentStep + 1) / TOTAL_STEPS) * 100)}% complete</span>
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-white/70 text-xs">Step {currentStep + 1} of {TOTAL_STEPS}</span>
+              <span className="text-white/70 text-xs">{Math.round(((currentStep + 1) / TOTAL_STEPS) * 100)}% complete</span>
             </div>
-            <div className="w-full bg-white/10 rounded-full h-2">
+            <div className="w-full bg-white/10 rounded-full h-1.5">
               <motion.div 
-                className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full"
+                className="bg-gradient-to-r from-cyan-400 to-blue-500 h-1.5 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${((currentStep + 1) / TOTAL_STEPS) * 100}%` }}
                 transition={{ duration: 0.5, ease: "easeInOut" }}
@@ -737,7 +737,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
           </div>
 
           {/* Step Content */}
-          <div className="mb-12 min-h-[300px]">
+          <div className="mb-8 min-h-[220px]">
             <AnimatePresence mode="wait">
               {renderStep()}
             </AnimatePresence>
