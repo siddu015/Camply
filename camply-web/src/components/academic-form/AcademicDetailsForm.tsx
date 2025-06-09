@@ -230,7 +230,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
 
   return (
     <AuroraBackground>
-      <div className="mx-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-3xl rounded-lg sm:rounded-xl md:rounded-2xl bg-white/[0.02] backdrop-blur-md p-4 sm:p-6 md:p-8 lg:p-10 shadow-xl border border-white/[0.03] relative overflow-hidden min-h-[400px] sm:min-h-[450px] md:min-h-[500px]">
+      <div className="mx-auto w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-2xl xl:max-w-3xl rounded-lg sm:rounded-xl md:rounded-2xl bg-white/[0.015] backdrop-blur-sm p-4 sm:p-6 md:p-8 lg:p-10 shadow-xl border border-white/[0.02] relative overflow-hidden min-h-[400px] sm:min-h-[450px] md:min-h-[500px] mx-2 sm:mx-auto">
         {/* Noise texture overlay */}
         <div className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none" 
              style={{

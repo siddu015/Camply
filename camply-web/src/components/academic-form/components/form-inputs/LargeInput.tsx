@@ -40,14 +40,14 @@ export const LargeInput = ({ disabled = false, ...props }: LargeInputProps) => {
         disabled={disabled}
         className={cn(
           "form-input-responsive w-full",
-          "border border-white/10 bg-white/[0.02] backdrop-blur-md text-white transition-smooth",
+          "border border-white/10 bg-white/[0.015] backdrop-blur-sm text-white transition-smooth",
           "group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium",
           "focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none",
           "disabled:cursor-not-allowed disabled:opacity-50 shadow-lg relative placeholder:text-white/50",
           "before:absolute before:inset-0 before:rounded-md before:opacity-10 before:mix-blend-soft-light before:pointer-events-none",
           `before:bg-[url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")]`,
           "touch-target", // Ensures minimum touch target size
-          disabled && "bg-white/[0.01] cursor-not-allowed opacity-50",
+          disabled && "bg-white/[0.008] cursor-not-allowed opacity-50",
           props.className
         )}
       />
