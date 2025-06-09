@@ -1,11 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { UserFormData, College, DepartmentData } from '../types/database';
 import { supabase } from '../lib/supabase';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { cn } from '../lib/utils';
-import { useMotionTemplate, useMotionValue, motion } from "framer-motion";
+import { useMotionTemplate, useMotionValue, motion, AnimatePresence } from "framer-motion";
 import { AuroraBackground } from './ui/aurora-background';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface AcademicDetailsFormProps {
   onSubmit: (data: UserFormData) => Promise<void>;
@@ -14,7 +15,10 @@ interface AcademicDetailsFormProps {
   initialData?: Partial<UserFormData>;
 }
 
+const TOTAL_STEPS = 6;
+
 const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: AcademicDetailsFormProps) => {
+  const [currentStep, setCurrentStep] = useState(0);
   const [colleges, setColleges] = useState<College[]>([]);
   const [departments, setDepartments] = useState<DepartmentData>({});
   const [selectedDepartmentCategory, setSelectedDepartmentCategory] = useState<string>('');
@@ -23,6 +27,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
   // Add validation states
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isValidating, setIsValidating] = useState(false);
+  const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const [formData, setFormData] = useState<UserFormData>({
     name: initialData?.name || '',
@@ -91,7 +96,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             errors.phone_number = 'Phone number must be exactly 10 digits with +91 prefix';
           }
         }
-        // Phone number is now optional, so no error if empty
         break;
         
       case 'college_id':
@@ -113,11 +117,10 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
         break;
         
       case 'roll_number':
-        if (!value || value.trim().length < 1) {
-          errors.roll_number = 'Roll number is required';
-        } else if (value.trim().length > 20) {
+        if (value && value.trim().length > 20) {
           errors.roll_number = 'Roll number cannot exceed 20 characters';
         }
+        // Roll number is optional, so no required validation
         break;
         
       case 'admission_year':
@@ -126,6 +129,10 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
           errors.admission_year = 'Please enter a valid admission year (minimum 2000)';
         } else if (value > currentYear) {
           errors.admission_year = `Admission year cannot be greater than current year (${currentYear})`;
+        } else if (value.toString().length !== 4) {
+          errors.admission_year = 'Admission year must be exactly 4 digits';
+        } else if (!value.toString().startsWith('2')) {
+          errors.admission_year = 'Admission year must start with 2';
         }
         break;
         
@@ -134,25 +141,21 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
           errors.graduation_year = 'Please enter a valid graduation year (minimum 2020)';
         } else if (value > 2040) {
           errors.graduation_year = 'Graduation year cannot exceed 2040';
+        } else if (value.toString().length !== 4) {
+          errors.graduation_year = 'Graduation year must be exactly 4 digits';
+        } else if (!value.toString().startsWith('2')) {
+          errors.graduation_year = 'Graduation year must start with 2';
         } else if (formData.admission_year && value <= formData.admission_year) {
           errors.graduation_year = 'Graduation year must be after admission year';
+        } else if (formData.admission_year && (value - formData.admission_year) < 1) {
+          errors.graduation_year = 'There must be at least 1 year gap between admission and graduation';
+        } else if (formData.admission_year && value === formData.admission_year) {
+          errors.graduation_year = 'Graduation year cannot be the same as admission year';
         }
         break;
     }
     
     return errors;
-  };
-
-  const validateAllFields = () => {
-    const allErrors: Record<string, string> = {};
-    
-    Object.keys(formData).forEach(key => {
-      const fieldErrors = validateField(key, formData[key as keyof UserFormData]);
-      Object.assign(allErrors, fieldErrors);
-    });
-    
-    setValidationErrors(allErrors);
-    return Object.keys(allErrors).length === 0;
   };
 
   const checkPhoneNumberExists = async (phoneNumber: string): Promise<boolean> => {
@@ -175,18 +178,40 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsValidating(true);
-    
-    // Clear previous errors
-    setValidationErrors({});
-    
-    // Validate all fields
-    if (!validateAllFields()) {
-      setIsValidating(false);
-      return;
+  // Step validation functions
+  const canProceedFromStep = (step: number): boolean => {
+    switch (step) {
+      case 0: // Name step
+        return !!(formData.name && formData.name.trim().length >= 2 && !validationErrors.name);
+      case 1: // Phone step (optional)
+        return true; // Always can proceed since phone is optional
+      case 2: // College step
+        return !!(formData.college_id && !validationErrors.college_id);
+      case 3: // Department & Branch step
+        return !!(formData.department_name && formData.branch_name && !validationErrors.department_name && !validationErrors.branch_name);
+      case 4: // Roll number step (optional)
+        return true; // Always can proceed
+      case 5: // Academic years step
+        return !!(formData.admission_year && formData.graduation_year && !validationErrors.admission_year && !validationErrors.graduation_year);
+      default:
+        return false;
     }
+  };
+
+  const nextStep = () => {
+    if (currentStep < TOTAL_STEPS - 1 && canProceedFromStep(currentStep)) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleFinalSubmit = async () => {
+    setIsValidating(true);
     
     // Check if phone number already exists (only if phone number is provided)
     const phoneDigits = formData.phone_number ? formData.phone_number.replace(/^\+91\s?/, '') : '';
@@ -196,6 +221,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
         const phoneExists = await checkPhoneNumberExists(phoneDigits);
         if (phoneExists) {
           setValidationErrors({ phone_number: 'This phone number is already registered. Please use a different number.' });
+          setCurrentStep(1); // Go back to phone step
           setIsValidating(false);
           return;
         }
@@ -206,7 +232,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     
     const dataToSave = {
       ...formData,
-      phone_number: phoneDigits || undefined  // Save undefined if no phone number provided
+      phone_number: phoneDigits || undefined
     };
     
     try {
@@ -244,12 +270,25 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
         phoneValue = '+91 ' + match[1];
       }
       setFormData(prev => ({ ...prev, [name]: phoneValue }));
-    } else if (name === 'admission_year') {
-      const currentYear = new Date().getFullYear();
-      const yearValue = parseInt(value) || 0;
-      if (yearValue <= currentYear) {
-        setFormData(prev => ({ ...prev, [name]: yearValue }));
+    } else if (name === 'admission_year' || name === 'graduation_year') {
+      // Handle year fields with 4-digit limitation starting with 2
+      let yearValue = value.replace(/\D/g, ''); // Remove non-digits
+      
+      // Limit to 4 digits
+      if (yearValue.length > 4) {
+        yearValue = yearValue.slice(0, 4);
       }
+      
+      // Only auto-prefix with 2 if user types a single digit that's not 2
+      if (yearValue.length === 1 && yearValue !== '2') {
+        yearValue = '2' + yearValue;
+      }
+      
+      // Store as string to prevent display issues, convert to number for validation
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: yearValue ? parseInt(yearValue) : 0
+      }));
     } else {
       setFormData(prev => ({
         ...prev,
@@ -257,39 +296,54 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
       }));
     }
     
-    // Real-time validation for the changed field
-    setTimeout(() => {
+    // Clear previous validation timeout
+    if (validationTimeoutRef.current) {
+      clearTimeout(validationTimeoutRef.current);
+    }
+    
+    // Real-time validation for the changed field (debounced)
+    validationTimeoutRef.current = setTimeout(() => {
       const fieldErrors = validateField(name, name === 'phone_number' ? 
         (value.startsWith('+91') ? value : `+91 ${value.replace(/^\+91\s?/, '')}`) : 
         (type === 'number' ? parseInt(value) || 0 : value));
       
-      setValidationErrors(prev => ({
-        ...prev,
-        ...fieldErrors
-      }));
-    }, 500);
+      // Only update validation errors if there are actual changes
+      setValidationErrors(prev => {
+        const hasChanges = Object.keys(fieldErrors).length > 0 || prev[name];
+        if (!hasChanges) return prev;
+        
+        return {
+          ...prev,
+          ...fieldErrors
+        };
+      });
+    }, 300); // Reduced timeout for better responsiveness
   };
 
-  const handleCollegeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const collegeId = e.target.value;
+  const handleSelectChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const { name, value } = e.target;
     
-    // Clear field-specific error when user makes selection
-    if (validationErrors.college_id) {
+    if (validationErrors[name]) {
       setValidationErrors(prev => {
         const newErrors = { ...prev };
-        delete newErrors.college_id;
+        delete newErrors[name];
         return newErrors;
       });
     }
     
-    setFormData(prev => ({
-      ...prev,
-      college_id: collegeId
-    }));
+    if (name === 'department_category') {
+      setSelectedDepartmentCategory(value);
+      setFormData(prev => ({
+        ...prev,
+        department_name: value,
+        branch_name: ''
+      }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+    }
     
-    // Validate the field
     setTimeout(() => {
-      const fieldErrors = validateField('college_id', collegeId);
+      const fieldErrors = validateField(name === 'department_category' ? 'department_name' : name, value);
       setValidationErrors(prev => ({
         ...prev,
         ...fieldErrors
@@ -297,66 +351,53 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     }, 100);
   };
 
-  const handleDepartmentCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const category = e.target.value;
-    
-    // Clear field-specific errors
-    if (validationErrors.department_name || validationErrors.branch_name) {
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.department_name;
-        delete newErrors.branch_name;
-        return newErrors;
-      });
-    }
-    
-    setSelectedDepartmentCategory(category);
-    
-    // Reset department and branch when category changes
-    setFormData(prev => ({
-      ...prev,
-      department_name: category,
-      branch_name: ''
-    }));
-    
-    // Validate the field
-    setTimeout(() => {
-      const fieldErrors = validateField('department_name', category);
-      setValidationErrors(prev => ({
-        ...prev,
-        ...fieldErrors
-      }));
-    }, 100);
-  };
+  // Enhanced Input Component with larger sizing
+  const LargeInput = useCallback(({ children, disabled = false, ...props }: React.InputHTMLAttributes<HTMLInputElement> & { disabled?: boolean }) => {
+    const radius = 100;
+    const [visible, setVisible] = useState(false);
 
-  const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const branch = e.target.value;
-    
-    // Clear field-specific error when user makes selection
-    if (validationErrors.branch_name) {
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors.branch_name;
-        return newErrors;
-      });
-    }
-    
-    setFormData(prev => ({
-      ...prev,
-      branch_name: branch
-    }));
-    
-    // Validate the field
-    setTimeout(() => {
-      const fieldErrors = validateField('branch_name', branch);
-      setValidationErrors(prev => ({
-        ...prev,
-        ...fieldErrors
-      }));
-    }, 100);
-  };
+    let mouseX = useMotionValue(0);
+    let mouseY = useMotionValue(0);
 
-  const SelectInput = ({ children, disabled = false, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { disabled?: boolean }) => {
+    const handleMouseMove = useCallback(({ currentTarget, clientX, clientY }: any) => {
+      let { left, top } = currentTarget.getBoundingClientRect();
+      mouseX.set(clientX - left);
+      mouseY.set(clientY - top);
+    }, [mouseX, mouseY]);
+
+    return (
+      <motion.div
+        style={{
+          background: useMotionTemplate`
+            radial-gradient(
+              ${visible ? radius + "px" : "0px"} circle at ${mouseX}px ${mouseY}px,
+              rgba(255, 255, 255, 0.2),
+              transparent 80%
+            )
+          `,
+        }}
+        onMouseMove={handleMouseMove}
+        onMouseEnter={() => setVisible(true)}
+        onMouseLeave={() => setVisible(false)}
+        className="group/input rounded-lg p-[2px] transition duration-300"
+      >
+        <input
+          {...props}
+          disabled={disabled}
+          className={cn(
+            "flex h-16 md:h-20 w-full rounded-md border border-white/10 bg-white/5 backdrop-blur-xl px-6 py-4 text-lg md:text-xl text-white transition duration-400 group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 shadow-lg relative placeholder:text-white/50",
+            "before:absolute before:inset-0 before:rounded-md before:opacity-10 before:mix-blend-soft-light before:pointer-events-none",
+            `before:bg-[url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")]`,
+            disabled && "bg-white/2 cursor-not-allowed opacity-50",
+            props.className
+          )}
+        />
+      </motion.div>
+    );
+  }, []);
+
+  // Enhanced Select Component with larger sizing
+  const LargeSelect = ({ children, disabled = false, ...props }: React.SelectHTMLAttributes<HTMLSelectElement> & { disabled?: boolean }) => {
     const radius = 100;
     const [visible, setVisible] = useState(false);
 
@@ -365,7 +406,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
 
     function handleMouseMove({ currentTarget, clientX, clientY }: any) {
       let { left, top } = currentTarget.getBoundingClientRect();
-
       mouseX.set(clientX - left);
       mouseY.set(clientY - top);
     }
@@ -374,12 +414,12 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
       <motion.div
         style={{
           background: useMotionTemplate`
-        radial-gradient(
-          ${visible ? radius + "px" : "0px"} circle at ${mouseX}px ${mouseY}px,
-          rgba(255, 255, 255, 0.2),
-          transparent 80%
-        )
-      `,
+            radial-gradient(
+              ${visible ? radius + "px" : "0px"} circle at ${mouseX}px ${mouseY}px,
+              rgba(255, 255, 255, 0.2),
+              transparent 80%
+            )
+          `,
         }}
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setVisible(true)}
@@ -391,7 +431,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             {...props}
             disabled={disabled}
             className={cn(
-              "flex h-10 w-full rounded-md border border-white/10 bg-white/5 backdrop-blur-xl px-3 py-2 pr-8 text-sm text-white transition duration-400 group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 appearance-none shadow-lg relative",
+              "flex h-16 md:h-20 w-full rounded-md border border-white/10 bg-white/5 backdrop-blur-xl px-6 py-4 pr-12 text-lg md:text-xl text-white transition duration-400 group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-50 appearance-none shadow-lg relative",
               "before:absolute before:inset-0 before:rounded-md before:opacity-10 before:mix-blend-soft-light before:pointer-events-none",
               `before:bg-[url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")]`,
               disabled && "bg-white/2 cursor-not-allowed opacity-50"
@@ -399,19 +439,268 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
           >
             {children}
           </select>
-          <div className="absolute inset-y-0 right-1 flex items-center pointer-events-none">
-            <svg className="h-4 w-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-            </svg>
+          <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none">
+            <ChevronRight className="h-6 w-6 text-white/70 rotate-90" />
           </div>
         </div>
       </motion.div>
     );
   };
 
+  // Large Label Component
+  const LargeLabel = ({ children, ...props }: React.LabelHTMLAttributes<HTMLLabelElement>) => (
+    <label 
+      {...props}
+      className={cn(
+        "text-2xl md:text-3xl font-semibold text-white drop-shadow-lg mb-4 block",
+        props.className
+      )}
+    >
+      {children}
+    </label>
+  );
+
+  // Step Components
+  const renderStep = () => {
+    switch (currentStep) {
+      case 0: // Name Step
+        return (
+          <motion.div
+            key="name-step"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col space-y-8"
+          >
+            <LargeLabel htmlFor="name">What's your full name?</LargeLabel>
+            <LargeInput
+              id="name"
+              name="name"
+              placeholder="Enter your full name"
+              type="text"
+              value={formData.name}
+              onChange={handleChange}
+              className={validationErrors.name ? 'border-red-400 focus-visible:ring-red-400' : ''}
+              autoFocus
+            />
+            {validationErrors.name && (
+              <span className="text-red-400 text-sm mt-2">{validationErrors.name}</span>
+            )}
+          </motion.div>
+        );
+
+      case 1: // Phone Step
+        return (
+          <motion.div
+            key="phone-step"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col space-y-8"
+          >
+            <div>
+              <LargeLabel htmlFor="phone_number">What's your phone number?</LargeLabel>
+              <p className="text-white/70 text-lg mt-2">We'll use this to send you updates (optional)</p>
+            </div>
+            <LargeInput
+              id="phone_number"
+              name="phone_number"
+              placeholder="+91 99999 99999"
+              type="tel"
+              value={formData.phone_number}
+              onChange={handleChange}
+              className={validationErrors.phone_number ? 'border-red-400 focus-visible:ring-red-400' : ''}
+              autoFocus
+            />
+            {validationErrors.phone_number && (
+              <span className="text-red-400 text-sm mt-2">{validationErrors.phone_number}</span>
+            )}
+          </motion.div>
+        );
+
+      case 2: // College Step
+        return (
+          <motion.div
+            key="college-step"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col space-y-8"
+          >
+            <LargeLabel htmlFor="college_id">Which college do you attend?</LargeLabel>
+            <LargeSelect
+              id="college_id"
+              name="college_id"
+              value={formData.college_id}
+              onChange={handleSelectChange}
+              className={validationErrors.college_id ? 'border-red-400' : ''}
+              autoFocus
+            >
+              <option value="">Select your college</option>
+              {colleges.map((college) => (
+                <option key={college.college_id} value={college.college_id} className="bg-gray-800 text-white">
+                  {college.name} {college.city && college.state && `- ${college.city}, ${college.state}`}
+                </option>
+              ))}
+            </LargeSelect>
+            {validationErrors.college_id && (
+              <span className="text-red-400 text-sm mt-2">{validationErrors.college_id}</span>
+            )}
+          </motion.div>
+        );
+
+      case 3: // Department & Branch Step
+        return (
+          <motion.div
+            key="department-step"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col space-y-8"
+          >
+            <LargeLabel>What's your field of study?</LargeLabel>
+            
+            <div className="space-y-6">
+              <div>
+                <label className="text-lg text-white/90 mb-3 block">Department Category</label>
+                <LargeSelect
+                  name="department_category"
+                  value={selectedDepartmentCategory}
+                  onChange={handleSelectChange}
+                  className={validationErrors.department_name ? 'border-red-400' : ''}
+                  autoFocus
+                >
+                  <option value="">Select department category</option>
+                  {Object.keys(departments).map((category) => (
+                    <option key={category} value={category} className="bg-gray-800 text-white">
+                      {category}
+                    </option>
+                  ))}
+                </LargeSelect>
+                {validationErrors.department_name && (
+                  <span className="text-red-400 text-sm mt-2">{validationErrors.department_name}</span>
+                )}
+              </div>
+
+              <div>
+                <label className="text-lg text-white/90 mb-3 block">Branch/Specialization</label>
+                <LargeSelect
+                  name="branch_name"
+                  value={formData.branch_name}
+                  onChange={handleSelectChange}
+                  disabled={!selectedDepartmentCategory}
+                  className={validationErrors.branch_name ? 'border-red-400' : ''}
+                >
+                  <option value="">Select your branch</option>
+                  {availableBranches.map((branch) => (
+                    <option key={branch} value={branch} className="bg-gray-800 text-white">
+                      {branch}
+                    </option>
+                  ))}
+                </LargeSelect>
+                {validationErrors.branch_name && (
+                  <span className="text-red-400 text-sm mt-2">{validationErrors.branch_name}</span>
+                )}
+              </div>
+            </div>
+          </motion.div>
+        );
+
+      case 4: // Roll Number Step
+        return (
+          <motion.div
+            key="roll-step"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col space-y-8"
+          >
+            <div>
+              <LargeLabel htmlFor="roll_number">What's your roll number?</LargeLabel>
+              <p className="text-white/70 text-lg mt-2">Your student ID or roll number</p>
+            </div>
+            <LargeInput
+              id="roll_number"
+              name="roll_number"
+              placeholder="Enter your roll number"
+              type="text"
+              value={formData.roll_number}
+              onChange={handleChange}
+              className={validationErrors.roll_number ? 'border-red-400 focus-visible:ring-red-400' : ''}
+              autoFocus
+            />
+            {validationErrors.roll_number && (
+              <span className="text-red-400 text-sm mt-2">{validationErrors.roll_number}</span>
+            )}
+          </motion.div>
+        );
+
+      case 5: // Academic Years Step
+        return (
+          <motion.div
+            key="years-step"
+            initial={{ opacity: 0, x: 50 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -50 }}
+            transition={{ duration: 0.3 }}
+            className="flex flex-col space-y-8"
+          >
+            <LargeLabel>When did you start and when will you graduate?</LargeLabel>
+            
+            <div className="space-y-6">
+                             <div>
+                 <label className="text-lg text-white/90 mb-3 block">Admission Year</label>
+                 <LargeInput
+                   name="admission_year"
+                   placeholder="2020"
+                   type="text"
+                   inputMode="numeric"
+                   pattern="[2][0-9]{3}"
+                   maxLength={4}
+                   value={formData.admission_year === 0 ? '' : formData.admission_year.toString()}
+                   onChange={handleChange}
+                   className={validationErrors.admission_year ? 'border-red-400 focus-visible:ring-red-400' : ''}
+                   autoFocus
+                 />
+                 {validationErrors.admission_year && (
+                   <span className="text-red-400 text-sm mt-2">{validationErrors.admission_year}</span>
+                 )}
+               </div>
+
+               <div>
+                 <label className="text-lg text-white/90 mb-3 block">Expected Graduation Year</label>
+                 <LargeInput
+                   name="graduation_year"
+                   placeholder="2024"
+                   type="text"
+                   inputMode="numeric"
+                   pattern="[2][0-9]{3}"
+                   maxLength={4}
+                   value={formData.graduation_year === 0 ? '' : formData.graduation_year.toString()}
+                   onChange={handleChange}
+                   className={validationErrors.graduation_year ? 'border-red-400 focus-visible:ring-red-400' : ''}
+                 />
+                 {validationErrors.graduation_year && (
+                   <span className="text-red-400 text-sm mt-2">{validationErrors.graduation_year}</span>
+                 )}
+               </div>
+            </div>
+          </motion.div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
   return (
     <AuroraBackground>
-      <div className="mx-auto w-full max-w-2xl rounded-2xl bg-white/5 backdrop-blur-2xl p-4 shadow-2xl border border-white/10 md:p-8 relative overflow-hidden">
+      <div className="mx-auto w-full max-w-4xl rounded-2xl bg-white/5 backdrop-blur-2xl p-8 md:p-16 shadow-2xl border border-white/10 relative overflow-hidden min-h-[600px]">
         {/* Noise texture overlay */}
         <div className="absolute inset-0 opacity-20 mix-blend-soft-light pointer-events-none" 
              style={{
@@ -421,198 +710,81 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
         </div>
         
         <div className="relative z-10">
-          <div className="text-left mb-8">
-            <h2 className="text-2xl font-black text-white drop-shadow-lg">
+          {/* Header */}
+          <div className="text-left mb-12">
+            <h2 className="text-3xl md:text-4xl font-black text-white drop-shadow-lg">
               Welcome to Camply
             </h2>
-            <p className="text-left mt-2 text-sm text-white/90 drop-shadow-md">
-              Please provide your academic information to get started with your campus adventures
+            <p className="text-left mt-4 text-lg text-white/90 drop-shadow-md">
+              Let's set up your academic profile
             </p>
           </div>
 
-          {error && (
-            <div className="mb-6 p-4 rounded-md bg-red-500/15 backdrop-blur-sm border border-red-300/20 text-red-100 shadow-lg">
-              {error}
+          {/* Progress Indicator */}
+          <div className="mb-12">
+            <div className="flex items-center justify-between mb-4">
+              <span className="text-white/70 text-sm">Step {currentStep + 1} of {TOTAL_STEPS}</span>
+              <span className="text-white/70 text-sm">{Math.round(((currentStep + 1) / TOTAL_STEPS) * 100)}% complete</span>
             </div>
-          )}
-
-          <form onSubmit={handleSubmit} className="my-8">
-            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
-              <div className="flex flex-col space-y-2 w-full">
-                <Label htmlFor="name">Full Name *</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  placeholder="Enter your full name"
-                  type="text"
-                  required
-                  value={formData.name}
-                  onChange={handleChange}
-                  className={validationErrors.name ? 'border-red-400 focus-visible:ring-red-400' : ''}
-                />
-                {validationErrors.name && (
-                  <span className="text-red-400 text-xs mt-1">{validationErrors.name}</span>
-                )}
-              </div>
-              <div className="flex flex-col space-y-2 w-full">
-                <Label htmlFor="phone_number">Phone Number</Label>
-                <Input
-                  id="phone_number"
-                  name="phone_number"
-                  placeholder="+91 99999 99999"
-                  type="tel"
-                  value={formData.phone_number}
-                  onChange={handleChange}
-                  className={validationErrors.phone_number ? 'border-red-400 focus-visible:ring-red-400' : ''}
-                />
-                {validationErrors.phone_number && (
-                  <span className="text-red-400 text-xs mt-1">{validationErrors.phone_number}</span>
-                )}
-              </div>
+            <div className="w-full bg-white/10 rounded-full h-2">
+              <motion.div 
+                className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full"
+                initial={{ width: 0 }}
+                animate={{ width: `${((currentStep + 1) / TOTAL_STEPS) * 100}%` }}
+                transition={{ duration: 0.5, ease: "easeInOut" }}
+              />
             </div>
+          </div>
 
-            <div className="flex flex-col space-y-2 mb-4 w-full">
-              <Label htmlFor="college_id">College/University *</Label>
-              <SelectInput
-                id="college_id"
-                name="college_id"
-                className={`bg-gray-100 dark:bg-zinc-900 ${validationErrors.college_id ? 'border-red-400' : ''}`}
-                required
-                value={formData.college_id}
-                onChange={handleCollegeChange}
-              >
-                <option value="">Select your college</option>
-                {colleges.map((college) => (
-                  <option key={college.college_id} value={college.college_id}>
-                    {college.name} {college.city && college.state && `- ${college.city}, ${college.state}`}
-                  </option>
-                ))}
-              </SelectInput>
-              {validationErrors.college_id && (
-                <span className="text-red-400 text-xs mt-1">{validationErrors.college_id}</span>
-              )}
-            </div>
+          {/* Step Content */}
+          <div className="mb-12 min-h-[300px]">
+            <AnimatePresence mode="wait">
+              {renderStep()}
+            </AnimatePresence>
+          </div>
 
-            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
-              <div className="flex flex-col space-y-2 w-full">
-                <Label htmlFor="department_category">Department Category *</Label>
-                <SelectInput
-                  id="department_category"
-                  required
-                  value={selectedDepartmentCategory}
-                  onChange={handleDepartmentCategoryChange}
-                  className={validationErrors.department_name ? 'border-red-400' : ''}
-                >
-                  <option value="">Select department category</option>
-                  {Object.keys(departments).map((category) => (
-                    <option key={category} value={category}>
-                      {category}
-                    </option>
-                  ))}
-                </SelectInput>
-                {validationErrors.department_name && (
-                  <span className="text-red-400 text-xs mt-1">{validationErrors.department_name}</span>
-                )}
-              </div>
-              <div className="flex flex-col space-y-2 w-full">
-                <Label htmlFor="branch_name">Branch/Specialization *</Label>
-                <SelectInput
-                  id="branch_name"
-                  name="branch_name"
-                  required
-                  value={formData.branch_name}
-                  onChange={handleBranchChange}
-                  disabled={!selectedDepartmentCategory}
-                  className={validationErrors.branch_name ? 'border-red-400' : ''}
-                >
-                  <option value="">Select your branch</option>
-                  {availableBranches.map((branch) => (
-                    <option key={branch} value={branch}>
-                      {branch}
-                    </option>
-                  ))}
-                </SelectInput>
-                {validationErrors.branch_name && (
-                  <span className="text-red-400 text-xs mt-1">{validationErrors.branch_name}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-4">
-              <div className="flex flex-col space-y-2 w-full">
-                <Label htmlFor="roll_number">Roll Number *</Label>
-                <Input
-                  id="roll_number"
-                  name="roll_number"
-                  placeholder="Your roll number"
-                  type="text"
-                  required
-                  value={formData.roll_number}
-                  onChange={handleChange}
-                  className={validationErrors.roll_number ? 'border-red-400 focus-visible:ring-red-400' : ''}
-                />
-                {validationErrors.roll_number && (
-                  <span className="text-red-400 text-xs mt-1">{validationErrors.roll_number}</span>
-                )}
-              </div>
-            </div>
-
-            <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-2 mb-8">
-              <div className="flex flex-col space-y-2 w-full">
-                <Label htmlFor="admission_year">Admission Year *</Label>
-                <Input
-                  id="admission_year"
-                  name="admission_year"
-                  placeholder="2020"
-                  type="number"
-                  required
-                  min="2000"
-                  max={new Date().getFullYear()}
-                  value={formData.admission_year}
-                  onChange={handleChange}
-                  className={validationErrors.admission_year ? 'border-red-400 focus-visible:ring-red-400' : ''}
-                />
-                {validationErrors.admission_year && (
-                  <span className="text-red-400 text-xs mt-1">{validationErrors.admission_year}</span>
-                )}
-              </div>
-              <div className="flex flex-col space-y-2 w-full">
-                <Label htmlFor="graduation_year">Expected Graduation Year *</Label>
-                <Input
-                  id="graduation_year"
-                  name="graduation_year"
-                  placeholder="2024"
-                  type="number"
-                  required
-                  min="2020"
-                  max="2040"
-                  value={formData.graduation_year}
-                  onChange={handleChange}
-                  className={validationErrors.graduation_year ? 'border-red-400 focus-visible:ring-red-400' : ''}
-                />
-                {validationErrors.graduation_year && (
-                  <span className="text-red-400 text-xs mt-1">{validationErrors.graduation_year}</span>
-                )}
-              </div>
-            </div>
-
+          {/* Navigation */}
+          <div className="flex justify-between items-center">
             <button
-              className="group/btn relative block h-10 w-full rounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_var(--zinc-800)_inset,0px_-1px_0px_0px_var(--zinc-800)_inset] disabled:opacity-50 disabled:cursor-not-allowed"
-              type="submit"
-              disabled={loading || isValidating || Object.keys(validationErrors).filter(key => key !== 'phone_number').length > 0}
-            >
-              {loading || isValidating ? (
-                <div className="flex items-center justify-center">
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  {isValidating ? 'Validating...' : 'Saving Details...'}
-                </div>
-              ) : (
-                'Save Academic Details →'
+              onClick={prevStep}
+              disabled={currentStep === 0}
+              className={cn(
+                "flex items-center space-x-2 px-6 py-3 rounded-lg text-white transition-all duration-200",
+                currentStep === 0 
+                  ? "opacity-0 cursor-not-allowed" 
+                  : "bg-white/10 hover:bg-white/20 backdrop-blur-sm"
               )}
-              <span className="absolute inset-x-0 -bottom-px block h-px w-full bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-0 transition duration-500 group-hover/btn:opacity-100" />
-              <span className="absolute inset-x-10 -bottom-px mx-auto block h-px w-1/2 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-0 blur-sm transition duration-500 group-hover/btn:opacity-100" />
+            >
+              <ChevronLeft className="h-5 w-5" />
+              <span>Back</span>
             </button>
-          </form>
+
+            {currentStep === TOTAL_STEPS - 1 ? (
+              <button
+                onClick={handleFinalSubmit}
+                disabled={!canProceedFromStep(currentStep) || loading || isValidating}
+                className="group/btn relative px-8 py-4 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+              >
+                {loading || isValidating ? (
+                  <div className="flex items-center space-x-2">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    <span>{isValidating ? 'Validating...' : 'Creating Profile...'}</span>
+                  </div>
+                ) : (
+                  'Complete Registration'
+                )}
+              </button>
+            ) : (
+              <button
+                onClick={nextStep}
+                disabled={!canProceedFromStep(currentStep)}
+                className="group/btn relative flex items-center space-x-2 px-8 py-4 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 font-semibold text-white shadow-lg hover:shadow-xl transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+              >
+                <span>Next</span>
+                <ChevronRight className="h-5 w-5" />
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </AuroraBackground>
