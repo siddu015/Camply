@@ -2,6 +2,7 @@ import { useLocation } from "react-router-dom"
 import { ChevronRight } from "lucide-react"
 import { Separator } from "./ui/separator"
 import { SidebarTrigger } from "./ui/sidebar"
+import { ThemeToggle } from "../../../components/theme-toggle"
 
 const routeTitles: Record<string, { title: string; parent?: string }> = {
   "/desk": { title: "Desk" },
@@ -46,6 +47,9 @@ export function SiteHeader() {
               )}
             </div>
           ))}
+        </div>
+        <div className="ml-auto">
+          <ThemeToggle />
         </div>
       </div>
     </header>

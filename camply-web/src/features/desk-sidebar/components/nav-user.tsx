@@ -1,8 +1,9 @@
 "use client"
 
-import { LogOutIcon, MoreVerticalIcon, SettingsIcon, UserCircleIcon } from "lucide-react"
+import { LogOutIcon, MoreVerticalIcon, SettingsIcon, UserCircleIcon, Moon, Sun } from "lucide-react"
 import { signOut } from "../../../lib/supabase"
 import { useState } from "react"
+import { useTheme } from "../../../lib/theme-provider"
 
 import { Avatar, AvatarFallback, AvatarImage } from "../../sidebar/components/ui/avatar"
 import {
@@ -35,6 +36,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const { theme, setTheme } = useTheme()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
 
@@ -102,6 +104,10 @@ export function NavUser({
             <DropdownMenuItem>
               <SettingsIcon />
               Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => setTheme(theme === "light" ? "dark" : "light")}>
+              {theme === "light" ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+              {theme === "light" ? "Dark" : "Light"} Mode
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => setShowLogoutDialog(true)}>

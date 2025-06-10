@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import { useUserData } from './hooks/useUserData';
+import { ThemeProvider } from './lib/theme-provider';
 import Onboarding from './pages/Onboarding';
 import LandingPage from './pages/LandingPage';
 import { Layout } from './features/desk-sidebar/components/Layout';
@@ -44,20 +45,22 @@ function App() {
   }
 
   return (
-    <Router>
-      <Routes>
-        {!session ? (
-          // Unauthenticated routes
-          <>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </>
-        ) : (
-          // Authenticated routes with shared user data
-          <Route path="/*" element={<AuthenticatedRoutes session={session} />} />
-        )}
-      </Routes>
-    </Router>
+    <ThemeProvider defaultTheme="dark" storageKey="camply-ui-theme">
+      <Router>
+        <Routes>
+          {!session ? (
+            // Unauthenticated routes
+            <>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </>
+          ) : (
+            // Authenticated routes with shared user data
+            <Route path="/*" element={<AuthenticatedRoutes session={session} />} />
+          )}
+        </Routes>
+      </Router>
+    </ThemeProvider>
   );
 }
 
