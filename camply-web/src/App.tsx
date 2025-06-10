@@ -3,11 +3,17 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import type { Session } from '@supabase/supabase-js';
 import { supabase } from './lib/supabase';
 import { useUserData } from './hooks/useUserData';
-import Home from './pages/Home';
-import Campus from './pages/Campus';
-import Desk from './pages/Desk';
 import Onboarding from './pages/Onboarding';
 import LandingPage from './pages/LandingPage';
+
+// Simple welcome component
+const Welcome = ({ session }: { session: Session }) => {
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <p className="text-2xl text-gray-800">Welcome to Camply</p>
+    </div>
+  );
+};
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -51,11 +57,9 @@ function App() {
           // Authenticated routes with onboarding check
           <>
             <Route path="/onboarding" element={<Onboarding session={session} />} />
-            <Route path="/home" element={<ProtectedRoute session={session} component={Home} />} />
-            <Route path="/campus" element={<ProtectedRoute session={session} component={Campus} />} />
-            <Route path="/desk" element={<ProtectedRoute session={session} component={Desk} />} />
-            <Route path="/" element={<Navigate to="/home" replace />} />
-            <Route path="/login" element={<Navigate to="/home" replace />} />
+            <Route path="/" element={<ProtectedRoute session={session} component={Welcome} />} />
+            <Route path="/home" element={<ProtectedRoute session={session} component={Welcome} />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
           </>
         )}
       </Routes>
