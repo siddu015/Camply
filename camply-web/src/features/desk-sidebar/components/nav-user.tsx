@@ -15,15 +15,15 @@ import {
   DropdownMenuTrigger,
 } from "../../sidebar/components/ui/dropdown-menu"
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "../../../components/ui/alert-dialog"
+  LogoutDialog,
+  LogoutDialogAction,
+  LogoutDialogCancel,
+  LogoutDialogContent,
+  LogoutDialogDescription,
+  LogoutDialogFooter,
+  LogoutDialogHeader,
+  LogoutDialogTitle,
+} from "../../../components/ui/logout-dialog-adaptive"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "../../sidebar/components/ui/sidebar"
 
 export function NavUser({
@@ -120,28 +120,28 @@ export function NavUser({
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-              <AlertDialogDescription>
+        <LogoutDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+          <LogoutDialogContent>
+            <LogoutDialogHeader>
+              <LogoutDialogTitle>Are you absolutely sure?</LogoutDialogTitle>
+              <LogoutDialogDescription>
                 This action cannot be undone. This will permanently delete your account and remove your data from our servers.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter className="gap-3">
-              <AlertDialogCancel className="flex-1 h-10 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-800">
+              </LogoutDialogDescription>
+            </LogoutDialogHeader>
+            <LogoutDialogFooter className="gap-3">
+              <LogoutDialogCancel className="flex-1 h-10 bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 hover:text-gray-800">
                 Cancel
-              </AlertDialogCancel>
-              <AlertDialogAction 
+              </LogoutDialogCancel>
+              <LogoutDialogAction 
                 onClick={handleLogout}
                 disabled={isLoggingOut}
                 className="flex-1 h-10 bg-black text-white hover:bg-black/80 disabled:bg-black/50"
               >
                 {isLoggingOut ? "Logging out..." : "Logout"}
-              </AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
+              </LogoutDialogAction>
+            </LogoutDialogFooter>
+          </LogoutDialogContent>
+        </LogoutDialog>
       </SidebarMenuItem>
     </SidebarMenu>
   )
