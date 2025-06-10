@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from "framer-motion";
 import { supabase } from '../../lib/supabase';
-import { AuroraBackground } from '../ui/aurora-background';
+import { AuroraBackground } from '../../components/ui/aurora-background';
 import { useFormValidation } from './hooks/useFormValidation';
 import { ProgressIndicator } from './components/ProgressIndicator';
 import { NavigationControls } from './components/NavigationControls';
