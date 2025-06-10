@@ -22,7 +22,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "../../sidebar/components/ui/alert-dialog"
+} from "../../../components/ui/alert-dialog"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "../../sidebar/components/ui/sidebar"
 
 export function NavUser({
