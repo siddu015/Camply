@@ -50,7 +50,11 @@ export function Layout({ children, user }: LayoutProps) {
       />
       <SidebarInset>
         <SiteHeader />
-        <main className="flex flex-1 flex-col">{children}</main>
+        <main className="flex flex-1 flex-col transition-smooth">
+          <div className="flex-1 flex items-center justify-center transition-smooth duration-200 ease-in-out p-6">
+            {children}
+          </div>
+        </main>
       </SidebarInset>
     </SidebarProvider>
   )

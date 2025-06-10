@@ -5,11 +5,11 @@ import { supabase } from './lib/supabase';
 import { useUserData } from './hooks/useUserData';
 import Onboarding from './pages/Onboarding';
 import LandingPage from './pages/LandingPage';
-import { withSidebar } from './features/desk-sidebar/views/WithSidebar';
+import { Layout } from './features/desk-sidebar/components/Layout';
+import { Desk } from './features/desk-sidebar/views/Desk';
 import { AcademicOverview } from './features/desk-sidebar/views/AcademicOverview';
 import { CurrentSemester } from './features/desk-sidebar/views/CurrentSemester';
 import { Courses } from './features/desk-sidebar/views/Courses';
-import { Dashboard } from './features/desk-sidebar/views/Dashboard';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -34,8 +34,11 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-800">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -50,49 +53,60 @@ function App() {
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (
-          // Authenticated routes with onboarding check
-          <>
-            <Route path="/onboarding" element={<Onboarding session={session} />} />
-            <Route path="/" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
-            <Route path="/home" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
-            <Route path="/dashboard" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
-            <Route path="/academic-overview" element={<ProtectedRoute session={session} component={withSidebar(AcademicOverview)} />} />
-            <Route path="/campus-resources" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
-            <Route path="/current-semester" element={<ProtectedRoute session={session} component={withSidebar(CurrentSemester)} />} />
-            <Route path="/courses" element={<ProtectedRoute session={session} component={withSidebar(Courses)} />} />
-            <Route path="/timetable" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
-            <Route path="/assignments" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
-            <Route path="/login" element={<Navigate to="/" replace />} />
-          </>
+          // Authenticated routes with shared user data
+          <Route path="/*" element={<AuthenticatedRoutes session={session} />} />
         )}
       </Routes>
     </Router>
   );
 }
 
-// Protected route component that checks user onboarding status
-interface ProtectedRouteProps {
-  session: Session;
-  component: React.ComponentType<{ session: Session }>;
-}
-
-const ProtectedRoute = ({ session, component: Component }: ProtectedRouteProps) => {
+// Shared authenticated routes with single user data fetch
+const AuthenticatedRoutes = ({ session }: { session: Session }) => {
   const { userStatus, loading } = useUserData(session);
 
+  // Show loading only during initial user data fetch
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-800">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
+          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading your profile...</p>
+        </div>
       </div>
     );
   }
 
   // If user doesn't exist or doesn't have academic details, redirect to onboarding
   if (!userStatus.exists || !userStatus.hasAcademicDetails) {
-    return <Navigate to="/onboarding" replace />;
+    return (
+      <Routes>
+        <Route path="/onboarding" element={<Onboarding session={session} />} />
+        <Route path="*" element={<Navigate to="/onboarding" replace />} />
+      </Routes>
+    );
   }
 
-  return <Component session={session} />;
+  // Extract user data for the sidebar
+  const user = {
+    name: userStatus.userData?.name || session.user.user_metadata?.full_name || "Student",
+    email: userStatus.userData?.email || session.user.email || "",
+    avatar: session.user.user_metadata?.avatar_url || "/placeholder.svg",
+  };
+
+  // User is fully set up, show main app with persistent sidebar
+  return (
+    <Layout user={user}>
+      <Routes>
+        <Route path="/desk" element={<Desk />} />
+        <Route path="/academic-overview" element={<AcademicOverview />} />
+        <Route path="/current-semester" element={<CurrentSemester />} />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/" element={<Navigate to="/desk" replace />} />
+        <Route path="*" element={<Navigate to="/desk" replace />} />
+      </Routes>
+    </Layout>
+  );
 };
 
 export default App;

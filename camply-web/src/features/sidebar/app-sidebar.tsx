@@ -38,7 +38,7 @@ export function AppSidebar({ user, campusItems, semesterItems, ...props }: AppSi
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
-              <Link to="/dashboard">
+              <Link to="/desk">
                 <ArrowUpCircleIcon className="h-5 w-5" />
                 <span className="text-base font-semibold">Camply</span>
               </Link>
