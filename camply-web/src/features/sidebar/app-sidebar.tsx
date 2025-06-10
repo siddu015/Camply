@@ -48,8 +48,8 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <Link to={homeRoute}>
-                <GraduationCap className="h-5 w-5" />
-                <span className="text-base font-semibold">Camply</span>
+                <GraduationCap className="h-6 w-6" />
+                <span className="text-lg font-bold">Camply</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
