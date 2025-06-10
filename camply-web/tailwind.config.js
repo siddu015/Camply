@@ -61,6 +61,10 @@ export default {
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.5s ease-in-out",
         "fade-out": "fade-out 0.5s ease-in-out",
+        "modal-in": "modal-in 0.7s cubic-bezier(0.16, 1, 0.3, 1)",
+        "modal-out": "modal-out 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
+        "backdrop-in": "backdrop-in 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
+        "backdrop-out": "backdrop-out 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
         meteor: "meteor 5s linear infinite",
         grid: "grid 15s linear infinite",
         spotlight: "spotlight 2s ease .75s 1 forwards",
@@ -82,6 +86,34 @@ export default {
           to: { opacity: "1" },
         },
         "fade-out": {
+          from: { opacity: "1" },
+          to: { opacity: "0" },
+        },
+        "modal-in": {
+          from: {
+            opacity: "0",
+            transform: "translate(-50%, -48%) scale(0.98)",
+          },
+          to: {
+            opacity: "1",
+            transform: "translate(-50%, -50%) scale(1)",
+          },
+        },
+        "modal-out": {
+          from: {
+            opacity: "1",
+            transform: "translate(-50%, -50%) scale(1)",
+          },
+          to: {
+            opacity: "0",
+            transform: "translate(-50%, -48%) scale(0.98)",
+          },
+        },
+        "backdrop-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "backdrop-out": {
           from: { opacity: "1" },
           to: { opacity: "0" },
         },

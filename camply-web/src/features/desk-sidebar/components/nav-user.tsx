@@ -65,7 +65,7 @@ export function NavUser({
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground transition-all duration-200 ease-out hover:scale-[1.02]"
             >
               <Avatar className="h-8 w-8 rounded-lg grayscale">
                 <AvatarImage src={user.avatar || "/placeholder.svg"} alt={user.name} />
@@ -110,7 +110,10 @@ export function NavUser({
               {theme === "light" ? "Dark" : "Light"} Mode
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setShowLogoutDialog(true)}>
+            <DropdownMenuItem
+              onClick={() => setShowLogoutDialog(true)}
+              className="text-600 focus:text-red-800 focus:bg-red-80 dark:focus:bg-red-950/20 transition-all duration-200 ease-out"
+            >
               <LogOutIcon />
               Logout
             </DropdownMenuItem>
