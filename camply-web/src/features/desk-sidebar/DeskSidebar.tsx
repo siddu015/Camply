@@ -20,10 +20,6 @@ const generateDeskNavigation = (user: User) => {
       name: "Academic Overview",
       url: "/academic-overview",
     },
-    {
-      name: "Campus Resources",
-      url: "/campus-resources",
-    },
   ]
 
   const semesterItems = [
@@ -34,14 +30,6 @@ const generateDeskNavigation = (user: User) => {
     {
       name: "Courses",
       url: "/courses",
-    },
-    {
-      name: "Timetable",
-      url: "/timetable",
-    },
-    {
-      name: "Assignments",
-      url: "/assignments",
     },
   ]
 
