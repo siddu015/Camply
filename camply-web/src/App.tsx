@@ -5,15 +5,11 @@ import { supabase } from './lib/supabase';
 import { useUserData } from './hooks/useUserData';
 import Onboarding from './pages/Onboarding';
 import LandingPage from './pages/LandingPage';
-
-// Simple welcome component
-const Welcome = ({ session }: { session: Session }) => {
-  return (
-    <div className="flex items-center justify-center min-h-screen">
-      <p className="text-2xl text-gray-800">Welcome to Camply</p>
-    </div>
-  );
-};
+import { withSidebar } from './features/desk-sidebar/views/WithSidebar';
+import { AcademicOverview } from './features/desk-sidebar/views/AcademicOverview';
+import { CurrentSemester } from './features/desk-sidebar/views/CurrentSemester';
+import { Courses } from './features/desk-sidebar/views/Courses';
+import { Dashboard } from './features/desk-sidebar/views/Dashboard';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -57,8 +53,15 @@ function App() {
           // Authenticated routes with onboarding check
           <>
             <Route path="/onboarding" element={<Onboarding session={session} />} />
-            <Route path="/" element={<ProtectedRoute session={session} component={Welcome} />} />
-            <Route path="/home" element={<ProtectedRoute session={session} component={Welcome} />} />
+            <Route path="/" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
+            <Route path="/home" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
+            <Route path="/dashboard" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
+            <Route path="/academic-overview" element={<ProtectedRoute session={session} component={withSidebar(AcademicOverview)} />} />
+            <Route path="/campus-resources" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
+            <Route path="/current-semester" element={<ProtectedRoute session={session} component={withSidebar(CurrentSemester)} />} />
+            <Route path="/courses" element={<ProtectedRoute session={session} component={withSidebar(Courses)} />} />
+            <Route path="/timetable" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
+            <Route path="/assignments" element={<ProtectedRoute session={session} component={withSidebar(Dashboard)} />} />
             <Route path="/login" element={<Navigate to="/" replace />} />
           </>
         )}
