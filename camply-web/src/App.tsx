@@ -94,9 +94,15 @@ const AuthenticatedRoutes = ({ session }: { session: Session }) => {
     avatar: session.user.user_metadata?.avatar_url || "/placeholder.svg",
   };
 
+  // App configuration - easily switch between different sections
+  // Examples for future use:
+  // const homeConfig = { homeRoute: "/home" }
+  // const campusConfig = { homeRoute: "/campus" }
+  const deskConfig = { homeRoute: "/desk" }
+
   // User is fully set up, show main app with persistent sidebar
   return (
-    <Layout user={user}>
+    <Layout user={user} appConfig={deskConfig}>
       <Routes>
         <Route path="/desk" element={<Desk />} />
         <Route path="/academic-overview" element={<AcademicOverview />} />

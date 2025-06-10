@@ -9,9 +9,15 @@ type User = {
   avatar: string
 }
 
+// App configuration for different sections (homeRoute only, appName is always "Camply")
+type AppConfig = {
+  homeRoute: string
+}
+
 interface LayoutProps {
   children: ReactNode
   user: User
+  appConfig?: AppConfig
 }
 
 // Generate desk-specific navigation based on user data
@@ -37,8 +43,11 @@ const generateDeskNavigation = (user: User) => {
   return { campusItems, semesterItems }
 }
 
-export function Layout({ children, user }: LayoutProps) {
+export function Layout({ children, user, appConfig }: LayoutProps) {
   const { campusItems, semesterItems } = generateDeskNavigation(user)
+  
+  // Default to desk configuration, but allow override for homeRoute
+  const config = appConfig || { homeRoute: "/desk" }
 
   return (
     <SidebarProvider>
@@ -47,6 +56,7 @@ export function Layout({ children, user }: LayoutProps) {
         user={user}
         campusItems={campusItems}
         semesterItems={semesterItems}
+        homeRoute={config.homeRoute}
       />
       <SidebarInset>
         <SiteHeader />
