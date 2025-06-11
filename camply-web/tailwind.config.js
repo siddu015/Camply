@@ -65,6 +65,9 @@ export default {
         "modal-out": "modal-out 0.4s cubic-bezier(0.16, 1, 0.3, 1)",
         "backdrop-in": "backdrop-in 0.6s cubic-bezier(0.16, 1, 0.3, 1)",
         "backdrop-out": "backdrop-out 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+        "theme-toggle-slide": "theme-toggle-slide 0.25s ease-in-out",
+        "theme-toggle-slide-out": "theme-toggle-slide-out 0.25s ease-in-out forwards",
+        "theme-toggle-slide-in": "theme-toggle-slide-in 0.25s ease-in-out 0.25s forwards",
         meteor: "meteor 5s linear infinite",
         grid: "grid 15s linear infinite",
         spotlight: "spotlight 2s ease .75s 1 forwards",
@@ -116,6 +119,18 @@ export default {
         "backdrop-out": {
           from: { opacity: "1" },
           to: { opacity: "0" },
+        },
+        "theme-toggle-slide": {
+          "0%": { transform: "translateY(50%)" },
+          // "100%": { transform: "translateY(-100%)" }
+        },
+        "theme-toggle-slide-out": {
+          "0%": { transform: "translateY(0)", opacity: "1" },
+          "100%": { transform: "translateY(100%)", opacity: "0" }
+        },
+        "theme-toggle-slide-in": {
+          "0%": { transform: "translateY(-100%)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" }
         },
         meteor: {
           "0%": { transform: "rotate(215deg) translateX(0)", opacity: "1" },

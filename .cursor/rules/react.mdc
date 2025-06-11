@@ -1,3 +1,8 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
 # React Rules for Camply Project
 
 ## Component Structure
