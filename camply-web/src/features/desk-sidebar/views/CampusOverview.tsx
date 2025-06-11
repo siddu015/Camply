@@ -67,7 +67,7 @@ export function CampusOverview() {
     <div className="animate-in fade-in-50 duration-300 slide-in-from-bottom-2 w-full">
       {/* Campus Header with proper theme support */}
       <div 
-        className="relative h-80 -mt-6 mb-6 overflow-hidden rounded-b-3xl border-b border-border"
+        className="relative h-80 -mt-6 mb-6 overflow-hidden border-b border-border"
         style={{ 
           width: 'calc(100% + 50px)', 
           marginLeft: '-25px',
