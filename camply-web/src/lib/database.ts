@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import type { User, UserAcademicDetails, UserFormData, UserStatus } from '../types/database';
+import type { User, UserAcademicDetails, UserFormData, UserStatus, College } from '../types/database';
 
 export const checkUserStatus = async (userId: string): Promise<UserStatus> => {
   try {
@@ -180,6 +180,103 @@ export const updateUserAcademicDetails = async (
     };
   } catch (error) {
     console.error('Error updating user academic details:', error);
+    throw error;
+  }
+};
+
+export const getUserCampusData = async (userId: string): Promise<{
+  user: User;
+  academicDetails: UserAcademicDetails | null;
+  college: College | null;
+  currentSemester: number | null;
+}> => {
+  try {
+    // First, get user data
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+      throw new Error('Unable to fetch user information');
+    }
+
+    // Initialize return data
+    let academicDetails = null;
+    let college = null;
+    let currentSemester = null;
+
+    // Only proceed if user has academic_id
+    if (userData?.academic_id) {
+      try {
+        // Get academic details
+        const { data: academicData, error: academicError } = await supabase
+          .from('user_academic_details')
+          .select('*')
+          .eq('academic_id', userData.academic_id)
+          .single();
+
+        if (academicError && academicError.code !== 'PGRST116') {
+          console.warn('Error fetching academic details:', academicError);
+        } else if (academicData) {
+          academicDetails = academicData;
+
+          // Get college information if college_id exists
+          if (academicData.college_id) {
+            try {
+              const { data: collegeData, error: collegeError } = await supabase
+                .from('colleges')
+                .select('*')
+                .eq('college_id', academicData.college_id)
+                .single();
+
+              if (collegeError && collegeError.code !== 'PGRST116') {
+                console.warn('College not found:', collegeError);
+              } else if (collegeData) {
+                college = collegeData;
+              }
+            } catch (collegeErr) {
+              console.warn('Error fetching college data:', collegeErr);
+              // Don't throw, just continue without college data
+            }
+          }
+
+          // Get current semester if academic details exist
+          try {
+            const { data: semesterData, error: semesterError } = await supabase
+              .from('semesters')
+              .select('semester_number')
+              .eq('academic_id', academicData.academic_id)
+              .order('semester_number', { ascending: false })
+              .limit(1)
+              .single();
+            
+            if (semesterError && semesterError.code !== 'PGRST116') {
+              console.warn('No semesters found:', semesterError);
+            } else if (semesterData) {
+              currentSemester = semesterData.semester_number;
+            }
+          } catch (semesterErr) {
+            console.warn('Error fetching semester data:', semesterErr);
+            // Don't throw, just continue without semester data
+          }
+        }
+      } catch (academicErr) {
+        console.warn('Error fetching academic data:', academicErr);
+        // Don't throw, just continue without academic data
+      }
+    }
+
+    return {
+      user: userData,
+      academicDetails,
+      college,
+      currentSemester
+    };
+  } catch (error) {
+    console.error('Critical error fetching user campus data:', error);
     throw error;
   }
 };
