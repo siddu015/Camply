@@ -8,7 +8,7 @@ import Onboarding from './pages/Onboarding';
 import LandingPage from './pages/LandingPage';
 import { Layout } from './features/desk-sidebar/components/Layout';
 import { Desk } from './features/desk-sidebar/views/Desk';
-import { CampusOverview } from './features/desk-sidebar/views/campusOverview';
+import { CampusOverview } from './features/desk-sidebar/views/CampusOverview';
 import { AcademicOverview } from './features/desk-sidebar/views/AcademicOverview';
 import { CurrentSemester } from './features/desk-sidebar/views/CurrentSemester';
 import { Courses } from './features/desk-sidebar/views/Courses';
