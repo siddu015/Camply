@@ -6,9 +6,10 @@ import { ThemeToggle } from "../../../components/theme-toggle"
 
 const routeTitles: Record<string, { title: string; parent?: string }> = {
   "/desk": { title: "Desk" },
-  "/academic-overview": { title: "Academic Overview", parent: "Campus" },
-  "/current-semester": { title: "Current Semester", parent: "Semester" },
-  "/courses": { title: "Courses", parent: "Semester" },
+  "/profile/campus": { title: "Campus", parent: "Profile" },
+  "/profile/academics": { title: "Academics", parent: "Profile" },
+  "/semester/overview": { title: "Overview", parent: "Semester" },
+  "/semester/courses": { title: "Courses", parent: "Semester" },
 }
 
 export function SiteHeader() {
@@ -16,9 +17,9 @@ export function SiteHeader() {
   const currentRoute = routeTitles[location.pathname]
   
   const getBreadcrumbs = () => {
-    if (!currentRoute) return ["DESK"]
+    if (!currentRoute) return ["Desk"]
     
-    const breadcrumbs = ["DESK"]
+    const breadcrumbs = ["Desk"]
     if (currentRoute.parent) {
       breadcrumbs.push(currentRoute.parent)
     }

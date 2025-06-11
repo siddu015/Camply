@@ -28,7 +28,7 @@ export function NavAcademic({
     <>
       <div className="mt-4" />
       <SidebarGroup className="group-data-[collapsible=icon]:hidden">
-        <SidebarGroupLabel className="text-sm font-medium">Campus</SidebarGroupLabel>
+        <SidebarGroupLabel className="text-sm font-medium">Profile</SidebarGroupLabel>
         <SidebarSeparator className="my-2" />
         <SidebarGroupContent>
           <SidebarMenu>

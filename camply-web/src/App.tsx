@@ -108,9 +108,10 @@ const AuthenticatedRoutes = ({ session }: { session: Session }) => {
     <Layout user={user} appConfig={deskConfig}>
       <Routes>
         <Route path="/desk" element={<Desk />} />
-        <Route path="/academic-overview" element={<AcademicOverview />} />
-        <Route path="/current-semester" element={<CurrentSemester />} />
-        <Route path="/courses" element={<Courses />} />
+        <Route path="/profile/campus" element={<div>Campus coming soon</div>} />
+        <Route path="/profile/academics" element={<AcademicOverview />} />
+        <Route path="/semester/overview" element={<CurrentSemester />} />
+        <Route path="/semester/courses" element={<Courses />} />
         <Route path="/" element={<Navigate to="/desk" replace />} />
         <Route path="*" element={<Navigate to="/desk" replace />} />
       </Routes>

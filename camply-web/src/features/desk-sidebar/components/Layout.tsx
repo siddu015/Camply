@@ -24,19 +24,23 @@ interface LayoutProps {
 const generateDeskNavigation = (user: User) => {
   const campusItems = [
     {
-      name: "Academic Overview",
-      url: "/academic-overview",
+      name: "Campus",
+      url: "/profile/campus",
+    },
+    {
+      name: "Academics",
+      url: "/profile/academics",
     },
   ]
 
   const semesterItems = [
     {
-      name: "Current Semester",
-      url: "/current-semester",
+      name: "Overview",
+      url: "/semester/overview",
     },
     {
       name: "Courses",
-      url: "/courses",
+      url: "/semester/courses",
     },
   ]
 
