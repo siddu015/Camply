@@ -48,8 +48,13 @@ export const useUserData = (session: Session | null) => {
         );
       }
 
-      // Refresh user status
-      await checkUser();
+      // Immediately update the user status to reflect successful save
+      setUserStatus({
+        exists: true,
+        hasAcademicDetails: true,
+        userData: result.user,
+        academicDetails: result.academicDetails
+      });
       
       return result;
     } catch (err) {
