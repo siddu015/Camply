@@ -1,0 +1,272 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# Theme System Rules for Camply React Components
+
+## Mandatory Theme Compliance
+
+### Core Requirements
+
+**EVERY React component MUST follow these theme rules automatically. No exceptions.**
+
+### 1. Theme Hook Usage
+
+```typescript
+// ALWAYS import and use theme hook for dynamic theme detection
+import { useTheme } from '../../../lib/theme-provider';
+
+const Component = () => {
+  const { theme } = useTheme();
+  
+  // For JavaScript-based theme logic
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
+  return <div>...</div>;
+};
+```
+
+### 2. CSS Color Classes - MANDATORY PATTERNS
+
+#### Text Colors
+```typescript
+// ✅ CORRECT - Use theme variables
+className="text-foreground"           // Primary text
+className="text-muted-foreground"     // Secondary text  
+className="text-accent-foreground"    // Accent text
+className="text-destructive"          // Error text
+
+// ❌ WRONG - Never use hardcoded colors
+className="text-black dark:text-white"
+className="text-gray-900 dark:text-gray-100"
+```
+
+#### Background Colors
+```typescript
+// ✅ CORRECT - Use theme variables
+className="bg-background"             // Main backgrounds
+className="bg-muted"                  // Subtle backgrounds
+className="bg-accent"                 // Interactive elements
+className="bg-secondary"              // Card backgrounds
+className="bg-destructive/10"         // Error backgrounds
+
+// ❌ WRONG - Never use hardcoded backgrounds
+className="bg-white dark:bg-gray-900"
+className="bg-gray-100 dark:bg-gray-800"
+```
+
+#### Border Colors
+```typescript
+// ✅ CORRECT - Use theme variables
+className="border-border"             // Standard borders
+className="border-muted"              // Subtle borders
+className="border-destructive/20"     // Error borders
+
+// ❌ WRONG - Never use hardcoded borders
+className="border-gray-300 dark:border-gray-700"
+```
+
+### 3. Dynamic Backgrounds with JavaScript
+
+For complex backgrounds that need JavaScript logic:
+
+```typescript
+// ✅ CORRECT - Dynamic theme-aware backgrounds
+const { theme } = useTheme();
+const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+<div 
+  className="relative"
+  style={{
+    background: isDark 
+      ? 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)'  // Dark theme
+      : 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%)', // Light theme
+  }}
+>
+
+// ❌ WRONG - Static backgrounds that ignore theme
+<div style={{ background: '#f1f5f9' }}>
+<div className="bg-gradient-to-br from-blue-100 to-indigo-100">
+```
+
+### 4. Component-Specific Color Patterns
+
+#### Loading States
+```typescript
+// ✅ CORRECT
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
+
+// ❌ WRONG  
+<div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white"></div>
+```
+
+#### Error States
+```typescript
+// ✅ CORRECT
+<div className="bg-destructive/10 border border-destructive/20 text-destructive">
+  <button className="bg-destructive/20 hover:bg-destructive/30 text-destructive">
+    Retry
+  </button>
+</div>
+
+// ❌ WRONG
+<div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">
+```
+
+#### Interactive Elements
+```typescript
+// ✅ CORRECT - Use accent colors
+<button className="bg-accent hover:bg-accent/80 text-accent-foreground">
+<button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+
+// ❌ WRONG - Hardcoded interactive colors
+<button className="bg-blue-500 hover:bg-blue-600 text-white">
+```
+
+### 5. Icon and Asset Handling
+
+```typescript
+// ✅ CORRECT - Theme-aware icons
+<Icon className="h-5 w-5 text-foreground" />
+<Icon className="h-5 w-5 text-muted-foreground" />
+
+// For colored icons, use semantic colors
+<BookOpen className="h-5 w-5 text-blue-500" />    // OK for semantic meaning
+<User className="h-5 w-5 text-green-500" />       // OK for semantic meaning
+
+// ❌ WRONG - Hardcoded icon colors without semantic meaning
+<Icon className="h-5 w-5 text-gray-600 dark:text-gray-400" />
+```
+
+### 6. Conditional Theme Styling
+
+When you need different styles for themes:
+
+```typescript
+// ✅ CORRECT - Use conditional logic with theme hook
+const { theme } = useTheme();
+const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+<div className={`base-classes ${isDark ? 'dark-specific' : 'light-specific'}`}>
+
+// ✅ ALSO CORRECT - Use CSS variables that auto-adapt
+<div className="bg-background border-border text-foreground">
+
+// ❌ WRONG - Manual dark: classes (error-prone)
+<div className="bg-white dark:bg-gray-900 text-black dark:text-white">
+```
+
+### 7. Common Theme Patterns
+
+#### Card Components
+```typescript
+// ✅ STANDARD CARD PATTERN
+<div className="bg-background border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+  <h3 className="text-lg font-semibold text-foreground">Title</h3>
+  <p className="text-muted-foreground">Description</p>
+</div>
+```
+
+#### Form Elements
+```typescript
+// ✅ STANDARD FORM PATTERN
+<input className="mt-1 block w-full px-3 py-2 border border-border rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring" />
+
+<label className="text-sm font-medium text-muted-foreground">Label</label>
+```
+
+#### Status Indicators
+```typescript
+// ✅ SEMANTIC STATUS COLORS (acceptable)
+<div className="p-4 bg-blue-500/10 rounded-lg">
+  <p className="text-blue-500">Info status</p>
+</div>
+
+<div className="p-4 bg-green-500/10 rounded-lg">
+  <p className="text-green-500">Success status</p>
+</div>
+
+<div className="p-4 bg-destructive/10 rounded-lg">
+  <p className="text-destructive">Error status</p>
+</div>
+```
+
+### 8. Theme Variable Reference
+
+Use these Tailwind classes (defined in your CSS):
+
+```css
+/* Available theme variables in Camply */
+--background          /* Main page background */
+--foreground          /* Primary text color */
+--muted               /* Subtle background */
+--muted-foreground    /* Secondary text */
+--border              /* Border color */
+--accent              /* Interactive background */
+--accent-foreground   /* Interactive text */
+--destructive         /* Error color */
+--primary             /* Brand color */
+--secondary           /* Card backgrounds */
+```
+
+### 9. Debugging Theme Issues
+
+If colors aren't working:
+
+1. **Check Tailwind Config**: Look for duplicate color definitions
+2. **Verify CSS Variables**: Ensure all theme variables are defined
+3. **Use Theme Hook**: Import and use `useTheme()` for JavaScript logic
+4. **Test Both Themes**: Always test in both light and dark modes
+5. **Use Browser DevTools**: Inspect computed CSS variables
+
+### 10. Enforcement Rules
+
+**AUTOMATIC REJECTION CRITERIA:**
+
+- Any component using hardcoded colors like `text-black`, `bg-white`, `text-gray-900`
+- Any component with manual `dark:` classes instead of theme variables
+- Any component not importing `useTheme` when using JavaScript theme logic
+- Any interactive element not using `accent` or `primary` colors
+- Any error state not using `destructive` color
+- Any component without proper theme testing
+
+### 11. Migration Pattern
+
+When updating existing components:
+
+```typescript
+// STEP 1: Import theme hook
+import { useTheme } from '../../../lib/theme-provider';
+
+// STEP 2: Replace hardcoded colors
+- className="text-gray-900 dark:text-white"
++ className="text-foreground"
+
+- className="bg-white dark:bg-gray-900"  
++ className="bg-background"
+
+- className="border-gray-300 dark:border-gray-700"
++ className="border-border"
+
+// STEP 3: Add theme logic for complex cases
+const { theme } = useTheme();
+const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+```
+
+### 12. Component Checklist
+
+Before any component is complete, verify:
+
+- [ ] Uses `text-foreground` for primary text
+- [ ] Uses `text-muted-foreground` for secondary text  
+- [ ] Uses `bg-background` for main backgrounds
+- [ ] Uses `border-border` for borders
+- [ ] Uses `bg-accent` for interactive elements
+- [ ] Uses `bg-destructive/10` and `text-destructive` for errors
+- [ ] Imports `useTheme` if using JavaScript theme logic
+- [ ] Tested in both light and dark themes
+- [ ] No hardcoded color classes
+- [ ] No manual `dark:` classes (except for semantic colors)
+
+**This rule file is MANDATORY for all React components in Camply. Every component must follow these patterns automatically.**

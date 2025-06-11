@@ -8,6 +8,7 @@ create table public.colleges (
   city varchar,
   state varchar,
   university_name varchar,
+  campus_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 

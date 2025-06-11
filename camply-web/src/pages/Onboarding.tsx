@@ -1,21 +1,28 @@
 import { useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
 import { useUserData } from '../hooks/useUserData';
-import AcademicDetailsForm from '../components/academic-form';
+import AcademicDetailsForm from '../features/academic-form';
 import type { UserFormData } from '../types/database';
 
 interface OnboardingProps {
   session: Session;
+  onOnboardingComplete?: () => void;
 }
 
-const Onboarding = ({ session }: OnboardingProps) => {
+const Onboarding = ({ session, onOnboardingComplete }: OnboardingProps) => {
   const navigate = useNavigate();
-  const { userStatus, loading, error, saveUserData } = useUserData(session);
+  const { userStatus, loading, error, saveUserData, refreshUser } = useUserData(session);
 
   const handleFormSubmit = async (formData: UserFormData) => {
     try {
       await saveUserData(formData);
-      navigate('/home');
+      
+      // Notify parent component to refresh its user data
+      if (onOnboardingComplete) {
+        await onOnboardingComplete();
+      }
+      
+      // Navigate will happen automatically due to user status change
     } catch (err) {
       console.error('Failed to save user data:', err);
     }
