@@ -4,8 +4,6 @@ from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 
 from . import prompt
-from .sub_agents.semester.agent import semester_agent
-from .sub_agents.course.agent import course_agent
 from .sub_agents.campus_agent.agent import campus_agent
 
 MODEL = "gemini-2.5-flash-preview-05-20"
@@ -16,25 +14,21 @@ student_desk = LlmAgent(
     description=(
         "A comprehensive student desk assistant that provides immediate information about: "
         "1. Your university/campus (facilities, achievements, placements, etc.) "
-        "2. Your academic progress (semester details, scores) "
-        "3. Your course details (syllabi, materials) "
         "\nPRIORITY: For ANY university/campus related query, provide immediate campus information."
+        "\nNote: Course and semester information will be added in future updates."
     ),
     instruction=(
         prompt.STUDENT_DESK_PROMPT +
         "\n\nCRITICAL INSTRUCTION: Your initial greeting MUST be:"
         "\n'Hello! I'm your Student Desk Assistant. I can provide comprehensive information about:"
         "\n• Your university and campus (facilities, achievements, placements)"
-        "\n• Your academic progress (semester details, scores)"
-        "\n• Your course details (syllabi, materials)"
+        "\nNote: Course and semester information will be added in future updates."
         "\nHow can I help you today?'"
     ),
     output_key="student_response",
     tools=[
-        # List campus agent first to give it precedence
+        # Campus agent is the primary tool for now
         AgentTool(agent=campus_agent),
-        AgentTool(agent=semester_agent),
-        AgentTool(agent=course_agent),
     ],
 )
 
