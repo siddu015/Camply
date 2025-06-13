@@ -3,7 +3,7 @@ import { MapPin, GraduationCap, Calendar, BookOpen, User, Building2, Upload } fr
 import { useCampusData } from '../../../hooks/useCampusData';
 import { supabase } from '../../../lib/supabase';
 import { useTheme } from '../../../lib/theme-provider';
-import { CampusBot } from '../../../components/CampusBot'
+import { CamplyBot } from '../../../components/CamplyBot'
 
 export function CampusOverview() {
   const [session, setSession] = useState<any>(null);
@@ -257,8 +257,8 @@ export function CampusOverview() {
         </div>
       </div>
 
-      {/* Add CampusBot */}
-      < CampusBot />
+                {/* Add CamplyBot */}
+          < CamplyBot />
     </div>
   );
 } 
