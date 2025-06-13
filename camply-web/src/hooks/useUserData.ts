@@ -3,10 +3,27 @@ import type { Session } from '@supabase/supabase-js';
 import { checkUserStatus, createUserWithAcademicDetails, updateUserAcademicDetails } from '../lib/database';
 import type { UserStatus, UserFormData, User, UserAcademicDetails } from '../types/database';
 
+const USER_STATUS_CACHE_KEY = 'camply_user_status';
+
 export const useUserData = (session: Session | null) => {
   const [userStatus, setUserStatus] = useState<UserStatus>({ exists: false, hasAcademicDetails: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Load cached user status on mount
+  useEffect(() => {
+    if (session?.user) {
+      const cached = localStorage.getItem(`${USER_STATUS_CACHE_KEY}_${session.user.id}`);
+      if (cached) {
+        try {
+          const cachedStatus = JSON.parse(cached);
+          setUserStatus(cachedStatus);
+        } catch (err) {
+          console.error('Failed to parse cached user status:', err);
+        }
+      }
+    }
+  }, [session?.user?.id]);
 
   const checkUser = async () => {
     if (!session?.user) {
@@ -19,8 +36,24 @@ export const useUserData = (session: Session | null) => {
       setError(null);
       const status = await checkUserStatus(session.user.id);
       setUserStatus(status);
+      
+      // Cache successful status
+      localStorage.setItem(`${USER_STATUS_CACHE_KEY}_${session.user.id}`, JSON.stringify(status));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to check user status');
+      const errorMessage = err instanceof Error ? err.message : 'Failed to check user status';
+      setError(errorMessage);
+      
+      // Check if we have cached data to fall back to
+      const cached = localStorage.getItem(`${USER_STATUS_CACHE_KEY}_${session.user.id}`);
+      if (cached) {
+        try {
+          const cachedStatus = JSON.parse(cached);
+          setUserStatus(cachedStatus);
+          console.warn('Using cached user status due to network error:', errorMessage);
+        } catch (parseErr) {
+          console.error('Failed to parse cached user status:', parseErr);
+        }
+      }
     } finally {
       setLoading(false);
     }
@@ -49,12 +82,17 @@ export const useUserData = (session: Session | null) => {
       }
 
       // Immediately update the user status to reflect successful save
-      setUserStatus({
+      const newStatus = {
         exists: true,
         hasAcademicDetails: true,
         userData: result.user,
         academicDetails: result.academicDetails
-      });
+      };
+      
+      setUserStatus(newStatus);
+      
+      // Cache the new status
+      localStorage.setItem(`${USER_STATUS_CACHE_KEY}_${session.user.id}`, JSON.stringify(newStatus));
       
       return result;
     } catch (err) {

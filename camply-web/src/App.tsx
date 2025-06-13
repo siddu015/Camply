@@ -12,6 +12,7 @@ import { CampusOverview } from './features/desk-sidebar/views/CampusOverview';
 import { AcademicOverview } from './features/desk-sidebar/views/AcademicOverview';
 import { CurrentSemester } from './features/desk-sidebar/views/CurrentSemester';
 import { Courses } from './features/desk-sidebar/views/Courses';
+import { OfflinePage } from './components/OfflinePage';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -64,7 +65,7 @@ function App() {
 }
 
 const AuthenticatedRoutes = ({ session }: { session: Session }) => {
-  const { userStatus, loading, refreshUser } = useUserData(session);
+  const { userStatus, loading, error, refreshUser } = useUserData(session);
 
   const handleOnboardingComplete = async () => {
     await refreshUser();
@@ -79,6 +80,12 @@ const AuthenticatedRoutes = ({ session }: { session: Session }) => {
         </div>
       </div>
     );
+  }
+
+  // If there's an error (like network failure) but we're not on onboarding route,
+  // show the offline page instead of redirecting to onboarding
+  if (error && !window.location.pathname.includes('/onboarding')) {
+    return <OfflinePage onRetry={refreshUser} error={error} />;
   }
 
   if (!userStatus.exists || !userStatus.hasAcademicDetails) {

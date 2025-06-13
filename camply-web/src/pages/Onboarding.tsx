@@ -41,15 +41,18 @@ const Onboarding = ({ session, onOnboardingComplete }: OnboardingProps) => {
 
   // If user exists and has academic details, redirect to home
   if (userStatus.exists && userStatus.hasAcademicDetails) {
-    navigate('/home');
+    navigate('/desk');
     return null;
   }
+
+  // Only show error if it's not a network error or if user definitely needs onboarding
+  const shouldShowError = error && (!error.includes('Failed to check user status') || (!userStatus.exists && !userStatus.hasAcademicDetails));
 
   return (
     <AcademicDetailsForm
       onSubmit={handleFormSubmit}
       loading={loading}
-      error={error}
+      error={shouldShowError ? error : null}
       initialData={userStatus.userData ? {
         name: userStatus.userData.name,
         phone_number: userStatus.userData.phone_number || ''
