@@ -7,6 +7,9 @@ import { IoMdSend } from 'react-icons/io';
 import { MdOpenInFull } from 'react-icons/md';
 import { useTheme } from '../lib/theme-provider';
 import { cn } from '../features/sidebar/lib/utils';
+import { CampusBotService } from '../lib/campusBot';
+import { supabase } from '../lib/supabase';
+import { useCampusData } from '../hooks/useCampusData';
 
 // Quick reply questions
 const QUICK_QUESTIONS = [
@@ -20,6 +23,7 @@ const QUICK_QUESTIONS = [
 interface Message {
   text: string;
   isUser: boolean;
+  loading?: boolean;
 }
 
 export const CampusBot: React.FC = () => {
@@ -27,9 +31,15 @@ export const CampusBot: React.FC = () => {
   const [isWideView, setIsWideView] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [inputText, setInputText] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isLight = theme === 'light';
+  
+  // Get user context
+  const { academicDetails, college } = useCampusData(session?.user?.id);
+  const campusBotService = CampusBotService.getInstance();
 
   // Auto-scroll to bottom of messages
   const scrollToBottom = () => {
@@ -40,25 +50,67 @@ export const CampusBot: React.FC = () => {
     scrollToBottom();
   }, [messages]);
 
+  // Get session
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Reset conversation
   const handleReset = () => {
     setMessages([]);
   };
 
   // Handle message submission
-  const handleSubmit = (text: string) => {
-    if (!text.trim()) return;
+  const handleSubmit = async (text: string) => {
+    if (!text.trim() || isLoading) return;
     
     setMessages(prev => [...prev, { text, isUser: true }]);
     setInputText('');
+    setIsLoading(true);
     
-    // Placeholder for backend integration
-    setTimeout(() => {
-      setMessages(prev => [...prev, {
-        text: "I understand your question. This is a placeholder response as we're currently in UI-only mode.",
-        isUser: false
-      }]);
-    }, 1000);
+    // Add loading message
+    setMessages(prev => [...prev, { text: "Thinking...", isUser: false, loading: true }]);
+    
+    try {
+      // Prepare context from user data
+      const context = {
+        college_name: college?.name,
+        department: academicDetails?.department_name,
+        branch: academicDetails?.branch_name,
+      };
+      
+      const response = await campusBotService.sendMessage({
+        message: text,
+        user_id: session?.user?.id,
+        context: context
+      });
+      
+      // Remove loading message and add real response
+      setMessages(prev => {
+        const withoutLoading = prev.filter(msg => !msg.loading);
+        return [...withoutLoading, { text: response.response, isUser: false }];
+      });
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setMessages(prev => {
+        const withoutLoading = prev.filter(msg => !msg.loading);
+        return [...withoutLoading, { 
+          text: "I'm having trouble connecting right now. Please try again.", 
+          isUser: false 
+        }];
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Toggle wide view
@@ -203,9 +255,10 @@ export const CampusBot: React.FC = () => {
                         <button
                           key={i}
                           onClick={() => handleSubmit(q)}
+                          disabled={isLoading}
                           className={cn(
                             "px-4 py-3 text-sm rounded-xl transition-colors text-left",
-                            "border",
+                            "border disabled:opacity-50 disabled:cursor-not-allowed",
                             isWideView ? "w-full" : "whitespace-nowrap",
                             isLight
                               ? "border-gray-200 hover:bg-gray-100"
@@ -252,9 +305,9 @@ export const CampusBot: React.FC = () => {
                 isLight ? "border-gray-200" : "border-gray-700"
               )}>
                 <form
-                  onSubmit={(e) => {
+                  onSubmit={async (e) => {
                     e.preventDefault();
-                    handleSubmit(inputText);
+                    await handleSubmit(inputText);
                   }}
                   className="flex items-center gap-2"
                 >
@@ -262,10 +315,11 @@ export const CampusBot: React.FC = () => {
                     type="text"
                     value={inputText}
                     onChange={(e) => setInputText(e.target.value)}
-                    placeholder="Type your question..."
+                    placeholder={isLoading ? "Sending..." : "Type your question..."}
+                    disabled={isLoading}
                     className={cn(
                       "flex-1 p-2 rounded-xl",
-                      "focus:outline-none focus:ring-2",
+                      "focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed",
                       isLight
                         ? "bg-gray-100 focus:ring-blue-200"
                         : "bg-gray-800 focus:ring-blue-500/50"
@@ -284,8 +338,9 @@ export const CampusBot: React.FC = () => {
                   </button>
                   <button
                     type="submit"
+                    disabled={isLoading || !inputText.trim()}
                     className={cn(
-                      "p-2 rounded-full transition-colors",
+                      "p-2 rounded-full transition-colors disabled:opacity-50 disabled:cursor-not-allowed",
                       isLight
                         ? "hover:bg-gray-100 text-blue-600"
                         : "hover:bg-gray-800 text-blue-400"
