@@ -8,7 +8,8 @@ create table public.colleges (
   city varchar,
   state varchar,
   university_name varchar,
-  campus_url text,
+  college_icon text,
+  college_website_url text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
@@ -61,12 +62,28 @@ create table public.courses (
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Campus AI Content table
+create table public.campus_ai_content (
+  campus_content_id uuid primary key default uuid_generate_v4(),
+  college_id uuid references public.colleges not null,
+  college_overview_content jsonb,
+  facilities_content jsonb,
+  placements_content jsonb,
+  departments_content jsonb,
+  admissions_content jsonb,
+  generated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  content_version integer default 1,
+  is_active boolean default true
+);
+
 -- Enable RLS
 alter table public.users enable row level security;
 alter table public.user_academic_details enable row level security;
 alter table public.semesters enable row level security;
 alter table public.courses enable row level security;
 alter table public.colleges enable row level security;
+alter table public.campus_ai_content enable row level security;
 
 -- Policies for users
 create policy "Users can view own data" on public.users
@@ -143,6 +160,14 @@ create policy "Users can insert own courses" on public.courses
 create policy "Anyone can view colleges" on public.colleges
   for select using (true);
 
+-- Campus AI content can be read by all (shared across users from same college)
+create policy "Anyone can view campus AI content" on public.campus_ai_content
+  for select using (true);
+
+-- Only system can insert/update campus AI content (managed by backend agents)
+create policy "System can manage campus AI content" on public.campus_ai_content
+  for all using (false);
+
 -- Add foreign key constraints after tables are created
 alter table public.users 
   add constraint fk_academic_details 
@@ -152,4 +177,21 @@ alter table public.users
 alter table public.user_academic_details
   add constraint fk_latest_semester
   foreign key (latest_semester_id)
-  references public.semesters(semester_id); 
+  references public.semesters(semester_id);
+
+-- Add index for faster AI content queries
+create index idx_campus_ai_content_college_id on public.campus_ai_content(college_id);
+create index idx_campus_ai_content_active on public.campus_ai_content(college_id, is_active) where is_active = true;
+
+-- Add trigger to update updated_at timestamp for campus AI content
+create or replace function update_updated_at_column()
+returns trigger as $$
+begin
+    new.updated_at = timezone('utc'::text, now());
+    return new;
+end;
+$$ language 'plpgsql';
+
+create trigger update_campus_ai_content_updated_at 
+    before update on public.campus_ai_content 
+    for each row execute function update_updated_at_column(); 

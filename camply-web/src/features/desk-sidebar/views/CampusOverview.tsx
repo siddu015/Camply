@@ -3,6 +3,7 @@ import { MapPin, GraduationCap, Calendar, BookOpen, User, Building2, Upload } fr
 import { useCampusData } from '../../../hooks/useCampusData';
 import { supabase } from '../../../lib/supabase';
 import { useTheme } from '../../../lib/theme-provider';
+import { CamplyBot } from '../../../components/CamplyBot'
 
 export function CampusOverview() {
   const [session, setSession] = useState<any>(null);
@@ -67,7 +68,7 @@ export function CampusOverview() {
     <div className="animate-in fade-in-50 duration-300 slide-in-from-bottom-2 w-full">
       {/* Campus Header with proper theme support */}
       <div 
-        className="relative h-80 -mt-6 mb-6 overflow-hidden rounded-b-3xl border-b border-border"
+        className="relative h-80 -mt-6 mb-6 overflow-hidden border-b border-border"
         style={{ 
           width: 'calc(100% + 50px)', 
           marginLeft: '-25px',
@@ -119,13 +120,13 @@ export function CampusOverview() {
         </div>
         
         {/* Campus image */}
-        {college?.campus_url && (
+        {college?.college_icon && (
           <div className="absolute bottom-6 right-6 z-10">
             <div className="w-32 h-20 md:w-40 md:h-24 rounded-xl overflow-hidden shadow-lg border border-border/50 bg-white">
               <img 
-                src={college.campus_url} 
+                src={college.college_icon} 
                 alt={`${college.name} campus`}
-                className="w-full h-full object-containt"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>
@@ -255,6 +256,9 @@ export function CampusOverview() {
           </div>
         </div>
       </div>
+
+                {/* Add CamplyBot */}
+          < CamplyBot />
     </div>
   );
 } 

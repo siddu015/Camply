@@ -45,7 +45,9 @@ export interface College {
   city?: string;
   state?: string;
   university_name?: string;
-  campus_url?: string;
+  college_icon?: string;
+  college_website_url?: string;
+  created_at?: string;
 }
 
 export interface DepartmentData {

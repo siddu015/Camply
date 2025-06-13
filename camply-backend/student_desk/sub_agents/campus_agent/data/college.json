@@ -1,0 +1,89 @@
+{
+    "campus_name": "REVA University",
+    "overview": {
+      "established": 2012,
+      "type": "Private, NAAC A+",
+      "affiliation": ["UGC", "AICTE", "BCI", "COA"],
+      "chancellor": "Dr. P. Shyama Raju",
+      "vice_chancellor": "Dr. N. Ramesh",
+      "campus_area": "45 acres",
+      "location": "Kattigenahalli, Yelahanka, Bangalore, Karnataka, India",
+      "students": {
+        "undergrad": 14000,
+        "postgrad": 2000
+      },
+      "staff": 1000,
+      "website": "https://www.reva.edu.in/"
+    },
+    "academics": {
+      "faculties": [
+        "Engineering and Technology",
+        "Computer Science & ICT",
+        "Electrical & Electronics Engineering",
+        "Mechanical Engineering",
+        "Civil Engineering",
+        "Architecture & Design",
+        "Commerce & Management",
+        "Arts, Humanities & Social Sciences",
+        "Science & Technology",
+        "Law",
+        "Performing Arts & Indic Studies"
+      ],
+      "programs": {
+        "UG": ["B.Tech", "B.Sc", "BA", "B.Com", "LLB", "B.Arch"],
+        "PG": ["M.Tech", "MBA", "MCA", "M.Sc", "MA", "LLM", "M.Com"],
+        "PhD": ["Engineering", "Commerce", "Arts", "Science", "Law"]
+      }
+    },
+    "placements": {
+      "average_package": "₹5–6 LPA",
+      "highest_package_domestic": "₹45–50 LPA",
+      "highest_package_international": "₹58 LPA",
+      "placement_rate": "90%+",
+      "total_offers": 3627,
+      "dream_offers": 1491,
+      "super_dream_offers": 198,
+      "international_offers": 5,
+      "companies_visited": 476,
+      "top_recruiters": [
+        "Google", "Amazon", "Microsoft", "Infosys",
+        "TCS", "Wipro", "Cognizant", "Deloitte",
+        "Bosch", "IBM", "HP", "Accenture"
+      ]
+    },
+    "hostels": {
+      "boys": "Available, shared rooms, WiFi, mess",
+      "girls": "Available, warden-led, secure, WiFi, mess"
+    },
+    "facilities": [
+      "Library", "Wi‑Fi", "Labs", "Innovation & Incubation Center",
+      "Sports grounds", "Cafeteria", "Medical centre",
+      "Bank/ATM", "Eco‑initiatives"
+    ],
+    "campus_life": {
+      "clubs": ["Coding", "Robotics", "Arts", "Drama", "Dance", "Debate"],
+      "annual_fests": ["TechFest", "Cultural Fest", "Hackathons"],
+      "student_council": true
+    },
+    "admissions": {
+      "entrance_exams": [
+        "KCET", "COMEDK UGET", "JEE Main", "REVA CET",
+        "CAT/MAT", "CLAT", "GATE", "NATA", "REVA PET"
+      ],
+      "scholarships": [
+        "Merit scholarships", "Sports quota", "K-CET rank based"
+      ],
+      "fees_structure": "Varies by program (UG/PG/PhD)"
+    },
+    "contact": {
+      "address": "Rukmini Knowledge Park, Kattigenahalli, Yelahanka, Bangalore – 560064",
+      "email": "info@reva.edu.in",
+      "phone": "+91‑80‑4682‑2000",
+      "social_media": {
+        "facebook": "",
+        "twitter": "",
+        "instagram": ""
+      }
+    }
+  }
+  
