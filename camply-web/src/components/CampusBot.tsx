@@ -10,6 +10,7 @@ import { cn } from '../features/sidebar/lib/utils';
 import { CampusBotService } from '../lib/campusBot';
 import { supabase } from '../lib/supabase';
 import { useCampusData } from '../hooks/useCampusData';
+import { MarkdownRenderer } from './MarkdownRenderer';
 
 // Quick reply questions
 const QUICK_QUESTIONS = [
@@ -281,17 +282,50 @@ export const CampusBot: React.FC = () => {
                     >
                       <div
                         className={cn(
-                          "max-w-[80%] rounded-2xl px-4 py-2",
+                          "max-w-[85%] rounded-2xl px-4 py-3",
                           msg.isUser
                             ? isLight
                               ? "bg-blue-500 text-white"
                               : "bg-blue-600 text-white"
                             : isLight
-                            ? "bg-gray-100"
-                            : "bg-gray-800"
+                            ? "bg-gray-50 border border-gray-200"
+                            : "bg-gray-800 border border-gray-700"
                         )}
                       >
-                        {msg.text}
+                        {msg.isUser ? (
+                          <p className="text-sm">{msg.text}</p>
+                        ) : msg.loading ? (
+                          <div className="flex items-center gap-2">
+                            <div className="flex gap-1">
+                              <div className={cn(
+                                "w-2 h-2 rounded-full animate-bounce",
+                                isLight ? "bg-gray-400" : "bg-gray-500"
+                              )} style={{ animationDelay: '0ms' }} />
+                              <div className={cn(
+                                "w-2 h-2 rounded-full animate-bounce",
+                                isLight ? "bg-gray-400" : "bg-gray-500"
+                              )} style={{ animationDelay: '150ms' }} />
+                              <div className={cn(
+                                "w-2 h-2 rounded-full animate-bounce",
+                                isLight ? "bg-gray-400" : "bg-gray-500"
+                              )} style={{ animationDelay: '300ms' }} />
+                            </div>
+                            <span className={cn(
+                              "text-sm",
+                              isLight ? "text-gray-500" : "text-gray-400"
+                            )}>
+                              {msg.text}
+                            </span>
+                          </div>
+                        ) : (
+                          <MarkdownRenderer 
+                            content={msg.text} 
+                            className={cn(
+                              "text-sm",
+                              isLight ? "text-gray-800" : "text-gray-200"
+                            )}
+                          />
+                        )}
                       </div>
                     </div>
                   ))

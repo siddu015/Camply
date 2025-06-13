@@ -120,13 +120,13 @@ export function CampusOverview() {
         </div>
         
         {/* Campus image */}
-        {college?.campus_url && (
+        {college?.college_icon && (
           <div className="absolute bottom-6 right-6 z-10">
             <div className="w-32 h-20 md:w-40 md:h-24 rounded-xl overflow-hidden shadow-lg border border-border/50 bg-white">
               <img 
-                src={college.campus_url} 
+                src={college.college_icon} 
                 alt={`${college.name} campus`}
-                className="w-full h-full object-containt"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>
