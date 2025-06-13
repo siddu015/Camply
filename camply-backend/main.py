@@ -8,6 +8,10 @@ import asyncio
 import httpx
 from contextlib import asynccontextmanager
 
+# Import our modules
+import config
+from database import UserDataService
+
 # Request/Response models
 class ChatRequest(BaseModel):
     message: str
@@ -21,14 +25,12 @@ class ChatResponse(BaseModel):
     success: bool
     error: Optional[str] = None
 
-# ADK Server Configuration
-ADK_SERVER_URL = "http://localhost:8000"
-ADK_APP_NAME = "student_desk"
-
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print("✅ Bridge service initialized - connecting to ADK server")
+    print("✅ Bridge service initialized - connecting to ADK server and Supabase")
+    print(f"🔗 Supabase URL: {config.SUPABASE_URL[:50]}...")
+    print(f"🤖 ADK Server: {config.ADK_SERVER_URL}")
     yield
     # Shutdown
     print("🔄 Shutting down bridge service...")
@@ -36,7 +38,7 @@ async def lifespan(app: FastAPI):
 # Create FastAPI app
 app = FastAPI(
     title="Camply Agent Bridge",
-    description="Bridge service connecting Camply frontend to ADK agents",
+    description="Bridge service connecting Camply frontend to ADK agents with Supabase integration",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -59,61 +61,100 @@ async def health_check():
     # Check if ADK server is running
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{ADK_SERVER_URL}/")
+            response = await client.get(f"{config.ADK_SERVER_URL}/")
             adk_status = "ready" if response.status_code == 200 else "error"
     except:
         adk_status = "not_connected"
     
+    # Check Supabase connection
+    try:
+        # Simple test query to check Supabase connection
+        test_result = await UserDataService.get_user_context("test-connection")
+        supabase_status = "connected"
+    except:
+        supabase_status = "connection_error"
+    
     return {
         "status": "healthy",
         "adk_server_status": adk_status,
-        "adk_server_url": ADK_SERVER_URL
+        "adk_server_url": config.ADK_SERVER_URL,
+        "supabase_status": supabase_status
     }
 
 @app.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
     try:
+        # Validate user_id
+        if not request.user_id:
+            return ChatResponse(
+                response="I need to know who you are to provide personalized assistance. Please log in.",
+                agent_used="student_desk",
+                success=False,
+                error="user_id_required"
+            )
+        
+        # Fetch user context from Supabase
+        print(f"🔍 Fetching user context for: {request.user_id}")
+        user_context = await UserDataService.get_user_context(request.user_id)
+        
+        if not user_context:
+            return ChatResponse(
+                response="I couldn't find your profile information. Please make sure you've completed your profile setup.",
+                agent_used="student_desk",
+                success=False,
+                error="user_not_found"
+            )
+        
+        # Format user context for the agent
+        formatted_context = UserDataService.format_user_context_for_agent(user_context)
+        print(f"📋 User context loaded for: {user_context['user']['name']}")
+        
         # Generate unique session ID for this conversation
-        session_id = f"session_{request.user_id or 'anonymous'}_{hash(request.message) % 10000}"
-        user_id = request.user_id or "anonymous_user"
+        session_id = f"session_{request.user_id}_{hash(request.message) % 10000}"
         
-        # Prepare the message for the agent
-        user_message = request.message
+        # Prepare the message with user context
+        user_message = f"""STUDENT CONTEXT:
+{formatted_context}
+
+USER QUESTION: {request.message}"""
         
-        # Add context if provided
-        if request.context:
-            context_info = []
-            if request.context.get("college_name"):
-                context_info.append(f"College: {request.context['college_name']}")
-            if request.context.get("department"):
-                context_info.append(f"Department: {request.context['department']}")
-            if request.context.get("branch"):
-                context_info.append(f"Branch: {request.context['branch']}")
-            
-            if context_info:
-                user_message = f"Context: {', '.join(context_info)}\n\nUser Question: {user_message}"
-        
-        print(f"🤖 Processing message: {user_message[:100]}...")
+        print(f"🤖 Processing message from {user_context['user']['name']}: {request.message[:100]}...")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
+            # Prepare session state with user context variables for template substitution
+            import datetime
+            current_year = datetime.datetime.now().year
+            
+            session_state = {
+                "student_name": user_context['user']['name'],
+                "college_name": user_context['college']['name'] if user_context['college'] else "Your College",
+                "department_name": user_context['academic_details']['department_name'] if user_context['academic_details'] else "Your Department",
+                "branch_name": user_context['academic_details']['branch_name'] if user_context['academic_details'] else "Your Branch",
+                "roll_number": user_context['academic_details']['roll_number'] if user_context['academic_details'] else "Your Roll Number",
+                "admission_year": str(user_context['academic_details']['admission_year']) if user_context['academic_details'] else "N/A",
+                "graduation_year": str(user_context['academic_details']['graduation_year']) if user_context['academic_details'] else "N/A",
+                "current_year": str(current_year - user_context['academic_details']['admission_year'] + 1) if user_context['academic_details'] else "N/A"
+            }
+            
             # Create session if it doesn't exist
             try:
                 session_response = await client.post(
-                    f"{ADK_SERVER_URL}/apps/{ADK_APP_NAME}/users/{user_id}/sessions/{session_id}",
-                    json={"state": {}},
+                    f"{config.ADK_SERVER_URL}/apps/{config.ADK_APP_NAME}/users/{request.user_id}/sessions/{session_id}",
+                    json=session_state,
                     headers={"Content-Type": "application/json"}
                 )
                 print(f"📝 Session created: {session_response.status_code}")
+                print(f"📋 Session state: {session_state}")
             except Exception as e:
                 print(f"⚠️ Session creation failed (might already exist): {e}")
                 pass  # Session might already exist
             
             # Send message to ADK agent
             adk_response = await client.post(
-                f"{ADK_SERVER_URL}/run",
+                f"{config.ADK_SERVER_URL}/run",
                 json={
-                    "appName": ADK_APP_NAME,
-                    "userId": user_id,
+                    "appName": config.ADK_APP_NAME,
+                    "userId": request.user_id,
                     "sessionId": session_id,
                     "newMessage": {
                         "role": "user",
@@ -135,7 +176,7 @@ async def chat_endpoint(request: ChatRequest):
             print(f"📊 ADK Data Type: {type(adk_data)}, Length: {len(adk_data) if isinstance(adk_data, list) else 'N/A'}")
             
             # Extract the agent's response from the events
-            agent_response = "I'm here to help with your campus questions!"
+            agent_response = f"Hello {user_context['user']['name']}! I'm your Student Desk Assistant. How can I help you today?"
             
             if isinstance(adk_data, list) and len(adk_data) > 0:
                 # Find the last model response
@@ -148,10 +189,10 @@ async def chat_endpoint(request: ChatRequest):
                                 agent_response = part["text"]
                                 print(f"✅ Found agent response: {agent_response[:100]}...")
                                 break
-                        if agent_response != "I'm here to help with your campus questions!":
+                        if "Hello" not in agent_response or len(agent_response) > 100:
                             break
         
-        print(f"✅ Agent response: {agent_response[:100]}...")
+        print(f"✅ Agent response to {user_context['user']['name']}: {agent_response[:100]}...")
         
         return ChatResponse(
             response=agent_response,

@@ -1,22 +1,5 @@
 {
     "campus_name": "REVA University",
-    "student_details": {
-        "academic_info": {
-            "name": "Srinath",
-            "srn": "R22SA342",
-            "branch": "Computer Science and Engineering-AI&DS",
-            "department": "Computer Science and Engineering",
-            "graduation_year": "2025",
-            "joined_year": "2022",
-            "campus_name": "REVA University",
-            "phone_number": "+91-9845000000",
-            "email": "srinath@gmail.com",
-            "current_semester": "4",
-            "section": "A",
-            "batch": "",
-            "academic_status": "Active"
-        }
-    },
     "overview": {
       "established": 2012,
       "type": "Private, NAAC A+",
