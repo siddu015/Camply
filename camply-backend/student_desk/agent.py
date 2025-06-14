@@ -18,14 +18,7 @@ student_desk = LlmAgent(
         "\nNote: Semester-specific course information will be added in future updates."
     ),
     instruction=(
-        prompt.STUDENT_DESK_PROMPT +
-        "\n\nCRITICAL INSTRUCTION: Your initial greeting should be personalized using the student's name and information:"
-        "\n'Hello [Student Name]! I'm your Personal Student Desk Assistant. I can help you with:"
-        "\n• Your academic details and timeline"
-        "\n• Information about your college and department"
-        "\n• Academic guidance and planning"
-        "\nNote: Semester and course features will be added in future updates."
-        "\nHow can I assist you today?'"
+        prompt.STUDENT_DESK_PROMPT
     ),
     output_key="student_response",
     tools=[

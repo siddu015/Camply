@@ -123,7 +123,24 @@ USER QUESTION: {request.message}"""
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Prepare session state with user context variables for template substitution
             import datetime
-            current_year = datetime.datetime.now().year
+            current_calendar_year = datetime.datetime.now().year
+            
+            # Calculate academic year (which year of study the student is in)
+            academic_year = "N/A"
+            if user_context['academic_details'] and user_context['academic_details']['admission_year']:
+                academic_year = str(current_calendar_year - user_context['academic_details']['admission_year'] + 1)
+            
+            # Create program name from department and branch
+            program_name = "Your Program"
+            if user_context['academic_details']:
+                dept = user_context['academic_details']['department_name']
+                branch = user_context['academic_details']['branch_name']
+                if dept and branch:
+                    program_name = f"{branch} in {dept}"
+                elif branch:
+                    program_name = branch
+                elif dept:
+                    program_name = dept
             
             session_state = {
                 "student_name": user_context['user']['name'],
@@ -133,7 +150,10 @@ USER QUESTION: {request.message}"""
                 "roll_number": user_context['academic_details']['roll_number'] if user_context['academic_details'] else "Your Roll Number",
                 "admission_year": str(user_context['academic_details']['admission_year']) if user_context['academic_details'] else "N/A",
                 "graduation_year": str(user_context['academic_details']['graduation_year']) if user_context['academic_details'] else "N/A",
-                "current_year": str(current_year - user_context['academic_details']['admission_year'] + 1) if user_context['academic_details'] else "N/A"
+                "current_year": academic_year,
+                "program_name": program_name,
+                "key_aspects": "core concepts and practical applications",
+                "relevant_areas": "your field of study and career preparation"
             }
             
             # Create session if it doesn't exist

@@ -113,9 +113,26 @@ class UserDataService:
         academic = user_context.get("academic_details")
         if academic:
             context_parts.append(f"Department: {academic.get('department_name', 'N/A')}")
-            context_parts.append(f"Branch: {academic.get('branch_name', 'N/A')}")
+            context_parts.append(f"Branch/Specialization: {academic.get('branch_name', 'N/A')}")
             context_parts.append(f"Roll Number: {academic.get('roll_number', 'N/A')}")
-            context_parts.append(f"Academic Years: {academic.get('admission_year', 'N/A')} - {academic.get('graduation_year', 'N/A')}")
+            context_parts.append(f"Academic Timeline: {academic.get('admission_year', 'N/A')} - {academic.get('graduation_year', 'N/A')}")
+            
+            # Calculate current academic year
+            import datetime
+            current_year = datetime.datetime.now().year
+            if academic.get('admission_year'):
+                academic_year = current_year - academic['admission_year'] + 1
+                context_parts.append(f"Current Academic Year: {academic_year}")
+            
+            # Create program description
+            dept = academic.get('department_name')
+            branch = academic.get('branch_name')
+            if dept and branch:
+                context_parts.append(f"Program: {branch} in {dept}")
+            elif branch:
+                context_parts.append(f"Program: {branch}")
+            elif dept:
+                context_parts.append(f"Program: {dept}")
         
         # College info
         college = user_context.get("college")
