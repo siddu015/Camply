@@ -25,6 +25,14 @@ class ChatResponse(BaseModel):
     success: bool
     error: Optional[str] = None
 
+class CampusContentRequest(BaseModel):
+    user_id: str
+
+class CampusContentResponse(BaseModel):
+    content: Optional[Dict[str, Any]]
+    success: bool
+    error: Optional[str] = None
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
@@ -225,6 +233,55 @@ USER QUESTION: {request.message}"""
         return ChatResponse(
             response="I apologize, but I'm having trouble processing your request right now. Please try again.",
             agent_used="student_desk",
+            success=False,
+            error=str(e)
+        )
+
+@app.post("/campus-content", response_model=CampusContentResponse)
+async def get_campus_content(request: CampusContentRequest):
+    """
+    Fetch campus AI content for a user's college.
+    This endpoint is used by the campus agent to get dynamic content.
+    """
+    try:
+        print(f"🏫 Fetching campus content for user ID: {request.user_id}")
+        
+        # First get user context to find their college_id
+        user_context = await UserDataService.get_user_context(request.user_id)
+        
+        if not user_context or not user_context.get('academic_details'):
+            return CampusContentResponse(
+                content=None,
+                success=False,
+                error="user_academic_details_not_found"
+            )
+        
+        college_id = user_context['academic_details']['college_id']
+        college_name = user_context['college']['name'] if user_context.get('college') else 'Unknown'
+        
+        print(f"🏫 Found college ID: {college_id} ({college_name})")
+        
+        # Fetch campus AI content from database
+        campus_content = await UserDataService.get_campus_ai_content(college_id)
+        
+        if not campus_content:
+            return CampusContentResponse(
+                content=None,
+                success=False,
+                error="campus_content_not_found"
+            )
+        
+        print(f"✅ Campus content found for {college_name}")
+        
+        return CampusContentResponse(
+            content=campus_content,
+            success=True
+        )
+        
+    except Exception as e:
+        print(f"❌ Error fetching campus content: {e}")
+        return CampusContentResponse(
+            content=None,
             success=False,
             error=str(e)
         )

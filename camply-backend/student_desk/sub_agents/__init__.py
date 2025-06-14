@@ -1,3 +1,3 @@
-"""Sub-agents package for the student desk agent."""
+from .campus_agent.agent import root_agent as campus_agent
 
-# Note: Course and semester agents will be added in the future 
+__all__ = ["campus_agent"] 

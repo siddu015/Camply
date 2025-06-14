@@ -86,6 +86,43 @@ class UserDataService:
             return None
     
     @staticmethod
+    async def get_campus_ai_content(college_id: str) -> Optional[Dict[str, Any]]:
+        """
+        Fetch campus AI content for a specific college.
+        
+        Args:
+            college_id: UUID of the college
+            
+        Returns:
+            Dictionary containing campus AI content or None if not found
+        """
+        try:
+            # Fetch active campus AI content for the college
+            response = supabase.table("campus_ai_content").select("*").eq("college_id", college_id).eq("is_active", True).order("updated_at", desc=True).limit(1).execute()
+            
+            if not response.data:
+                print(f"No campus AI content found for college ID: {college_id}")
+                return None
+            
+            content_data = response.data[0]
+            
+            return {
+                "campus_content_id": content_data["campus_content_id"],
+                "college_id": content_data["college_id"],
+                "college_overview_content": content_data.get("college_overview_content"),
+                "facilities_content": content_data.get("facilities_content"),
+                "placements_content": content_data.get("placements_content"),
+                "departments_content": content_data.get("departments_content"),
+                "admissions_content": content_data.get("admissions_content"),
+                "content_version": content_data.get("content_version", 1),
+                "updated_at": content_data["updated_at"]
+            }
+            
+        except Exception as e:
+            print(f"Error fetching campus AI content: {e}")
+            return None
+    
+    @staticmethod
     def format_user_context_for_agent(user_context: Dict[str, Any]) -> str:
         """
         Format user context data for the student desk agent.
@@ -143,4 +180,76 @@ class UserDataService:
             if college.get('university_name'):
                 context_parts.append(f"University: {college.get('university_name')}")
         
-        return "\n".join(context_parts) if context_parts else "User context not fully available." 
+        return "\n".join(context_parts) if context_parts else "User context not fully available."
+    
+    @staticmethod
+    def format_campus_content_for_agent(campus_content: Dict[str, Any]) -> str:
+        """
+        Format campus AI content for the campus agent.
+        
+        Args:
+            campus_content: Campus AI content dictionary
+            
+        Returns:
+            Formatted string for campus agent context
+        """
+        if not campus_content:
+            return "Campus content not available."
+        
+        content_parts = []
+        content_parts.append("=== CAMPUS AI CONTENT ===")
+        
+        # College Overview
+        if campus_content.get("college_overview_content"):
+            content_parts.append("\n--- COLLEGE OVERVIEW ---")
+            overview = campus_content["college_overview_content"]
+            if isinstance(overview, dict):
+                for key, value in overview.items():
+                    content_parts.append(f"{key.replace('_', ' ').title()}: {value}")
+            else:
+                content_parts.append(str(overview))
+        
+        # Facilities
+        if campus_content.get("facilities_content"):
+            content_parts.append("\n--- FACILITIES ---")
+            facilities = campus_content["facilities_content"]
+            if isinstance(facilities, dict):
+                for key, value in facilities.items():
+                    content_parts.append(f"{key.replace('_', ' ').title()}: {value}")
+            else:
+                content_parts.append(str(facilities))
+        
+        # Placements
+        if campus_content.get("placements_content"):
+            content_parts.append("\n--- PLACEMENTS ---")
+            placements = campus_content["placements_content"]
+            if isinstance(placements, dict):
+                for key, value in placements.items():
+                    content_parts.append(f"{key.replace('_', ' ').title()}: {value}")
+            else:
+                content_parts.append(str(placements))
+        
+        # Departments
+        if campus_content.get("departments_content"):
+            content_parts.append("\n--- DEPARTMENTS ---")
+            departments = campus_content["departments_content"]
+            if isinstance(departments, dict):
+                for key, value in departments.items():
+                    content_parts.append(f"{key.replace('_', ' ').title()}: {value}")
+            else:
+                content_parts.append(str(departments))
+        
+        # Admissions
+        if campus_content.get("admissions_content"):
+            content_parts.append("\n--- ADMISSIONS ---")
+            admissions = campus_content["admissions_content"]
+            if isinstance(admissions, dict):
+                for key, value in admissions.items():
+                    content_parts.append(f"{key.replace('_', ' ').title()}: {value}")
+            else:
+                content_parts.append(str(admissions))
+        
+        content_parts.append(f"\nContent Version: {campus_content.get('content_version', 1)}")
+        content_parts.append(f"Last Updated: {campus_content.get('updated_at', 'N/A')}")
+        
+        return "\n".join(content_parts) 

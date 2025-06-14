@@ -1,31 +1,33 @@
 """Campus Agent: Provides comprehensive information about the university campus."""
 
-import os
-import json
 from google.adk.agents import LlmAgent
 from . import prompt
+from .tools import fetch_campus_content_tool
 
-MODEL = "gemini-2.5-flash-preview-05-20"
+MODEL = "gemini-2.0-flash"
 
-def load_campus_data():
-    """Load campus data from JSON file."""
-    data_file = os.path.join(os.path.dirname(__file__), "data/college.json")
-    try:
-        with open(data_file, 'r') as f:
-            campus_data = json.load(f)
-            # Format data for better readability in the prompt
-            return "\n\nCAMPUS DATA:\n" + json.dumps(campus_data, indent=2)
-    except (FileNotFoundError, json.JSONDecodeError) as e:
-        print(f"Error loading campus data: {e}")
-        return "\nError: Campus data is not available."
-
-# Create and configure the campus agent
 campus_agent = LlmAgent(
-    model=MODEL,
     name="campus_agent",
-    description="Provides comprehensive information about REVA University including overview, academics, placements, facilities, and more.",
-    instruction=prompt.SYSTEM_PROMPT + load_campus_data(),
+    model=MODEL,
+    description=(
+        "Campus Information Specialist that provides comprehensive, detailed information about colleges and universities. "
+        "Specializes in: college overview and history, campus facilities, placement statistics, department details, "
+        "admissions processes, and campus life. Uses dynamic database content via fetch_campus_content tool. "
+        "Always extracts college_id from queries and fetches current information."
+    ),
+    instruction=(
+        prompt.SYSTEM_PROMPT + 
+        "\n\nCRITICAL INSTRUCTIONS:\n"
+        "1. ALWAYS extract college_id from the query (look for 'college_id: [UUID]' pattern)\n"
+        "2. IMMEDIATELY use fetch_campus_content tool with the extracted college_id\n"
+        "3. Provide comprehensive, detailed responses based on fetched data\n"
+        "4. NEVER say you cannot help - always provide useful information\n"
+        "5. Focus on the specific query topic while providing comprehensive context\n"
+        "6. If tool fails, provide helpful general information about the topic\n"
+        "7. All campus information comes from the database via the fetch_campus_content tool"
+    ),
     output_key="campus_response",
+    tools=[fetch_campus_content_tool],
 )
 
 # Export the agent instance
