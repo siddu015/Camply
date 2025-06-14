@@ -2,10 +2,10 @@
 
 from supabase import create_client, Client
 from typing import Optional, Dict, Any
-import config
+from .config import Config
 
 # Initialize Supabase client with service role key for backend operations
-supabase: Client = create_client(config.SUPABASE_URL, config.SUPABASE_BACKEND_KEY)
+supabase: Client = create_client(Config.SUPABASE_URL, Config.get_supabase_backend_key())
 
 class UserDataService:
     """Service for fetching user data from Supabase."""

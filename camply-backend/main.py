@@ -8,9 +8,8 @@ import asyncio
 import httpx
 from contextlib import asynccontextmanager
 
-# Import our modules
-import config
-from database import UserDataService
+# Import our shared modules
+from shared import Config, UserDataService
 
 # Request/Response models
 class ChatRequest(BaseModel):
@@ -36,12 +35,12 @@ class CampusContentResponse(BaseModel):
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Startup
-    print("✅ Bridge service initialized - connecting to ADK server and Supabase")
-    print(f"🔗 Supabase URL: {config.SUPABASE_URL[:50]}...")
-    print(f"🤖 ADK Server: {config.ADK_SERVER_URL}")
+    print("Bridge service initialized - connecting to ADK server and Supabase")
+    print(f"Supabase URL: {Config.SUPABASE_URL[:50]}...")
+    print(f"ADK Server: {Config.ADK_SERVER_URL}")
     yield
     # Shutdown
-    print("🔄 Shutting down bridge service...")
+    print("Shutting down bridge service...")
 
 # Create FastAPI app
 app = FastAPI(
@@ -69,7 +68,7 @@ async def health_check():
     # Check if ADK server is running
     try:
         async with httpx.AsyncClient() as client:
-            response = await client.get(f"{config.ADK_SERVER_URL}/")
+            response = await client.get(f"{Config.ADK_SERVER_URL}/")
             adk_status = "ready" if response.status_code == 200 else "error"
     except:
         adk_status = "not_connected"
@@ -85,7 +84,7 @@ async def health_check():
     return {
         "status": "healthy",
         "adk_server_status": adk_status,
-        "adk_server_url": config.ADK_SERVER_URL,
+        "adk_server_url": Config.ADK_SERVER_URL,
         "supabase_status": supabase_status
     }
 
@@ -102,7 +101,7 @@ async def chat_endpoint(request: ChatRequest):
             )
         
         # Fetch user context from Supabase
-        print(f"🔍 Fetching user context for: {request.user_id}")
+        print(f"Fetching user context for: {request.user_id}")
         user_context = await UserDataService.get_user_context(request.user_id)
         
         if not user_context:
@@ -115,7 +114,7 @@ async def chat_endpoint(request: ChatRequest):
         
         # Format user context for the agent
         formatted_context = UserDataService.format_user_context_for_agent(user_context)
-        print(f"📋 User context loaded for: {user_context['user']['name']}")
+        print(f"User context loaded for: {user_context['user']['name']}")
         
         # Generate unique session ID for this conversation
         session_id = f"session_{request.user_id}_{hash(request.message) % 10000}"
@@ -126,7 +125,7 @@ async def chat_endpoint(request: ChatRequest):
 
 USER QUESTION: {request.message}"""
         
-        print(f"🤖 Processing message from {user_context['user']['name']}: {request.message[:100]}...")
+        print(f"Processing message from {user_context['user']['name']}: {request.message[:100]}...")
         
         async with httpx.AsyncClient(timeout=30.0) as client:
             # Prepare session state with user context variables for template substitution
@@ -167,21 +166,21 @@ USER QUESTION: {request.message}"""
             # Create session if it doesn't exist
             try:
                 session_response = await client.post(
-                    f"{config.ADK_SERVER_URL}/apps/{config.ADK_APP_NAME}/users/{request.user_id}/sessions/{session_id}",
+                    f"{Config.ADK_SERVER_URL}/apps/{Config.ADK_APP_NAME}/users/{request.user_id}/sessions/{session_id}",
                     json=session_state,
                     headers={"Content-Type": "application/json"}
                 )
-                print(f"📝 Session created: {session_response.status_code}")
-                print(f"📋 Session state: {session_state}")
+                print(f"Session created: {session_response.status_code}")
+                print(f"Session state: {session_state}")
             except Exception as e:
-                print(f"⚠️ Session creation failed (might already exist): {e}")
+                print(f"Session creation failed (might already exist): {e}")
                 pass  # Session might already exist
             
             # Send message to ADK agent
             adk_response = await client.post(
-                f"{config.ADK_SERVER_URL}/run",
+                f"{Config.ADK_SERVER_URL}/run",
                 json={
-                    "appName": config.ADK_APP_NAME,
+                    "appName": Config.ADK_APP_NAME,
                     "userId": request.user_id,
                     "sessionId": session_id,
                     "newMessage": {
@@ -192,16 +191,16 @@ USER QUESTION: {request.message}"""
                 headers={"Content-Type": "application/json"}
             )
             
-            print(f"📡 ADK Response Status: {adk_response.status_code}")
+            print(f"ADK Response Status: {adk_response.status_code}")
             
             if adk_response.status_code != 200:
                 error_text = adk_response.text
-                print(f"❌ ADK Error Response: {error_text}")
+                print(f"ADK Error Response: {error_text}")
                 raise HTTPException(status_code=500, detail=f"ADK server error: {adk_response.status_code}")
             
             # Parse ADK response
             adk_data = adk_response.json()
-            print(f"📊 ADK Data Type: {type(adk_data)}, Length: {len(adk_data) if isinstance(adk_data, list) else 'N/A'}")
+            print(f"ADK Data Type: {type(adk_data)}, Length: {len(adk_data) if isinstance(adk_data, list) else 'N/A'}")
             
             # Extract the agent's response from the events
             agent_response = f"Hello {user_context['user']['name']}! I'm your Student Desk Assistant. How can I help you today?"
@@ -215,12 +214,12 @@ USER QUESTION: {request.message}"""
                         for part in parts:
                             if "text" in part:
                                 agent_response = part["text"]
-                                print(f"✅ Found agent response: {agent_response[:100]}...")
+                                print(f"Found agent response: {agent_response[:100]}...")
                                 break
                         if "Hello" not in agent_response or len(agent_response) > 100:
                             break
         
-        print(f"✅ Agent response to {user_context['user']['name']}: {agent_response[:100]}...")
+        print(f"Agent response to {user_context['user']['name']}: {agent_response[:100]}...")
         
         return ChatResponse(
             response=agent_response,
@@ -229,7 +228,7 @@ USER QUESTION: {request.message}"""
         )
         
     except Exception as e:
-        print(f"❌ Error processing chat: {e}")
+        print(f"Error processing chat: {e}")
         return ChatResponse(
             response="I apologize, but I'm having trouble processing your request right now. Please try again.",
             agent_used="student_desk",
@@ -244,7 +243,7 @@ async def get_campus_content(request: CampusContentRequest):
     This endpoint is used by the campus agent to get dynamic content.
     """
     try:
-        print(f"🏫 Fetching campus content for user ID: {request.user_id}")
+        print(f"Fetching campus content for user ID: {request.user_id}")
         
         # First get user context to find their college_id
         user_context = await UserDataService.get_user_context(request.user_id)
@@ -259,7 +258,7 @@ async def get_campus_content(request: CampusContentRequest):
         college_id = user_context['academic_details']['college_id']
         college_name = user_context['college']['name'] if user_context.get('college') else 'Unknown'
         
-        print(f"🏫 Found college ID: {college_id} ({college_name})")
+        print(f"Found college ID: {college_id} ({college_name})")
         
         # Fetch campus AI content from database
         campus_content = await UserDataService.get_campus_ai_content(college_id)
@@ -271,7 +270,7 @@ async def get_campus_content(request: CampusContentRequest):
                 error="campus_content_not_found"
             )
         
-        print(f"✅ Campus content found for {college_name}")
+        print(f"Campus content found for {college_name}")
         
         return CampusContentResponse(
             content=campus_content,
@@ -279,7 +278,7 @@ async def get_campus_content(request: CampusContentRequest):
         )
         
     except Exception as e:
-        print(f"❌ Error fetching campus content: {e}")
+        print(f"Error fetching campus content: {e}")
         return CampusContentResponse(
             content=None,
             success=False,
@@ -288,4 +287,4 @@ async def get_campus_content(request: CampusContentRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001, reload=True) 
+    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True) 
