@@ -1,9 +1,23 @@
-fastapi>=0.115.0
-uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-google-adk>=0.1.0
-python-multipart>=0.0.6
-httpx>=0.25.2
-requests>=2.31.0
-supabase>=2.0.0
-python-dotenv>=1.0.0 
+# Core ADK requirements
+google-adk
+asyncpg
+asyncio
+python-dotenv
+
+# Database and data handling
+sqlalchemy
+psycopg2-binary
+
+# Web scraping and HTTP requests for campus agent
+httpx
+beautifulsoup4
+lxml
+requests
+
+# Additional utility libraries
+pydantic
+fastapi
+uvicorn
+
+# Date and time handling
+python-dateutil 
