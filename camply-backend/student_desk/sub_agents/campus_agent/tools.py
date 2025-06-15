@@ -1,14 +1,20 @@
-"""Tools for the Campus Agent to fetch dynamic campus content."""
+"""Tools for the Campus Agent to fetch dynamic campus content following ADK principles."""
 
-import httpx
-import json
-import re
+import sys
+import os
+import asyncio
 from typing import Dict, Any, Optional
 from google.adk.tools import FunctionTool
 
-async def fetch_campus_content(user_id: str) -> str:
+# Add parent directory to path to access shared modules
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+
+from shared import UserDataService
+
+
+async def fetch_campus_content_by_user_id(user_id: str) -> str:
     """
-    Fetch campus AI content from the backend API using user_id.
+    Fetch campus AI content using user_id to get their college information.
     
     Args:
         user_id: UUID of the user to fetch campus content for
@@ -16,62 +22,69 @@ async def fetch_campus_content(user_id: str) -> str:
     Returns:
         Formatted campus content string for the agent
     """
-    # Validate user_id format (should be UUID)
-    if not user_id or not re.match(r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$', user_id, re.IGNORECASE):
-        return f"Invalid user_id format: {user_id}. Please provide a valid UUID."
-    
     try:
-        # Make request to backend API
-        async with httpx.AsyncClient(timeout=15.0) as client:
-            response = await client.post(
-                "http://localhost:8001/campus-content",
-                json={"user_id": user_id},
-                headers={"Content-Type": "application/json"}
-            )
-            
-            if response.status_code == 404:
-                return "Campus content not found for this college. The college may not have uploaded campus information yet."
-            
-            if response.status_code != 200:
-                return f"Unable to fetch campus content at this time (HTTP {response.status_code}). Please try again later."
-            
-            data = response.json()
-            
-            if not data.get("success"):
-                error_msg = data.get('error', 'Unknown error')
-                if error_msg == "campus_content_not_found":
-                    return "Campus content is not available for this college yet. The college administration may need to upload the information."
-                return f"Campus content service error: {error_msg}"
-            
-            campus_content = data.get("content")
-            if not campus_content:
-                return "No campus content found for this college. Please contact the college administration for more information."
-            
-            # Format the content for the agent
-            return format_campus_content_for_agent(campus_content)
-            
-    except httpx.TimeoutException:
-        return "Request timed out while fetching campus content. Please try again."
-    except httpx.ConnectError:
-        return "Unable to connect to campus content service. The service may be temporarily unavailable."
+        # First get user context to find their college_id
+        user_context = await UserDataService.get_user_context(user_id)
+        
+        if not user_context or not user_context.get('academic_details'):
+            return "User profile not found or incomplete. Please ensure the user has completed their academic profile setup."
+        
+        college_id = user_context['academic_details']['college_id']
+        college_name = user_context['college']['name'] if user_context.get('college') else 'Unknown College'
+        
+        # Fetch campus AI content from database
+        campus_content = await UserDataService.get_campus_ai_content(college_id)
+        
+        if not campus_content:
+            return f"Campus content is not available for {college_name} yet. The college administration may need to upload the campus information."
+        
+        # Format the content for the agent
+        return format_campus_content_for_agent(campus_content, college_name)
+        
     except Exception as e:
-        return f"Unexpected error while fetching campus content: {str(e)}"
+        return f"Error fetching campus content: {str(e)}. Please try again or contact support if the issue persists."
 
-def format_campus_content_for_agent(campus_content: Dict[str, Any]) -> str:
+
+async def fetch_campus_content_by_college_id(college_id: str) -> str:
+    """
+    Fetch campus AI content directly using college_id.
+    
+    Args:
+        college_id: UUID of the college to fetch content for
+        
+    Returns:
+        Formatted campus content string for the agent
+    """
+    try:
+        # Fetch campus AI content from database
+        campus_content = await UserDataService.get_campus_ai_content(college_id)
+        
+        if not campus_content:
+            return f"Campus content is not available for this college (ID: {college_id}). The college administration may need to upload the campus information."
+        
+        # Format the content for the agent
+        return format_campus_content_for_agent(campus_content, f"College {college_id}")
+        
+    except Exception as e:
+        return f"Error fetching campus content: {str(e)}. Please try again or contact support if the issue persists."
+
+
+def format_campus_content_for_agent(campus_content: Dict[str, Any], college_name: str = "College") -> str:
     """
     Format campus AI content for the campus agent with enhanced formatting.
     
     Args:
         campus_content: Campus AI content dictionary
+        college_name: Name of the college for better formatting
         
     Returns:
         Formatted string for campus agent context
     """
     if not campus_content:
-        return "Campus content not available."
+        return f"Campus content not available for {college_name}."
     
     content_parts = []
-    content_parts.append("=== CAMPUS INFORMATION DATABASE ===")
+    content_parts.append(f"=== {college_name.upper()} CAMPUS INFORMATION DATABASE ===")
     content_parts.append(f"Content Version: {campus_content.get('content_version', 1)}")
     content_parts.append(f"Last Updated: {campus_content.get('updated_at', 'N/A')}")
     
@@ -151,5 +164,12 @@ def format_campus_content_for_agent(campus_content: Dict[str, Any]) -> str:
     
     return "\n".join(content_parts)
 
-# Create the tool for ADK
-fetch_campus_content_tool = FunctionTool(fetch_campus_content) 
+
+# ADK Tool instances
+fetch_campus_content_tool = FunctionTool(
+    func=fetch_campus_content_by_user_id
+)
+
+fetch_campus_content_by_id_tool = FunctionTool(
+    func=fetch_campus_content_by_college_id
+) 

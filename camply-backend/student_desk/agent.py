@@ -3,6 +3,7 @@
 from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
 from .sub_agents.campus_agent.agent import root_agent as campus_agent
+from .tools import ADK_TOOLS
 
 from . import prompt
 
@@ -17,14 +18,18 @@ student_desk = LlmAgent(
         "2. Campus information through specialized campus agent (facilities, placements, college details) "
         "3. Academic planning and course guidance "
         "4. Personalized recommendations based on student profile "
-        "\nRoutes campus-related queries to campus specialist for detailed, up-to-date information."
+        "5. Memory management for context persistence across conversations "
+        "\nUses ADK tools to fetch user data, manage memory, and route campus queries to specialist agents."
     ),
     instruction=(
         prompt.STUDENT_DESK_PROMPT
     ),
     output_key="student_response",
     tools=[
+        # Campus agent for college-specific information
         AgentTool(agent=campus_agent),
+        # ADK tools for user context and memory management
+        *ADK_TOOLS
     ],
 )
 

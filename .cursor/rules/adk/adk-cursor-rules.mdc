@@ -1,0 +1,235 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+Here is a **Markdown-based universal Cursor Rulebook** for building agents using the **Agent Development Kit (ADK)**. This rulebook will act as a guide for the model (like Cursor) to **strictly follow ADK principles**—covering agents, prompts, data routing, multi-agent setup, memory usage, and more.
+
+---
+
+# 🧠 Universal Cursor Rulebook for Agent Development Kit (ADK)
+
+> ✅ **Scope:** This document defines **how Cursor (or any AI assistant)** should behave when working on projects using Google’s Agent Development Kit (ADK).
+> 📦 **Strict rule:** All behavior must follow **only ADK methods**, avoiding external tools, custom logic, or Python libraries unless explicitly used via ADK.
+
+---
+
+## 🧩 1. What is ADK?
+
+ADK (Agent Development Kit) is a framework to **build AI agents** with:
+
+* **Structured tools** (called `tools`)
+* **Event-based data flow**
+* **Agent composition**
+* **Memory and planning**
+* **Safe and predictable AI behaviors**
+
+> Think of ADK as a **modular LLM agent engine** that standardizes how agents use tools, handle inputs, and return outputs.
+
+---
+
+## 🛠️ 2. Universal Rules: Working with ADK (Mandatory)
+
+| # | Rule                            | Description                                                                                                                                                     |
+| - | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1 | **Only use ADK mechanisms**     | Use only `Tool`, `Agent`, `Planner`, `Memory`, and `Event` primitives from ADK. Avoid all custom logic unless defined inside ADK `tool` or `agent`.             |
+| 2 | **LLM must act via ADK Agents** | Do not make decisions or fetch data directly. Use ADK `Agents` and `Tools` to handle logic, memory, and routing. Cursor should never bypass ADK infrastructure. |
+
+---
+
+## 🔁 3. ADK Agent Execution Flow
+
+```mermaid
+flowchart TD
+    Input[User Input/Event] --> Planner
+    Planner --> Agent
+    Agent --> Tool
+    Tool --> Agent
+    Agent --> Memory
+    Memory --> Planner
+    Planner --> Output[Final Response]
+```
+
+---
+
+## 🧱 4. Core Components
+
+### 🧠 Agent
+
+* Encapsulates the **core logic** of interacting with tools and memory.
+* Agents should not generate responses directly; they must:
+
+  * Invoke tools
+  * Query memory
+  * Ask sub-agents
+
+```ts
+// Pseudocode
+agent studentInfoAgent {
+  description: "Handles student queries like marks, attendance, etc."
+  tools: [getMarks, getAttendance]
+}
+```
+
+---
+
+### 🧰 Tool
+
+* Tools wrap actual functionality (API call, database fetch).
+* Must be deterministic and secure.
+* All external interaction (database, API) happens **only** through tools.
+
+```ts
+tool getMarks {
+  description: "Fetches student marks from DB."
+  parameters: studentId
+  returns: markSheet
+}
+```
+
+---
+
+### 🧭 Planner
+
+* Planners **orchestrate** multiple agents/tools by planning a path.
+* Used in **multi-agent systems** to decompose tasks.
+
+```ts
+planner studentDashboardPlanner {
+  agents: [studentInfoAgent, timetableAgent, examAgent]
+}
+```
+
+---
+
+### 🗃️ Memory
+
+* Use `Memory` to **store past interactions** or fetched results.
+* Memory must be queried using built-in ADK APIs.
+* Never use Python `dict`, `pickle`, or custom storage.
+
+---
+
+### ⚙️ Event Routing
+
+* Every interaction in ADK is an **event** (with metadata).
+* Use `on_event`, `emit_event`, etc., only if supported by ADK's event model.
+
+---
+
+## 🧩 5. Writing Prompts in ADK
+
+### ✅ Prompt Design Rules
+
+| Do                                           | Don’t                               |
+| -------------------------------------------- | ----------------------------------- |
+| Use `prompt_templates` defined in ADK config | Do not use hardcoded LLM prompts    |
+| Use structured input-output fields           | Avoid open-ended, general questions |
+| Keep prompts tool-focused                    | Avoid unclear multi-task queries    |
+
+**Example:**
+
+```json
+{
+  "prompt_template": "What is the attendance of student ID: {{studentId}}?"
+}
+```
+
+---
+
+## 🤖 6. Creating Multi-Agent Systems
+
+To create multiple cooperating agents:
+
+1. Define individual agents with clear roles.
+2. Use a **Planner** to route between them.
+3. Share memory context if required.
+4. Ensure no agent acts outside its scope.
+
+**Example Setup:**
+
+```ts
+agent examAgent {
+  tools: [getExamSchedule]
+}
+agent attendanceAgent {
+  tools: [getAttendance]
+}
+planner dashboardPlanner {
+  agents: [examAgent, attendanceAgent]
+}
+```
+
+---
+
+## 🔄 7. Routing Rules
+
+* Use **Planner** to route data based on the user’s intent.
+* Do not hardcode agent calls inside other agents.
+* Each agent must handle only one concern (Single Responsibility Principle).
+
+---
+
+## 🧠 8. Memory Usage Guidelines
+
+| Type       | Use Case                                              |
+| ---------- | ----------------------------------------------------- |
+| Short-Term | Store session-based queries, previous answers         |
+| Long-Term  | Profile data (e.g., student profile, preferences)     |
+| Indexed    | Use when querying memory by fields (e.g., student ID) |
+
+Use only ADK’s native `memory.get()`, `memory.save()` methods.
+
+---
+
+## 🧾 9. ADK Best Practices
+
+* 🧩 **Modularity:** Build agents like microservices.
+* 🔍 **Explainability:** Tools and agents must have clear descriptions.
+* 🔒 **Security:** Never call arbitrary code outside ADK tools.
+* 🚧 **Debugging:** Use ADK logs/events to trace behavior.
+* 🔄 **Composability:** Prefer reusing agents via planners over duplication.
+
+---
+
+## 💬 10. Cursor Behavior Policy with ADK
+
+> When working in a Cursor project that uses ADK:
+
+* 🛑 Never write Python functions for logic.
+* ✅ Always call ADK tools or trigger ADK agents.
+* 🧠 Remember prior events using ADK memory only.
+* 🧭 Decompose goals using ADK Planner, never inline.
+* 🗃️ Follow prompt structure defined in `prompt_templates`.
+* 🤖 Never generate final output yourself—pass to ADK agent response system.
+
+---
+
+## 📦 11. Output Expectations
+
+> All AI-generated results must conform to this format:
+
+```json
+{
+  "agent": "studentInfoAgent",
+  "tool_used": "getMarks",
+  "result": {
+    "subject": "Math",
+    "marks": 92
+  }
+}
+```
+
+---
+
+## ✅ Conclusion
+
+This rulebook is **the universal guide for all ADK-based projects**. When working with ADK:
+
+* Use **only ADK components**.
+* Model must **never create or invoke logic** outside agent and tool definitions.
+* Model must **interpret and act like an ADK planner or agent**, not a general-purpose chatbot or coder.
+
+---
+
+Would you like this converted into a `.md` file download or included in your ADK project setup directly?

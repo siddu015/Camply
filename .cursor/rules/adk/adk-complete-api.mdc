@@ -1,0 +1,124 @@
+# ADK Complete API Reference
+
+## Core Modules
+
+### google.adk.agents
+
+- `LlmAgent` - Main LLM-based agent class
+- `BaseAgent` - Base class for all agents
+- `Agent` - Alias for LlmAgent
+
+### google.adk.tools
+
+- `FunctionTool` - Wrap Python functions as tools
+- `AgentTool` - Use agents as tools
+- `BaseTool` - Base class for all tools
+- `BaseToolset` - For grouping tools
+- `ExampleTool` - Built-in example tool
+- `LongRunningFunctionTool` - For async operations
+- `VertexAiSearchTool` - Built-in search
+- `OpenAPIToolset` - REST API tools from OpenAPI specs
+- `RestApiTool` - Individual REST API tool
+
+### google.adk.memory
+
+- `BaseMemoryService` - Base memory interface
+- `InMemoryMemoryService` - In-memory storage
+- `VertexAiRagMemoryService` - RAG-based memory
+
+### google.adk.sessions
+
+- Session management for conversations
+
+### google.adk.runners
+
+- `Runner` - Execute agents
+
+### google.adk.models
+
+- Model configurations
+
+### google.adk.artifacts
+
+- Artifact handling
+
+### google.adk.events
+
+- Event system for agent communication
+
+## Correct Import Patterns
+
+```python
+# Agents
+from google.adk.agents import LlmAgent, BaseAgent
+
+# Tools
+from google.adk.tools import FunctionTool, AgentTool, BaseTool
+
+# Memory
+from google.adk.memory import InMemoryMemoryService, BaseMemoryService
+
+# Sessions & Runners
+from google.adk.sessions import InMemorySessionService
+from google.adk.runners import Runner
+```
+
+## Tool Creation Patterns
+
+### Function Tools
+
+```python
+from google.adk.tools import FunctionTool
+
+def my_function(param: str) -> str:
+    """Function description for LLM."""
+    return f"Result: {param}"
+
+# Simple function tool
+tool = FunctionTool(func=my_function)
+
+# With custom name
+tool = FunctionTool(func=my_function, name="custom_name")
+```
+
+### Agent Tools
+
+```python
+from google.adk.tools import AgentTool
+
+sub_agent = LlmAgent(name="SubAgent", model="gemini-2.0-flash")
+agent_tool = AgentTool(agent=sub_agent)
+```
+
+## Agent Creation Pattern
+
+```python
+from google.adk.agents import LlmAgent
+from google.adk.tools import FunctionTool
+
+agent = LlmAgent(
+    name="MyAgent",
+    model="gemini-2.0-flash",
+    instruction="Agent instructions here",
+    tools=[tool1, tool2],
+    description="Agent description"
+)
+```
+
+## Memory Usage (NO google.adk.core!)
+
+```python
+from google.adk.memory import InMemoryMemoryService
+
+# Memory is handled by the framework, not directly instantiated
+# Use tool_context.state for tool-level state management
+```
+
+## Key Rules
+
+1. NO `google.adk.core` - doesn't exist
+2. Use `FunctionTool(func=function)` not `Tool(func=function)`
+3. Memory is managed by services, not direct `Memory()` calls
+4. Always use proper ADK imports from the documented modules
+5. **CRITICAL**: ADK tools run in async context - use `async def` and `await`
+6. Never use `asyncio.run()` or `loop.run_until_complete()` in tools
