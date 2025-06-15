@@ -330,7 +330,7 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
 
               {/* Messages with Enhanced Glass Background */}
               <div className={cn(
-                "flex-1 overflow-y-auto px-4 py-2 space-y-3 flex flex-col justify-end",
+                "flex-1 overflow-y-auto px-4 py-4 flex flex-col",
                 // Enhanced messages area with glass effect
                 isDark 
                   ? "backdrop-blur-[15px] bg-gradient-to-b from-white/2 to-white/1" 
@@ -342,9 +342,9 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
                   ? "scrollbar-thin scrollbar-thumb-white/15 scrollbar-track-transparent hover:scrollbar-thumb-white/25" 
                   : "scrollbar-thin scrollbar-thumb-gray-400/30 scrollbar-track-transparent hover:scrollbar-thumb-gray-500/45"
               )}>
-                                  <div className="flex flex-col space-y-3 min-h-0">
-                    <AnimatePresence>
-                      {messages.map((message) => (
+                <div className="flex flex-col space-y-4 flex-1">
+                  <AnimatePresence>
+                    {messages.map((message) => (
                         <motion.div
                           key={message.id}
                           initial={{ opacity: 0, y: 10 }}
@@ -388,12 +388,14 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
                           </div>
                         )}
                       </div>
-                    </motion.div>
-                  ))}
-                                    </AnimatePresence>
-                  </div>
-                  <div ref={messagesEndRef} />
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
                 </div>
+                {/* Spacer to push messages up and provide gap from input */}
+                <div className="h-4 flex-shrink-0" />
+                <div ref={messagesEndRef} />
+              </div>
 
               {/* Input Section with Enhanced Glass Effect */}
               <div className={cn(
