@@ -9,17 +9,19 @@ alwaysApply: false
 
 ### Core Tables
 
-- `colleges` - Reference table for institutions
+- `colleges` - Reference table for institutions with metadata
 - `users` - Auth users with basic profile info
 - `user_academic_details` - Academic information linked to users
 - `semesters` - Semester data per academic record
 - `courses` - Course data per semester
+- `campus_ai_content` - AI-generated campus intelligence data
 
 ### Primary Keys & UUIDs
 
 - All tables use UUID primary keys with `uuid_generate_v4()` default
 - Foreign key references use proper UUID constraints
 - Never use string IDs for database operations
+- UUID extension enabled: `CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`
 
 ### Required Relationships
 
@@ -29,6 +31,7 @@ user_academic_details.college_id → colleges.college_id
 user_academic_details.latest_semester_id → semesters.semester_id
 semesters.academic_id → user_academic_details.academic_id
 courses.semester_id → semesters.semester_id
+campus_ai_content.college_id → colleges.college_id
 ```
 
 ## TypeScript Interface Rules
@@ -42,6 +45,27 @@ interface College {
   city?: string;
   state?: string;
   university_name?: string;
+  college_icon?: string; // URL to college logo/icon
+  college_website_url?: string; // Official website URL
+  created_at: string; // ISO timestamp
+}
+```
+
+### Campus AI Content Interface
+
+```typescript
+interface CampusAIContent {
+  campus_content_id: string; // UUID primary key
+  college_id: string; // References colleges.college_id
+  college_overview_content?: object; // JSONB structured content
+  facilities_content?: object; // JSONB facilities information
+  placements_content?: object; // JSONB placement data
+  departments_content?: object; // JSONB department information
+  admissions_content?: object; // JSONB admissions data
+  generated_at: string; // ISO timestamp
+  updated_at: string; // ISO timestamp with auto-update trigger
+  content_version: number; // Version tracking (default: 1)
+  is_active: boolean; // Active status (default: true)
 }
 ```
 
@@ -114,11 +138,43 @@ const academicData = {
 - Users can only access their own data (`auth.uid() = user_id`)
 - Colleges are publicly readable
 - Academic details, semesters, and courses follow user ownership hierarchy
+- Campus AI content is publicly readable (shared across users from same college)
+- Only system can insert/update campus AI content (managed by backend agents)
 
 ### Policy Naming Convention
 
 - `"Users can [action] own [resource]"` for user-specific policies
 - `"Anyone can view [resource]"` for public read access
+- `"System can manage [resource]"` for backend-only operations
+
+### RLS Policies Implementation
+
+```sql
+-- Enable RLS on all tables
+ALTER TABLE public.colleges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.user_academic_details ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.semesters ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.courses ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.campus_ai_content ENABLE ROW LEVEL SECURITY;
+
+-- Colleges: Public read access
+CREATE POLICY "Anyone can view colleges" ON public.colleges FOR SELECT USING (true);
+
+-- Campus AI Content: Public read, system-only write
+CREATE POLICY "Anyone can view campus AI content" ON public.campus_ai_content FOR SELECT USING (true);
+CREATE POLICY "System can manage campus AI content" ON public.campus_ai_content FOR ALL USING (false);
+
+-- User policies
+CREATE POLICY "Users can view own data" ON public.users FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can update own data" ON public.users FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own data" ON public.users FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Academic details policies with hierarchical access
+CREATE POLICY "Users can view own academic details" ON public.user_academic_details FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "Users can update own academic details" ON public.user_academic_details FOR UPDATE USING (user_id = auth.uid());
+CREATE POLICY "Users can insert own academic details" ON public.user_academic_details FOR INSERT WITH CHECK (user_id = auth.uid());
+```
 
 ## Migration Rules
 
@@ -133,6 +189,8 @@ const academicData = {
 - Always add RLS policies after table creation
 - Use `IF NOT EXISTS` for idempotent operations
 - Add proper foreign key constraints
+- Include indexes for performance optimization
+- Add triggers for automatic timestamp updates
 
 ### Required Policies for New Tables
 
@@ -143,6 +201,37 @@ ALTER TABLE table_name ENABLE ROW LEVEL SECURITY;
 -- Add appropriate policies based on access patterns
 CREATE POLICY "Users can view own data" ON table_name
   FOR SELECT USING (user_id = auth.uid());
+```
+
+### Performance Indexes
+
+```sql
+-- Campus AI content optimization
+CREATE INDEX idx_campus_ai_content_college_id ON public.campus_ai_content(college_id);
+CREATE INDEX idx_campus_ai_content_active ON public.campus_ai_content(college_id, is_active) WHERE is_active = true;
+
+-- User data optimization
+CREATE INDEX idx_users_academic_id ON public.users(academic_id);
+CREATE INDEX idx_academic_details_user_id ON public.user_academic_details(user_id);
+CREATE INDEX idx_academic_details_college_id ON public.user_academic_details(college_id);
+```
+
+### Automatic Triggers
+
+```sql
+-- Function for updating timestamps
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.updated_at = timezone('utc'::text, now());
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+-- Apply to campus AI content
+CREATE TRIGGER update_campus_ai_content_updated_at 
+    BEFORE UPDATE ON public.campus_ai_content 
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 ```
 
 ## Form Handling Rules
