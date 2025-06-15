@@ -15,14 +15,37 @@ import {
   MapPin as Map,
   ExternalLink,
   Users,
-  Clock
+  Clock,
+  X,
+  Bot,
+  Loader2
 } from 'lucide-react';
 import { useCampusData } from '../../../hooks/useCampusData';
 import { supabase } from '../../../lib/supabase';
 import { useTheme } from '../../../lib/theme-provider';
+import { CamplyBotService } from '../../../lib/camply-bot';
+import type { ChatRequest, ChatResponse } from '../../../lib/camply-bot';
+
+// Initialize CamplyBot service
+const camplyBot = CamplyBotService.getInstance();
+
+interface FeatureButtonResponse {
+  isOpen: boolean;
+  loading: boolean;
+  title: string;
+  content: string;
+  error?: string;
+}
 
 export function CampusOverview() {
   const [session, setSession] = useState<any>(null);
+  const [responseModal, setResponseModal] = useState<FeatureButtonResponse>({
+    isOpen: false,
+    loading: false,
+    title: '',
+    content: '',
+  });
+  
   const { user, academicDetails, college, currentSemester, loading, error } = useCampusData(session?.user?.id);
   const { theme } = useTheme();
   
@@ -41,69 +64,138 @@ export function CampusOverview() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Feature buttons configuration
+  // Enhanced feature buttons configuration with more professional prompts
   const featureButtons = [
     {
       id: 'campus-news',
-      title: 'Campus News',
-      description: 'Latest updates and announcements',
+      title: 'Campus News & Updates',
+      description: 'Latest news, announcements, and achievements',
       icon: Newspaper,
       color: 'blue',
       gradient: 'from-blue-500 to-indigo-600',
-      prompt: `Show latest news headlines about ${college?.name || 'my college'} from the last 30 days.`
+      prompt: `Provide comprehensive latest news headlines and major announcements about ${college?.name || 'my college'} from the last 30 days. Include recent achievements, policy updates, important notices, and any significant developments that would be relevant to current students. Format this as a professional news briefing with dates and sources where available.`
     },
     {
       id: 'placements',
-      title: 'Top Placements',
-      description: 'Placement statistics and opportunities',
+      title: 'Placement Analytics',
+      description: 'Comprehensive placement statistics and trends',
       icon: TrendingUp,
       color: 'green',
       gradient: 'from-green-500 to-emerald-600',
-      prompt: `Summarize highest placement packages offered in ${college?.name || 'my college'} for 2025, 2024, 2023.`
+      prompt: `Analyze and summarize comprehensive placement statistics for ${college?.name || 'my college'} for the years 2023, 2024, and 2025. Include highest packages offered, average salary trends, top recruiting companies, department-wise placement percentages, industry distribution, and any notable placement achievements. Present this as a detailed placement intelligence report with year-over-year comparisons.`
     },
     {
       id: 'achievements',
       title: 'Recent Achievements',
-      description: 'Awards, milestones, and recognition',
+      description: 'Awards, recognitions, and institutional milestones',
       icon: Trophy,
       color: 'yellow',
       gradient: 'from-yellow-500 to-amber-600',
-      prompt: `What are the recent achievements, fests, awards or milestones from ${college?.name || 'my college'}?`
+      prompt: `Compile a comprehensive report on recent achievements, awards, recognitions, and significant milestones of ${college?.name || 'my college'}. Include NAAC grades, NIRF rankings, NBA accreditations, research achievements, student accomplishments, faculty recognitions, and any other notable institutional achievements from the past year. Format this as an achievements showcase with specific dates and impact.`
     },
     {
       id: 'campus-stats',
-      title: 'Campus Stats',
-      description: 'Student strength and department info',
+      title: 'Campus Statistics',
+      description: 'Comprehensive institutional metrics and demographics',
       icon: BarChart3,
       color: 'purple',
       gradient: 'from-purple-500 to-violet-600',
-      prompt: `Give me an overview of ${college?.name || 'my college'} – total students, departments, faculty, etc.`
+      prompt: `Provide a detailed statistical overview of ${college?.name || 'my college'} including total student enrollment, faculty strength, faculty-to-student ratio, number of departments and programs offered, infrastructure metrics, campus size, hostel capacity, library resources, laboratory facilities, and any other relevant institutional statistics. Present this as a comprehensive institutional profile with quantitative analysis.`
     },
     {
       id: 'events',
-      title: 'Events',
-      description: 'Upcoming fests and activities',
+      title: 'Campus Events & Fests',
+      description: 'Upcoming events, festivals, and cultural activities',
       icon: Calendar,
       color: 'pink',
       gradient: 'from-pink-500 to-rose-600',
-      prompt: `List upcoming or ongoing events in ${college?.name || 'my college'} for this semester.`
+      prompt: `Provide a comprehensive calendar and analysis of upcoming events, fests, and activities at ${college?.name || 'my college'} for this academic year. Include technical festivals, cultural events, workshops, seminars, guest lectures, competitions, annual celebrations, and club activities. Present this as an events guide with dates, descriptions, participation details, and historical significance of major annual events.`
     },
     {
       id: 'campus-tour',
-      title: 'Campus Tour',
-      description: 'Explore facilities and infrastructure',
+      title: 'Virtual Campus Tour',
+      description: 'Detailed exploration of facilities and infrastructure',
       icon: Map,
       color: 'cyan',
       gradient: 'from-cyan-500 to-teal-600',
-      prompt: `Describe the campus layout of ${college?.name || 'my college'}, including hostels, libraries, and labs.`
+      prompt: `Provide a comprehensive virtual tour and detailed description of ${college?.name || 'my college'} campus layout, infrastructure, and facilities. Include academic buildings, laboratories, libraries, hostels, recreational facilities, sports complex, dining facilities, auditoriums, research centers, administrative buildings, transportation facilities, and any unique campus features. Present this as a detailed campus infrastructure guide with facility descriptions and amenities available.`
     }
   ];
 
-  const handleFeatureClick = (button: typeof featureButtons[0]) => {
-    // For now, just log the prompt - will connect to backend later
-    console.log(`Feature clicked: ${button.title}`);
-    console.log(`Prompt: ${button.prompt}`);
-    // TODO: Connect to CamplyBot or backend API
+  const handleFeatureClick = async (button: typeof featureButtons[0]) => {
+    if (!session?.user?.id || !user) {
+      console.error('User session not available');
+      return;
+    }
+
+    setResponseModal({
+      isOpen: true,
+      loading: true,
+      title: button.title,
+      content: '',
+    });
+
+    try {
+      // Prepare the chat request with enhanced context
+      const chatRequest: ChatRequest = {
+        message: button.prompt,
+        user_id: session.user.id,
+        context: {
+          college_name: college?.name,
+          college_website: college?.college_website_url,
+          department: academicDetails?.department_name,
+          branch: academicDetails?.branch_name,
+          query_type: button.id,
+          feature_button: true
+        }
+      };
+
+      // Send request to CamplyBot
+      const response: ChatResponse = await camplyBot.sendMessage(chatRequest);
+
+      if (response.success) {
+        setResponseModal(prev => ({
+          ...prev,
+          loading: false,
+          content: response.response,
+        }));
+      } else {
+        setResponseModal(prev => ({
+          ...prev,
+          loading: false,
+          content: `I apologize, but I'm having trouble accessing the latest information about ${college?.name || 'your college'} right now. This could be due to:
+
+• Temporary connectivity issues with our data sources
+• The college website may be temporarily unavailable
+• Our AI service is currently being updated
+
+Please try again in a few moments, or you can:
+• Visit the official college website directly
+• Contact the college administration for specific information
+• Try a different query type
+
+The system is designed to provide real-time campus intelligence, and we're working to restore full functionality.`,
+          error: response.error || 'Failed to get response'
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching campus information:', error);
+      setResponseModal(prev => ({
+        ...prev,
+        loading: false,
+        content: `I encountered an issue while gathering information about ${college?.name || 'your college'}. Please check your internet connection and try again.`,
+        error: 'Network error'
+      }));
+    }
+  };
+
+  const closeModal = () => {
+    setResponseModal({
+      isOpen: false,
+      loading: false,
+      title: '',
+      content: '',
+    });
   };
 
   if (loading) {
@@ -223,15 +315,15 @@ export function CampusOverview() {
       </div>
 
       <div className="space-y-8">
-        {/* Ask About My Campus - Feature Buttons Grid */}
+        {/* Ask About My Campus - Enhanced Feature Buttons Grid */}
         <div className="bg-background border border-border rounded-lg p-6 shadow-sm">
           <div className="flex items-center space-x-3 mb-6">
             <div className="p-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg">
-              <Users className="h-5 w-5 text-blue-500" />
+              <Bot className="h-5 w-5 text-blue-500" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">Ask About My Campus</h3>
-              <p className="text-sm text-muted-foreground">Explore what your campus has to offer</p>
+              <h3 className="text-lg font-semibold text-foreground">AI-Powered Campus Intelligence</h3>
+              <p className="text-sm text-muted-foreground">Get comprehensive, real-time insights about your campus</p>
             </div>
           </div>
           
@@ -263,7 +355,7 @@ export function CampusOverview() {
                     
                     {/* Arrow indicator */}
                     <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                      <Bot className="h-4 w-4 text-muted-foreground" />
                     </div>
                   </div>
                 </button>
@@ -273,14 +365,74 @@ export function CampusOverview() {
           
           <div className="mt-6 p-4 bg-accent/30 rounded-lg border border-accent/40">
             <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-muted-foreground" />
+              <Bot className="h-4 w-4 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                Click any feature above to get AI-powered insights about your campus. More interactive features coming soon!
+                Click any feature above to get AI-powered insights about {college?.name || 'your campus'} with real-time data analysis and professional formatting.
               </p>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Enhanced Response Modal */}
+      {responseModal.isOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-background border border-border rounded-lg shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-border bg-accent/20">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-blue-500/10 rounded-lg">
+                  <Bot className="h-5 w-5 text-blue-500" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-foreground">{responseModal.title}</h2>
+                  <p className="text-sm text-muted-foreground">AI Analysis for {college?.name}</p>
+                </div>
+              </div>
+              <button
+                onClick={closeModal}
+                className="p-2 hover:bg-accent rounded-lg transition-colors"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            
+            {/* Modal Content */}
+            <div className="p-6 overflow-y-auto max-h-[60vh]">
+              {responseModal.loading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="text-center">
+                    <Loader2 className="h-8 w-8 animate-spin text-blue-500 mx-auto mb-4" />
+                    <p className="text-muted-foreground">Analyzing campus data and generating comprehensive insights...</p>
+                    <p className="text-sm text-muted-foreground mt-2">This may take a few moments for real-time analysis</p>
+                  </div>
+                </div>
+              ) : (
+                <div className="prose prose-sm max-w-none dark:prose-invert">
+                  <div className="whitespace-pre-wrap text-foreground leading-relaxed">
+                    {responseModal.content}
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* Modal Footer */}
+            {!responseModal.loading && (
+              <div className="flex items-center justify-between p-6 border-t border-border bg-accent/10">
+                <p className="text-xs text-muted-foreground">
+                  Data source: Campus database + Real-time web analysis
+                </p>
+                <button
+                  onClick={closeModal}
+                  className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 } 
