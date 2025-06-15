@@ -2,6 +2,7 @@ import type { ReactNode } from "react"
 import { AppSidebar } from "../../sidebar/app-sidebar"
 import { SiteHeader } from "../../sidebar/components/site-header"
 import { SidebarInset, SidebarProvider } from "../../sidebar/components/ui/sidebar"
+import { CamplyBot } from "../../../components/CamplyBot"
 
 type User = {
   name: string
@@ -70,6 +71,9 @@ export function Layout({ children, user, appConfig }: LayoutProps) {
           </div>
         </main>
       </SidebarInset>
+      
+      {/* Global CamplyBot - Available across all desk views */}
+      <CamplyBot />
     </SidebarProvider>
   )
 }
