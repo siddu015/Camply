@@ -1,235 +1,802 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
-Here is a **Markdown-based universal Cursor Rulebook** for building agents using the **Agent Development Kit (ADK)**. This rulebook will act as a guide for the model (like Cursor) to **strictly follow ADK principles**—covering agents, prompts, data routing, multi-agent setup, memory usage, and more.
+# ADK Cursor Development Rules - Comprehensive Guide
 
----
+## 1. Universal ADK Development Principles
 
-# 🧠 Universal Cursor Rulebook for Agent Development Kit (ADK)
+### Core Architecture Understanding
 
-> ✅ **Scope:** This document defines **how Cursor (or any AI assistant)** should behave when working on projects using Google’s Agent Development Kit (ADK).
-> 📦 **Strict rule:** All behavior must follow **only ADK methods**, avoiding external tools, custom logic, or Python libraries unless explicitly used via ADK.
+ADK (Agent Development Kit) is Google's framework for building sophisticated AI agents with:
+- **Hierarchical agent systems** (BaseAgent → LlmAgent → specialized agents)
+- **Async-first tool ecosystem** (FunctionTool, RestApiTool, RetrievalTool)
+- **Event-driven communication** between agents and tools
+- **Session-based context management** with automatic user_id handling
+- **Memory services** for persistent state management
+- **Callback systems** for pre/post-processing logic
 
----
+## 2. Critical Import Rules
 
-## 🧩 1. What is ADK?
+```python
+# ✅ CORRECT IMPORTS - Always Use These
+from google.adk.agents import LlmAgent, BaseAgent
+from google.adk.tools import FunctionTool, BaseTool
+from google.adk.tools.openapi_tool import RestApiTool, OpenAPIToolset
+from google.adk.tools.retrieval import FilesRetrieval, VertexAiRagRetrieval
+from google.adk.memory import InMemoryMemoryService, BaseMemoryService
+from google.adk.sessions import InMemorySessionService
+from google.adk.runners import Runner
+from google.adk.events import Event
 
-ADK (Agent Development Kit) is a framework to **build AI agents** with:
-
-* **Structured tools** (called `tools`)
-* **Event-based data flow**
-* **Agent composition**
-* **Memory and planning**
-* **Safe and predictable AI behaviors**
-
-> Think of ADK as a **modular LLM agent engine** that standardizes how agents use tools, handle inputs, and return outputs.
-
----
-
-## 🛠️ 2. Universal Rules: Working with ADK (Mandatory)
-
-| # | Rule                            | Description                                                                                                                                                     |
-| - | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 1 | **Only use ADK mechanisms**     | Use only `Tool`, `Agent`, `Planner`, `Memory`, and `Event` primitives from ADK. Avoid all custom logic unless defined inside ADK `tool` or `agent`.             |
-| 2 | **LLM must act via ADK Agents** | Do not make decisions or fetch data directly. Use ADK `Agents` and `Tools` to handle logic, memory, and routing. Cursor should never bypass ADK infrastructure. |
-
----
-
-## 🔁 3. ADK Agent Execution Flow
-
-```mermaid
-flowchart TD
-    Input[User Input/Event] --> Planner
-    Planner --> Agent
-    Agent --> Tool
-    Tool --> Agent
-    Agent --> Memory
-    Memory --> Planner
-    Planner --> Output[Final Response]
+# ❌ NEVER USE (These don't exist)
+from google.adk.core import *  # NO! Module doesn't exist
+from google.adk import Tool    # NO! Use FunctionTool
+from google.adk import Agent   # NO! Use LlmAgent
 ```
 
----
+## 3. Tool Development Standards
 
-## 🧱 4. Core Components
+### Function Tool Pattern (Primary Tool Type)
+```python
+# ✅ CORRECT PATTERN - Always Follow This
+@FunctionTool
+async def tool_name(param1: str, param2: int = None, *, tool_context) -> dict:
+    """Clear, descriptive docstring that explains what the tool does.
+    
+    Args:
+        param1: Description of required parameter
+        param2: Description of optional parameter
+        tool_context: ADK-provided context (session, user data)
+    
+    Returns:
+        Structured dict with success/error pattern
+    """
+    try:
+        # Extract user context from session
+        user_id = tool_context.user_id
+        session_id = tool_context.session_id
+        
+        # Perform async operation
+        result = await some_async_operation(param1, param2, user_id)
+        
+        # Return structured response
+        return {
+            "success": True,
+            "data": result,
+            "user_id": user_id,
+            "message": "Operation completed successfully"
+        }
+    except SpecificException as e:
+        return {
+            "success": False,
+            "error": "specific_error_code",
+            "message": "User-friendly error message",
+            "details": str(e)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": "general_error",
+            "message": "Something went wrong, please try again",
+            "details": str(e)
+        }
 
-### 🧠 Agent
+# ❌ WRONG PATTERNS - Never Do These
+def sync_tool():                    # Missing async!
+    return "result"
 
-* Encapsulates the **core logic** of interacting with tools and memory.
-* Agents should not generate responses directly; they must:
+async def bad_tool():               # Missing @FunctionTool!
+    return "result"
 
-  * Invoke tools
-  * Query memory
-  * Ask sub-agents
+@FunctionTool
+def sync_bad_tool():                # Missing async with decorator!
+    return {"result": "data"}
 
-```ts
-// Pseudocode
-agent studentInfoAgent {
-  description: "Handles student queries like marks, attendance, etc."
-  tools: [getMarks, getAttendance]
-}
+@FunctionTool
+async def unstructured_tool():      # Unstructured response!
+    return "just a string"
 ```
 
----
-
-### 🧰 Tool
-
-* Tools wrap actual functionality (API call, database fetch).
-* Must be deterministic and secure.
-* All external interaction (database, API) happens **only** through tools.
-
-```ts
-tool getMarks {
-  description: "Fetches student marks from DB."
-  parameters: studentId
-  returns: markSheet
-}
+### Tool Context Usage (Critical for Session Management)
+```python
+@FunctionTool
+async def context_aware_tool(query: str, *, tool_context) -> dict:
+    """Always use tool_context for session and user data."""
+    # Extract from session context
+    user_id = tool_context.user_id          # Automatically from session
+    session_id = tool_context.session_id    # Session identifier
+    
+    # Use context for personalized operations
+    personalized_result = await process_for_user(query, user_id)
+    
+    return {
+        "success": True,
+        "user_id": user_id,
+        "session_id": session_id,
+        "query": query,
+        "result": personalized_result
+    }
 ```
 
----
+## 4. Agent Development Standards
 
-### 🧭 Planner
-
-* Planners **orchestrate** multiple agents/tools by planning a path.
-* Used in **multi-agent systems** to decompose tasks.
-
-```ts
-planner studentDashboardPlanner {
-  agents: [studentInfoAgent, timetableAgent, examAgent]
-}
+### Single Agent Pattern
+```python
+agent = LlmAgent(
+    name="specific_agent",              # Must be Python identifier
+    description="One-line capability description for routing",
+    instruction="""
+    You are a [role] that [primary function].
+    
+    CRITICAL WORKFLOW:
+    1. ALWAYS fetch user context first using get_user_context()
+    2. Use retrieved data for personalized responses
+    3. Handle errors gracefully with helpful messages
+    
+    AVAILABLE TOOLS:
+    - get_user_context(): Fetch complete user profile
+    - specific_tool(): Perform specific operations
+    
+    ERROR HANDLING:
+    - If tools fail: Provide helpful fallback responses
+    - Never say you cannot help without trying tools
+    - Always be constructive and helpful
+    
+    RESPONSE STYLE:
+    - Warm and friendly but professional
+    - Use natural, conversational language
+    - Reference user's specific details when available
+    - Never mention tool names or technical details
+    """,
+    tools=[relevant_tool1, relevant_tool2],  # Only necessary tools
+    model="gemini-2.0-flash",               # Specify model
+    disallow_transfer_to_parent=False,      # Allow escalation
+    disallow_transfer_to_peers=False        # Allow peer routing
+)
 ```
 
----
-
-### 🗃️ Memory
-
-* Use `Memory` to **store past interactions** or fetched results.
-* Memory must be queried using built-in ADK APIs.
-* Never use Python `dict`, `pickle`, or custom storage.
-
----
-
-### ⚙️ Event Routing
-
-* Every interaction in ADK is an **event** (with metadata).
-* Use `on_event`, `emit_event`, etc., only if supported by ADK's event model.
-
----
-
-## 🧩 5. Writing Prompts in ADK
-
-### ✅ Prompt Design Rules
-
-| Do                                           | Don’t                               |
-| -------------------------------------------- | ----------------------------------- |
-| Use `prompt_templates` defined in ADK config | Do not use hardcoded LLM prompts    |
-| Use structured input-output fields           | Avoid open-ended, general questions |
-| Keep prompts tool-focused                    | Avoid unclear multi-task queries    |
-
-**Example:**
-
-```json
-{
-  "prompt_template": "What is the attendance of student ID: {{studentId}}?"
-}
+### Multi-Agent Hierarchy Pattern
+```python
+# Coordinator agent with specialized sub-agents
+main_agent = LlmAgent(
+    name="coordinator",
+    description="Routes queries to appropriate specialist agents",
+    instruction="""
+    You coordinate between specialist agents based on query type:
+    
+    ROUTING RULES:
+    - Personal academic queries → academic_agent
+    - Campus/college information → campus_agent  
+    - Career guidance → career_agent
+    
+    WORKFLOW:
+    1. Analyze user query to determine appropriate specialist
+    2. Route with proper context: "Handle [query] for user_id: {user_id}"
+    3. Present specialist response naturally
+    
+    CRITICAL: Always fetch user context first to get user_id for routing.
+    """,
+    tools=[get_user_context],
+    sub_agents=[
+        LlmAgent(
+            name="academic_agent",
+            description="Handles personal academic information and timeline",
+            instruction="You manage personal academic data, timelines, and progress...",
+            tools=[academic_tools]
+        ),
+        LlmAgent(
+            name="campus_agent",
+            description="Provides campus facilities and college information", 
+            instruction="You provide detailed campus and college information...",
+            tools=[campus_tools]
+        )
+    ]
+)
 ```
 
----
+## 5. Session & Context Management
 
-## 🤖 6. Creating Multi-Agent Systems
-
-To create multiple cooperating agents:
-
-1. Define individual agents with clear roles.
-2. Use a **Planner** to route between them.
-3. Share memory context if required.
-4. Ensure no agent acts outside its scope.
-
-**Example Setup:**
-
-```ts
-agent examAgent {
-  tools: [getExamSchedule]
-}
-agent attendanceAgent {
-  tools: [getAttendance]
-}
-planner dashboardPlanner {
-  agents: [examAgent, attendanceAgent]
-}
+### User Context Pattern (Essential for Student Desk)
+```python
+@FunctionTool
+async def get_user_context(*, tool_context) -> dict:
+    """Fetch complete user profile from session context.
+    
+    This is the most critical tool - it provides all user data
+    needed for personalized responses.
+    """
+    user_id = tool_context.user_id  # From ADK session
+    
+    try:
+        # Fetch complete user context
+        user_data = await UserDataService.get_user_context(user_id)
+        
+        return {
+            "success": True,
+            "user_id": user_id,
+            "user": user_data.get("user", {}),
+            "academic_details": user_data.get("academic_details", {}),
+            "college": user_data.get("college", {}),
+            "formatted_context": user_data.get("formatted_context", ""),
+            # Include all necessary fields for agent use
+            "student_name": user_data.get("student_name", ""),
+            "college_name": user_data.get("college_name", ""),
+            "current_year": user_data.get("current_year", ""),
+            "department_name": user_data.get("department_name", ""),
+            "branch_name": user_data.get("branch_name", "")
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": "User not found or incomplete profile",
+            "user_id": user_id,
+            "message": "Please ensure your profile is complete"
+        }
 ```
 
----
+## 6. Database Integration Patterns
 
-## 🔄 7. Routing Rules
-
-* Use **Planner** to route data based on the user’s intent.
-* Do not hardcode agent calls inside other agents.
-* Each agent must handle only one concern (Single Responsibility Principle).
-
----
-
-## 🧠 8. Memory Usage Guidelines
-
-| Type       | Use Case                                              |
-| ---------- | ----------------------------------------------------- |
-| Short-Term | Store session-based queries, previous answers         |
-| Long-Term  | Profile data (e.g., student profile, preferences)     |
-| Indexed    | Use when querying memory by fields (e.g., student ID) |
-
-Use only ADK’s native `memory.get()`, `memory.save()` methods.
-
----
-
-## 🧾 9. ADK Best Practices
-
-* 🧩 **Modularity:** Build agents like microservices.
-* 🔍 **Explainability:** Tools and agents must have clear descriptions.
-* 🔒 **Security:** Never call arbitrary code outside ADK tools.
-* 🚧 **Debugging:** Use ADK logs/events to trace behavior.
-* 🔄 **Composability:** Prefer reusing agents via planners over duplication.
-
----
-
-## 💬 10. Cursor Behavior Policy with ADK
-
-> When working in a Cursor project that uses ADK:
-
-* 🛑 Never write Python functions for logic.
-* ✅ Always call ADK tools or trigger ADK agents.
-* 🧠 Remember prior events using ADK memory only.
-* 🧭 Decompose goals using ADK Planner, never inline.
-* 🗃️ Follow prompt structure defined in `prompt_templates`.
-* 🤖 Never generate final output yourself—pass to ADK agent response system.
-
----
-
-## 📦 11. Output Expectations
-
-> All AI-generated results must conform to this format:
-
-```json
-{
-  "agent": "studentInfoAgent",
-  "tool_used": "getMarks",
-  "result": {
-    "subject": "Math",
-    "marks": 92
-  }
-}
+### Async Database Operations
+```python
+@FunctionTool
+async def database_operation(query_type: str, params: dict = None, *, tool_context) -> dict:
+    """Standard async database operation pattern."""
+    user_id = tool_context.user_id
+    params = params or {}
+    
+    try:
+        # Use async context manager for connection
+        async with database.connection() as conn:
+            # Parameterized queries for security
+            result = await conn.fetch(
+                QUERIES[query_type],
+                user_id, **params
+            )
+        
+        return {
+            "success": True,
+            "query_type": query_type,
+            "data": result,
+            "user_id": user_id
+        }
+    except DatabaseException as e:
+        return {
+            "success": False,
+            "error": "database_error",
+            "message": "Database temporarily unavailable",
+            "details": str(e)
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": "general_error", 
+            "message": "Operation failed",
+            "details": str(e)
+        }
 ```
 
----
+## 7. External API Integration
 
-## ✅ Conclusion
+### REST API Tools
+```python
+# For complex APIs with OpenAPI specs
+openapi_toolset = OpenAPIToolset(
+    spec_str=api_spec_json,
+    spec_str_type="json",
+    auth_scheme=auth_scheme,
+    auth_credential=auth_credential
+)
 
-This rulebook is **the universal guide for all ADK-based projects**. When working with ADK:
+# Use all tools from spec
+agent = LlmAgent(
+    name="api_agent",
+    tools=[*openapi_toolset.get_tools()]
+)
 
-* Use **only ADK components**.
-* Model must **never create or invoke logic** outside agent and tool definitions.
-* Model must **interpret and act like an ADK planner or agent**, not a general-purpose chatbot or coder.
+# Use specific tool from spec
+specific_tool = openapi_toolset.get_tool('operation_name')
 
----
+# Custom API integration
+@FunctionTool
+async def custom_api_call(endpoint: str, data: dict, *, tool_context) -> dict:
+    """Custom API integration pattern."""
+    user_id = tool_context.user_id
+    
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                endpoint,
+                json={**data, "user_id": user_id},
+                headers={"Authorization": f"Bearer {API_TOKEN}"}
+            )
+            response.raise_for_status()
+            
+        return {
+            "success": True,
+            "status_code": response.status_code,
+            "data": response.json(),
+            "user_id": user_id
+        }
+    except httpx.HTTPStatusError as e:
+        return {
+            "success": False,
+            "error": "api_error",
+            "status_code": e.response.status_code,
+            "message": f"API request failed: {e.response.status_code}"
+        }
+```
 
-Would you like this converted into a `.md` file download or included in your ADK project setup directly?
+## 8. Advanced Tool Patterns
+
+### Composite Tools (Multiple Operations)
+```python
+@FunctionTool
+async def composite_operation(operation_type: str, params: dict = None, *, tool_context) -> dict:
+    """Handle multiple related operations in one tool."""
+    user_id = tool_context.user_id
+    params = params or {}
+    
+    operations = {
+        "user_analysis": lambda: analyze_user_data(user_id, **params),
+        "data_sync": lambda: sync_user_data(user_id, **params),
+        "report_generation": lambda: generate_user_report(user_id, **params)
+    }
+    
+    if operation_type not in operations:
+        return {
+            "success": False,
+            "error": "invalid_operation",
+            "available_operations": list(operations.keys())
+        }
+    
+    try:
+        result = await operations[operation_type]()
+        return {
+            "success": True,
+            "operation": operation_type,
+            "data": result,
+            "user_id": user_id
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"{operation_type}_failed",
+            "message": f"Failed to execute {operation_type}",
+            "details": str(e)
+        }
+```
+
+### Long-Running Tools
+```python
+class LongRunningAnalysisTool(BaseTool):
+    def __init__(self):
+        super().__init__(
+            name="long_analysis",
+            description="Performs comprehensive data analysis",
+            is_long_running=True
+        )
+    
+    async def run_async(self, *, args, tool_context):
+        user_id = tool_context.user_id
+        
+        # Long-running operation with progress updates
+        async for progress in analyze_user_data_stream(user_id, args):
+            yield {
+                "progress": progress,
+                "user_id": user_id,
+                "timestamp": datetime.utcnow().isoformat()
+            }
+```
+
+## 9. Error Handling Standards
+
+### Comprehensive Error Handling
+```python
+@FunctionTool
+async def robust_operation(param: str, *, tool_context) -> dict:
+    """Template for robust error handling."""
+    user_id = tool_context.user_id
+    
+    try:
+        # Validate inputs
+        if not param or len(param) > 1000:
+            return {
+                "success": False,
+                "error": "invalid_input",
+                "message": "Parameter must be between 1-1000 characters"
+            }
+        
+        # Main operation
+        result = await perform_operation(param, user_id)
+        
+        return {
+            "success": True,
+            "data": result,
+            "user_id": user_id,
+            "processed_param": param
+        }
+        
+    except ValidationError as e:
+        return {
+            "success": False,
+            "error": "validation_error",
+            "message": "Invalid data provided",
+            "details": str(e)
+        }
+    except PermissionError as e:
+        return {
+            "success": False,
+            "error": "permission_denied",
+            "message": "You don't have permission for this operation"
+        }
+    except DatabaseError as e:
+        return {
+            "success": False,
+            "error": "database_error",
+            "message": "Data temporarily unavailable, please try again"
+        }
+    except ExternalAPIError as e:
+        return {
+            "success": False,
+            "error": "service_unavailable", 
+            "message": "External service temporarily unavailable"
+        }
+    except Exception as e:
+        # Log unexpected errors
+        logger.error(f"Unexpected error in robust_operation: {e}")
+        return {
+            "success": False,
+            "error": "unexpected_error",
+            "message": "An unexpected error occurred",
+            "details": str(e)
+        }
+```
+
+## 10. Project Structure Standards
+
+### Recommended File Organization
+```
+project_name/
+├── agent.py                    # Main agent definition
+├── prompt.py                   # Agent instructions
+├── tools/
+│   ├── __init__.py            # Tool exports
+│   ├── user_context_tool.py   # User data tools
+│   ├── database_tools.py      # Database operations
+│   ├── api_tools.py           # External API tools
+│   └── utility_tools.py       # Helper tools
+├── sub_agents/
+│   ├── campus_agent/
+│   │   ├── agent.py
+│   │   ├── prompt.py
+│   │   └── tools.py
+│   └── academic_agent/
+│       ├── agent.py
+│       ├── prompt.py
+│       └── tools.py
+├── shared/
+│   ├── database.py            # Database services
+│   ├── config.py              # Configuration
+│   └── utils.py               # Shared utilities
+└── tests/
+    ├── test_tools.py
+    ├── test_agents.py
+    └── test_integration.py
+```
+
+### Tool Registration Pattern
+```python
+# tools/__init__.py
+from .user_context_tool import get_user_context, calculate_academic_year
+from .database_tools import database_query, update_user_data
+from .api_tools import external_api_call
+
+# Export all tools for easy import
+__all__ = [
+    "get_user_context",
+    "calculate_academic_year",
+    "database_query", 
+    "update_user_data",
+    "external_api_call"
+]
+
+# Main agent import pattern
+from student_desk.tools import (
+    get_user_context,
+    calculate_academic_year,
+    database_query
+)
+```
+
+## 11. Testing Standards
+
+### Tool Testing Pattern
+```python
+import pytest
+from unittest.mock import AsyncMock, patch
+
+@pytest.mark.asyncio
+async def test_get_user_context():
+    # Mock tool context
+    mock_context = AsyncMock()
+    mock_context.user_id = "test-user-123"
+    mock_context.session_id = "test-session-456"
+    
+    # Mock database service
+    with patch('student_desk.tools.UserDataService.get_user_context') as mock_service:
+        mock_service.return_value = {
+            "user": {"name": "Test User"},
+            "academic_details": {"year": 2024}
+        }
+        
+        # Test the tool
+        result = await get_user_context(tool_context=mock_context)
+        
+        # Assertions
+        assert result["success"] is True
+        assert result["user_id"] == "test-user-123"
+        assert "user" in result
+        mock_service.assert_called_once_with("test-user-123")
+
+@pytest.mark.asyncio
+async def test_error_handling():
+    """Test tool error handling."""
+    mock_context = AsyncMock()
+    mock_context.user_id = "invalid-user"
+    
+    with patch('student_desk.tools.UserDataService.get_user_context') as mock_service:
+        mock_service.side_effect = Exception("Database error")
+        
+        result = await get_user_context(tool_context=mock_context)
+        
+        assert result["success"] is False
+        assert "error" in result
+        assert result["user_id"] == "invalid-user"
+```
+
+## 12. Performance Optimization
+
+### Async Best Practices
+```python
+# ✅ GOOD: Concurrent operations
+@FunctionTool
+async def parallel_operations(data_sources: list, *, tool_context) -> dict:
+    user_id = tool_context.user_id
+    
+    # Execute operations concurrently
+    tasks = [
+        fetch_from_source(source, user_id) 
+        for source in data_sources
+    ]
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Process results
+    successful_results = [
+        r for r in results 
+        if not isinstance(r, Exception)
+    ]
+    
+    return {
+        "success": True,
+        "results": successful_results,
+        "total_sources": len(data_sources),
+        "successful_sources": len(successful_results)
+    }
+
+# ❌ BAD: Sequential operations
+@FunctionTool
+async def sequential_operations(data_sources: list, *, tool_context):
+    results = []
+    for source in data_sources:  # Slow sequential processing
+        result = await fetch_from_source(source)
+        results.append(result)
+    return {"results": results}
+
+# ❌ BAD: Blocking operations
+@FunctionTool
+async def blocking_operations():
+    time.sleep(5)  # Blocks event loop!
+    return {"result": "data"}
+```
+
+### Resource Management
+```python
+@FunctionTool
+async def resource_managed_operation(query: str, *, tool_context) -> dict:
+    """Use context managers for proper resource cleanup."""
+    user_id = tool_context.user_id
+    
+    try:
+        # Multiple resource managers
+        async with database.connection() as db_conn:
+            async with httpx.AsyncClient() as http_client:
+                async with file_manager.open(f"user_{user_id}.log") as log_file:
+                    # Use resources safely
+                    result = await process_with_resources(
+                        query, db_conn, http_client, log_file
+                    )
+        
+        return {"success": True, "result": result}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+```
+
+## 13. Security Standards
+
+### Input Validation and Sanitization
+```python
+@FunctionTool
+async def secure_operation(user_input: str, *, tool_context) -> dict:
+    """Security-first tool design."""
+    user_id = tool_context.user_id
+    
+    # Input validation
+    if not user_input:
+        return {"success": False, "error": "input_required"}
+    
+    if len(user_input) > 1000:
+        return {"success": False, "error": "input_too_long"}
+    
+    # Input sanitization
+    sanitized_input = sanitize_user_input(user_input)
+    
+    # Permission check
+    if not await verify_user_permission(user_id, "secure_operation"):
+        return {"success": False, "error": "permission_denied"}
+    
+    # Safe processing
+    result = await secure_processing(sanitized_input, user_id)
+    
+    # Audit logging
+    await log_security_event(user_id, "secure_operation", "success")
+    
+    return {"success": True, "data": result}
+```
+
+## 14. Student Desk Specific Patterns
+
+### User Context Management
+```python
+@FunctionTool
+async def get_user_context(*, tool_context) -> dict:
+    """Student Desk: Get complete user academic profile."""
+    user_id = tool_context.user_id
+    
+    try:
+        user_data = await UserDataService.get_user_context(user_id)
+        
+        # Ensure all required fields for agents
+        return {
+            "success": True,
+            "user_id": user_id,
+            "user": user_data.get("user", {}),
+            "academic_details": user_data.get("academic_details", {}),
+            "college": user_data.get("college", {}),
+            "formatted_context": user_data.get("formatted_context", ""),
+            "student_name": user_data.get("student_name", ""),
+            "college_name": user_data.get("college_name", ""),
+            "current_year": user_data.get("current_year", ""),
+            "department_name": user_data.get("department_name", ""),
+            "branch_name": user_data.get("branch_name", ""),
+            "roll_number": user_data.get("roll_number", ""),
+            "admission_year": user_data.get("admission_year"),
+            "graduation_year": user_data.get("graduation_year")
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": "User not found or incomplete profile",
+            "user_id": user_id
+        }
+
+@FunctionTool
+async def calculate_academic_year(admission_year: int = None, *, tool_context) -> dict:
+    """Calculate current academic year from admission year."""
+    current_year = datetime.now().year
+    
+    if admission_year:
+        academic_year = current_year - admission_year + 1
+        return {"current_year": str(academic_year)}
+    
+    return {"current_year": "Unknown"}
+```
+
+### Agent Routing for Student Desk
+```python
+# Student Desk main agent instruction template
+STUDENT_DESK_INSTRUCTION = """
+You are a Personal Student Assistant that provides immediate, personalized information about the student's academic journey and campus details.
+
+CRITICAL WORKFLOW:
+1. ALWAYS start by calling get_user_context() first
+2. Use the fetched context for all personalized responses
+3. Route campus queries to campus_agent with user_id
+
+ROUTING RULES:
+- Personal academic queries (roll number, timeline, grades): Handle directly
+- Campus information (facilities, placements, college details): Route to campus_agent
+- Format for routing: "Provide [topic] information for user_id: {user_id}"
+
+TOOLS AVAILABLE:
+- get_user_context(): Fetch complete user profile (ALWAYS call first)
+- calculate_academic_year(admission_year): Calculate current academic year
+- campus_agent(request): Route campus queries to specialist agent
+
+ERROR HANDLING:
+- If get_user_context fails: "Please ensure your profile is complete"
+- If campus_agent fails: "Let me provide general information while I work on getting specific details"
+- Never say you cannot help without trying tools first
+
+RESPONSE STYLE:
+- Warm and friendly but professional
+- Use natural conversation language
+- Reference user's specific details naturally
+- Never mention tool names or technical details to user
+"""
+```
+
+## 15. Critical Success Factors
+
+### Development Checklist
+1. **✅ Always use async/await** - ADK is async-first
+2. **✅ Use @FunctionTool decorator** - Required for all function tools
+3. **✅ Extract user_id from tool_context** - Never pass manually
+4. **✅ Return structured dict responses** - Always include success/error
+5. **✅ Handle errors gracefully** - Provide helpful error messages
+6. **✅ Use clear agent instructions** - Specify exact workflows
+7. **✅ Test thoroughly** - Unit tests for tools and integration tests
+8. **✅ Follow async patterns** - No blocking operations
+9. **✅ Validate inputs** - Security and data integrity
+10. **✅ Document clearly** - Tool descriptions guide LLM behavior
+
+### Anti-Patterns to Avoid
+```python
+# ❌ NEVER DO THESE:
+
+# 1. Sync functions
+def sync_tool():
+    return "result"
+
+# 2. Missing decorator
+async def missing_decorator_tool():
+    return {"result": "data"}
+
+# 3. Manual user_id
+async def manual_user_id_tool(user_id: str):
+    pass
+
+# 4. Unstructured responses  
+async def unstructured_tool():
+    return "just a string"
+
+# 5. Ignoring errors
+async def unsafe_tool():
+    result = await risky_operation()  # Can fail!
+    return result
+
+# 6. Blocking operations
+async def blocking_tool():
+    time.sleep(1)  # Blocks event loop!
+    return "result"
+
+# 7. Incorrect imports
+from google.adk.core import Tool  # Doesn't exist!
+```
+
+## 16. Future Development Preparation
+
+The ADK framework is designed for scalability and advanced features. This foundation supports:
+
+- **Multi-level agent hierarchies** for complex educational systems
+- **Advanced memory management** with context-aware retrieval  
+- **ML model integration** for predictive analytics
+- **Cross-platform synchronization** for multi-service integration
+- **Real-time streaming tools** for live data processing
+- **Role-based access control** for security and permissions
+- **Performance monitoring** and adaptive configuration
+
+Always follow these core patterns as the foundation for any advanced features. The consistent async-first, context-aware, error-handled approach ensures your agents will scale effectively as requirements grow.
+
+Remember: ADK is a sophisticated framework. Precision in following these patterns is essential for reliable, maintainable, and scalable agent systems.
