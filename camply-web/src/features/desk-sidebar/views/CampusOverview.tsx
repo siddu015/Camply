@@ -1,5 +1,22 @@
 import { useEffect, useState } from 'react';
-import { MapPin, GraduationCap, Calendar, BookOpen, User, Building2, Upload } from 'lucide-react';
+import { 
+  MapPin, 
+  GraduationCap, 
+  Calendar, 
+  BookOpen, 
+  User, 
+  Building2, 
+  Upload,
+  Globe,
+  Newspaper,
+  TrendingUp,
+  Trophy,
+  BarChart3,
+  MapPin as Map,
+  ExternalLink,
+  Users,
+  Clock
+} from 'lucide-react';
 import { useCampusData } from '../../../hooks/useCampusData';
 import { supabase } from '../../../lib/supabase';
 import { useTheme } from '../../../lib/theme-provider';
@@ -24,6 +41,71 @@ export function CampusOverview() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Feature buttons configuration
+  const featureButtons = [
+    {
+      id: 'campus-news',
+      title: 'Campus News',
+      description: 'Latest updates and announcements',
+      icon: Newspaper,
+      color: 'blue',
+      gradient: 'from-blue-500 to-indigo-600',
+      prompt: `Show latest news headlines about ${college?.name || 'my college'} from the last 30 days.`
+    },
+    {
+      id: 'placements',
+      title: 'Top Placements',
+      description: 'Placement statistics and opportunities',
+      icon: TrendingUp,
+      color: 'green',
+      gradient: 'from-green-500 to-emerald-600',
+      prompt: `Summarize highest placement packages offered in ${college?.name || 'my college'} for 2025, 2024, 2023.`
+    },
+    {
+      id: 'achievements',
+      title: 'Recent Achievements',
+      description: 'Awards, milestones, and recognition',
+      icon: Trophy,
+      color: 'yellow',
+      gradient: 'from-yellow-500 to-amber-600',
+      prompt: `What are the recent achievements, fests, awards or milestones from ${college?.name || 'my college'}?`
+    },
+    {
+      id: 'campus-stats',
+      title: 'Campus Stats',
+      description: 'Student strength and department info',
+      icon: BarChart3,
+      color: 'purple',
+      gradient: 'from-purple-500 to-violet-600',
+      prompt: `Give me an overview of ${college?.name || 'my college'} – total students, departments, faculty, etc.`
+    },
+    {
+      id: 'events',
+      title: 'Events',
+      description: 'Upcoming fests and activities',
+      icon: Calendar,
+      color: 'pink',
+      gradient: 'from-pink-500 to-rose-600',
+      prompt: `List upcoming or ongoing events in ${college?.name || 'my college'} for this semester.`
+    },
+    {
+      id: 'campus-tour',
+      title: 'Campus Tour',
+      description: 'Explore facilities and infrastructure',
+      icon: Map,
+      color: 'cyan',
+      gradient: 'from-cyan-500 to-teal-600',
+      prompt: `Describe the campus layout of ${college?.name || 'my college'}, including hostels, libraries, and labs.`
+    }
+  ];
+
+  const handleFeatureClick = (button: typeof featureButtons[0]) => {
+    // For now, just log the prompt - will connect to backend later
+    console.log(`Feature clicked: ${button.title}`);
+    console.log(`Prompt: ${button.prompt}`);
+    // TODO: Connect to CamplyBot or backend API
+  };
 
   if (loading) {
     return (
@@ -110,10 +192,18 @@ export function CampusOverview() {
               </div>
             )}
             
-            {college?.university_name && (
+            {college?.college_website_url && (
               <div className="flex items-center space-x-2">
-                <Building2 className="h-5 w-5" />
-                <span className="text-lg">{college.university_name}</span>
+                <Globe className="h-5 w-5" />
+                <a 
+                  href={college.college_website_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-lg hover:text-primary transition-colors flex items-center space-x-1 group"
+                >
+                  <span>Visit Website</span>
+                  <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
+                </a>
               </div>
             )}
           </div>
@@ -133,132 +223,68 @@ export function CampusOverview() {
         )}
       </div>
 
-      <div className="space-y-6">
-        {/* Academic Details Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* Department & Branch Card */}
-          <div className="bg-background border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <BookOpen className="h-5 w-5 text-blue-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Academic Details</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Department</label>
-                <p className="text-foreground font-medium">{academicDetails.department_name}</p>
-              </div>
-              
-              <div className="border-t border-border pt-4">
-                <label className="text-sm font-medium text-muted-foreground">Branch</label>
-                <p className="text-foreground font-medium">{academicDetails.branch_name}</p>
-              </div>
-              
-              <div className="border-t border-border pt-4">
-                <button className="w-full px-4 py-3 bg-accent hover:bg-accent/80 text-accent-foreground rounded-md transition-colors flex items-center justify-center space-x-2 group">
-                  <Upload className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                  <span className="text-sm font-medium">Submit Department Rulebook</span>
-                </button>
-                <p className="text-xs text-muted-foreground text-center mt-2">
-                  Help Camply AI assist you better with your campus
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Student Info Card */}
-          <div className="bg-background border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
-            <div className="flex items-center space-x-3 mb-4">
-              <div className="p-2 bg-green-500/10 rounded-lg">
-                <User className="h-5 w-5 text-green-500" />
-              </div>
-              <h3 className="text-lg font-semibold text-foreground">Student Information</h3>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Roll Number</label>
-                <p className="text-foreground font-medium">{academicDetails.roll_number}</p>
-              </div>
-              
-              <div className="border-t border-border pt-4">
-                <label className="text-sm font-medium text-muted-foreground">Academic Timeline</label>
-                <p className="text-foreground font-medium">
-                  {academicDetails.admission_year} - {academicDetails.graduation_year}
-                </p>
-              </div>
-              
-              {currentSemester ? (
-                <div className="border-t border-border pt-4">
-                  <label className="text-sm font-medium text-muted-foreground">Current Semester</label>
-                  <p className="text-foreground font-medium">Semester {currentSemester}</p>
-                </div>
-              ) : (
-                <div className="border-t border-border pt-4">
-                  <button className="w-full px-4 py-3 bg-accent hover:bg-accent/80 text-accent-foreground rounded-md transition-colors flex items-center justify-center space-x-2 group">
-                    <Calendar className="h-4 w-4 group-hover:scale-110 transition-transform" />
-                    <span className="text-sm font-medium">Fill Semester Details</span>
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Quick Stats Card */}
-        <div className="bg-background border border-border rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow">
+      <div className="space-y-8">
+        {/* Ask About My Campus - Feature Buttons Grid */}
+        <div className="bg-background border border-border rounded-lg p-6 shadow-sm">
           <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 bg-purple-500/10 rounded-lg">
-              <GraduationCap className="h-5 w-5 text-purple-500" />
+            <div className="p-2 bg-gradient-to-r from-blue-500/10 to-purple-500/10 rounded-lg">
+              <Users className="h-5 w-5 text-blue-500" />
             </div>
-            <h3 className="text-lg font-semibold text-foreground">Quick Stats</h3>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">Ask About My Campus</h3>
+              <p className="text-sm text-muted-foreground">Explore what your campus has to offer</p>
+            </div>
           </div>
           
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-            <div className="text-center">
-              <div className="p-4 bg-blue-500/10 rounded-lg mb-2">
-                <p className="text-2xl font-bold text-blue-500">
-                  {new Date().getFullYear() - academicDetails.admission_year + 1}
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground font-medium">Current Year</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="p-4 bg-green-500/10 rounded-lg mb-2">
-                <p className="text-2xl font-bold text-green-500">
-                  {academicDetails.graduation_year - new Date().getFullYear()}
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground font-medium">Years Left</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="p-4 bg-purple-500/10 rounded-lg mb-2">
-                <p className="text-2xl font-bold text-purple-500">
-                  {currentSemester || '-'}
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground font-medium">Current Sem</p>
-            </div>
-            
-            <div className="text-center">
-              <div className="p-4 bg-orange-500/10 rounded-lg mb-2">
-                <p className="text-2xl font-bold text-orange-500">
-                  {academicDetails.graduation_year - academicDetails.admission_year}
-                </p>
-              </div>
-              <p className="text-sm text-muted-foreground font-medium">Program Years</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featureButtons.map((button) => {
+              const IconComponent = button.icon;
+              return (
+                <button
+                  key={button.id}
+                  onClick={() => handleFeatureClick(button)}
+                  className="group relative p-6 bg-background hover:bg-accent/50 border border-border hover:border-border/60 rounded-xl transition-all duration-300 hover:shadow-md hover:scale-[1.02] text-left"
+                >
+                  {/* Gradient background on hover */}
+                  <div className={`absolute inset-0 bg-gradient-to-br ${button.gradient} opacity-0 group-hover:opacity-5 rounded-xl transition-opacity duration-300`} />
+                  
+                  {/* Content */}
+                  <div className="relative">
+                    <div className={`w-12 h-12 bg-gradient-to-br ${button.gradient} rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                      <IconComponent className="h-6 w-6 text-white" />
+                    </div>
+                    
+                    <h4 className="text-base font-semibold text-foreground mb-2 group-hover:text-primary transition-colors">
+                      {button.title}
+                    </h4>
+                    
+                    <p className="text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors">
+                      {button.description}
+                    </p>
+                    
+                    {/* Arrow indicator */}
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <ExternalLink className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          
+          <div className="mt-6 p-4 bg-accent/30 rounded-lg border border-accent/40">
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Click any feature above to get AI-powered insights about your campus. More interactive features coming soon!
+              </p>
             </div>
           </div>
         </div>
       </div>
 
-                {/* Add CamplyBot */}
-          < CamplyBot />
+      {/* Add CamplyBot */}
+      <CamplyBot />
     </div>
   );
 } 
