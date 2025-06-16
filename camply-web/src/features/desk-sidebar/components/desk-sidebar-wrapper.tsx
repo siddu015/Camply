@@ -16,7 +16,7 @@ const deskRouteConfig: Record<string, RouteConfig> = {
   "/semester/courses": { title: "Courses", parent: "Semester" },
 }
 
-interface DeskSidebarWrapperProps {
+interface DeskSidebarWrapperProps extends Partial<ComponentProps<typeof AppSidebar>> {
   user: User
   campusItems: Array<{ name: string; url: string }>
   semesterItems: Array<{ name: string; url: string }>
@@ -25,7 +25,17 @@ interface DeskSidebarWrapperProps {
 export function DeskSidebarWrapper({ 
   user, 
   campusItems, 
-  semesterItems
+  semesterItems,
+  variant,
+  // Extract props that would conflict
+  navigationGroups: _ignoredNavGroups,
+  onLogout: _ignoredOnLogout,
+  onProfileClick: _ignoredOnProfile,
+  onSettingsClick: _ignoredOnSettings,
+  homeRoute: _ignoredHomeRoute,
+  homeIcon: _ignoredHomeIcon,
+  appName: _ignoredAppName,
+  ...restProps
 }: DeskSidebarWrapperProps) {
   // Transform legacy props to new navigation groups format
   const navigationGroups: NavigationGroup[] = [
@@ -67,6 +77,7 @@ export function DeskSidebarWrapper({
 
   return (
     <AppSidebar
+      variant={variant}
       user={user}
       navigationGroups={navigationGroups}
       homeRoute="/desk"
@@ -75,6 +86,7 @@ export function DeskSidebarWrapper({
       onLogout={handleLogout}
       onProfileClick={handleProfileClick}
       onSettingsClick={handleSettingsClick}
+      {...restProps}
     />
   )
 }

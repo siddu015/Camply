@@ -1,8 +1,8 @@
 import type { ReactNode } from "react"
 import { useState, useEffect } from "react"
 import { DeskSidebarWrapper, DeskSiteHeader } from "./desk-sidebar-wrapper"
-import { SidebarInset, SidebarProvider } from "../../../components/sidebar/components/ui/sidebar"
-import { CamplyBot } from "../../../components/CamplyBot"
+import { SidebarInset, SidebarProvider } from "@/components/sidebar/components/ui/sidebar.tsx"
+import { CamplyBot } from "@/components/CamplyBot.tsx"
 
 type User = {
   name: string
@@ -21,8 +21,8 @@ interface LayoutProps {
   appConfig?: AppConfig
 }
 
-// Generate desk-specific navigation based on user data
-const generateDeskNavigation = (user: User) => {
+// Generate desk-specific navigation
+const generateDeskNavigation = () => {
   const campusItems = [
     {
       name: "Campus",
@@ -49,7 +49,7 @@ const generateDeskNavigation = (user: User) => {
 }
 
 export function Layout({ children, user, appConfig }: LayoutProps) {
-  const { campusItems, semesterItems } = generateDeskNavigation(user)
+  const { campusItems, semesterItems } = generateDeskNavigation()
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   
@@ -94,11 +94,12 @@ export function Layout({ children, user, appConfig }: LayoutProps) {
   return (
     <SidebarProvider>
       <DeskSidebarWrapper 
+        variant="inset"
         user={user}
         campusItems={campusItems}
         semesterItems={semesterItems}
       />
-      <SidebarInset>
+      <SidebarInset className="!p-0 !m-0 !border-0 !rounded-none">
         {/* Smart Sticky Header - Hides on scroll down, shows on scroll up */}
         <div 
           className={`
@@ -109,7 +110,7 @@ export function Layout({ children, user, appConfig }: LayoutProps) {
         >
           <DeskSiteHeader />
         </div>
-        <main className="flex flex-1 flex-col transition-smooth">
+        <main className="flex flex-1 flex-col transition-smooth min-h-screen">
           <div className="flex-1 flex items-center justify-center transition-smooth duration-200 ease-in-out p-6">
             {children}
           </div>

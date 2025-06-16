@@ -29,6 +29,7 @@ interface NavMenuProps {
 export function NavMenu({ groups }: NavMenuProps) {
   return (
     <>
+      <div className="mt-4" />
       {groups.map((group, groupIndex) => (
         <div key={group.label}>
           {groupIndex > 0 && <div className="mt-6" />}
@@ -41,11 +42,13 @@ export function NavMenu({ groups }: NavMenuProps) {
               <SidebarMenu>
                 {group.items.map((item) => {
                   const IconComponent = item.icon
+                  // Match original icon sizing: Profile section uses h-4 w-4, Semester section uses h-3 w-3
+                  const iconClassName = group.label === "Profile" ? "h-4 w-4" : "h-3 w-3"
                   return (
                     <SidebarMenuItem key={item.name}>
                       <SidebarMenuButton asChild>
                         <Link to={item.url}>
-                          {IconComponent && <IconComponent className="h-4 w-4" />}
+                          {IconComponent && <IconComponent className={iconClassName} />}
                           <span>{item.name}</span>
                         </Link>
                       </SidebarMenuButton>
