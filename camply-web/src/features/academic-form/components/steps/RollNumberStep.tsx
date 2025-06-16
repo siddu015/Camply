@@ -7,7 +7,6 @@ export const RollNumberStep = ({ formData, validationErrors, onFieldChange, auto
     onFieldChange(e.target.name, e.target.value);
   };
 
-  // Directional animation variants
   const getAnimationVariants = () => {
     const isGoingNext = direction === 'next';
     const isGoingPrev = direction === 'prev';

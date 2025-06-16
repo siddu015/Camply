@@ -7,27 +7,22 @@ export const YearsStep = ({ formData, validationErrors, onFieldChange, autoFocus
     const { name, value } = e.target;
     
     if (name === 'admission_year' || name === 'graduation_year') {
-      // Handle year fields with 4-digit limitation starting with 2
-      let yearValue = value.replace(/\D/g, ''); // Remove non-digits
+      let yearValue = value.replace(/\D/g, '');
       
-      // Limit to 4 digits
       if (yearValue.length > 4) {
         yearValue = yearValue.slice(0, 4);
       }
       
-      // Only auto-prefix with 2 if user types a single digit that's not 2
       if (yearValue.length === 1 && yearValue !== '2') {
         yearValue = '2' + yearValue;
       }
       
-      // Store as string to prevent display issues, convert to number for validation
       onFieldChange(name, yearValue ? parseInt(yearValue) : 0);
     } else {
       onFieldChange(name, value);
     }
   };
-
-  // Directional animation variants
+  
   const getAnimationVariants = () => {
     const isGoingNext = direction === 'next';
     const isGoingPrev = direction === 'prev';

@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 
-import { cn } from "../../features/sidebar/lib/utils"
+import { cn } from "../sidebar/lib/utils"
 import { WavyBackground } from "./wavy-background"
 import { useTheme } from "../../lib/theme-provider"
 
@@ -34,8 +34,8 @@ const LogoutDialogOverlay = React.forwardRef<
     >
       <WavyBackground
         colors={isLight 
-          ? ["#64748b", "#71717a", "#6b7280", "#9ca3af", "#a1a1aa"] // Smooth professional grays
-          : ["#38bdf8", "#818cf8", "#c084fc", "#e879f9", "#22d3ee"] // Dark theme colors
+          ? ["#64748b", "#71717a", "#6b7280", "#9ca3af", "#a1a1aa"]
+          : ["#38bdf8", "#818cf8", "#c084fc", "#e879f9", "#22d3ee"]   
         }
         waveWidth={50}
         blur={10}

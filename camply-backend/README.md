@@ -21,7 +21,7 @@ Bridge service connecting Camply frontend to ADK agents.
 3. **Start Bridge server (Terminal 2):**
 
    ```bash
-   python3 start.py
+   python3 main.py
    ```
 
    This starts the bridge server on port 8001
@@ -36,11 +36,15 @@ Bridge service connecting Camply frontend to ADK agents.
 ```
 camply-backend/
 ├── main.py              # FastAPI bridge application
-├── start.py             # Simple startup script for bridge
 ├── requirements.txt     # Python dependencies
+├── shared/              # Shared services and configuration
+│   ├── config.py        # Configuration management
+│   └── database.py      # Database operations
 ├── student_desk/        # ADK agent directory
 │   ├── agent.py         # Main agent definition
 │   ├── prompt.py        # Agent prompts
+│   ├── tools/           # Agent tools
+│   │   └── data_service.py  # Data access functions
 │   └── sub_agents/      # Sub-agents (campus_agent)
 └── README.md           # This file
 ```
@@ -100,5 +104,5 @@ Check if the bridge service and ADK server are connected.
 1. **ADK Server issues:** Ensure `adk api_server` works independently
 2. **Bridge connection errors:** Verify ADK server is running on port 8000
 3. **CORS errors:** Frontend URLs are configured in `main.py`
-4. **Port conflicts:** Modify port in `start.py` if needed
+4. **Port conflicts:** Modify port in `main.py` if needed
 5. **Agent errors:** Check agent configuration in `student_desk/agent.py`

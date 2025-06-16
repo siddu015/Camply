@@ -6,13 +6,11 @@ import { useUserData } from './hooks/useUserData';
 import { ThemeProvider } from './lib/theme-provider';
 import Onboarding from './pages/Onboarding';
 import LandingPage from './pages/LandingPage';
-import { Layout } from './features/desk-sidebar/components/Layout';
-import { Desk } from './features/desk-sidebar/views/Desk';
-import { CampusOverview } from './features/desk-sidebar/views/CampusOverview';
-import { AcademicOverview } from './features/desk-sidebar/views/AcademicOverview';
-import { CurrentSemester } from './features/desk-sidebar/views/CurrentSemester';
-import { Courses } from './features/desk-sidebar/views/Courses';
-import { OfflinePage } from './components/OfflinePage';
+import { Layout, Desk, AcademicOverview, CurrentSemester, Courses} from './features/desk';
+import { CampusOverview, CampusFeaturePage } from './features/desk/views/campus';
+import { OfflinePage } from './pages/OfflinePage';
+import SimpleLoader from './components/SimpleLoader';
+import './lib/route-config';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -35,12 +33,9 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-800">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      </div>
+      <ThemeProvider defaultTheme="dark" storageKey="camply-ui-theme">
+        <SimpleLoader />
+      </ThemeProvider>
     );
   }
 
@@ -49,13 +44,11 @@ function App() {
       <Router>
         <Routes>
           {!session ? (
-            // Unauthenticated routes
             <>
               <Route path="/" element={<LandingPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
           ) : (
-            // Authenticated routes with shared user data
             <Route path="/*" element={<AuthenticatedRoutes session={session} />} />
           )}
         </Routes>
@@ -65,25 +58,17 @@ function App() {
 }
 
 const AuthenticatedRoutes = ({ session }: { session: Session }) => {
-  const { userStatus, loading, error, refreshUser } = useUserData(session);
+  const { userStatus, loading, error, initialized, refreshUser } = useUserData(session);
 
   const handleOnboardingComplete = async () => {
     await refreshUser();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-800">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading your profile...</p>
-        </div>
-      </div>
-    );
+  // Show loader until we've completed at least one load cycle
+  if (loading || !initialized) {
+    return <SimpleLoader />;
   }
 
-  // If there's an error (like network failure) but we're not on onboarding route,
-  // show the offline page instead of redirecting to onboarding
   if (error && !window.location.pathname.includes('/onboarding')) {
     return <OfflinePage onRetry={refreshUser} error={error} />;
   }
@@ -118,6 +103,7 @@ const AuthenticatedRoutes = ({ session }: { session: Session }) => {
       <Routes>
         <Route path="/desk" element={<Desk />} />
         <Route path="/profile/campus" element={<CampusOverview />} />
+        <Route path="/profile/campus/:feature" element={<CampusFeaturePage />} />
         <Route path="/profile/academics" element={<AcademicOverview />} />
         <Route path="/semester/overview" element={<CurrentSemester />} />
         <Route path="/semester/courses" element={<Courses />} />

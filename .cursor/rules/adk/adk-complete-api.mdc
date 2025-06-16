@@ -1,0 +1,326 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+
+# ADK Complete API Reference
+
+## Core Modules
+
+### google.adk.agents
+
+# ADK Complete API Reference
+
+## Core ADK Architecture
+
+### Agent System
+
+```python
+from google.adk.agents import BaseAgent, LlmAgent
+
+# BaseAgent - Core agent functionality
+class BaseAgent:
+    name: str                    # Required - Python identifier, unique in agent tree
+    description: str = ""        # Agent capability description (one-line preferred)
+    parent_agent: Optional[BaseAgent] = None
+    sub_agents: list[BaseAgent] = []
+    before_agent_callback: Optional[BeforeAgentCallback] = None
+    after_agent_callback: Optional[AfterAgentCallback] = None
+
+    async def run_async(parent_context) -> AsyncGenerator[Event, None]
+    async def run_live(parent_context) -> AsyncGenerator[Event, None]  # Video/audio
+    def find_agent(name: str) -> Optional[BaseAgent]
+    def find_sub_agent(name: str) -> Optional[BaseAgent]
+
+# LlmAgent - LLM-powered agent (most common)
+class LlmAgent(BaseAgent):
+    model: str | BaseLlm = ""    # Model to use
+    instruction: str = ""        # System prompt/instruction
+    global_instruction: str = "" # Global context
+    tools: list[BaseTool] = []   # Available tools
+    generate_content_config: Optional[GenerateContentConfig] = None
+    disallow_transfer_to_parent: bool = False
+    disallow_transfer_to_peers: bool = False
+```
+
+### Tool System
+
+```python
+from google.adk.tools import BaseTool, FunctionTool
+
+# BaseTool - Base class for all tools
+class BaseTool:
+    name: str
+    description: str
+    is_long_running: bool = False
+
+    async def run_async(*, args: dict, tool_context: ToolContext) -> Any
+    async def process_llm_request(*, tool_context: ToolContext, llm_request: LlmRequest) -> None
+
+# FunctionTool - Wrap Python functions as tools
+@FunctionTool
+async def my_tool_function(param1: str, param2: int) -> dict:
+    """Tool description here"""
+    return {"result": "success"}
+
+# Tool Context - Available in all tool calls
+class ToolContext:
+    session_id: str
+    user_id: str  # Available from session context
+    # Additional context data
+```
+
+### Event System
+
+```python
+from google.adk.events import Event
+
+# Events flow through the agent system
+class Event:
+    content: Content
+    usage_metadata: GenerateContentResponseUsageMetadata
+    invocation_id: str
+    author: str  # Agent name that generated event
+    actions: EventActions
+    timestamp: float
+```
+
+### Memory System
+
+```python
+from google.adk.memory import Memory
+
+# Memory management for agents
+class Memory:
+    async def store(key: str, value: Any) -> None
+    async def retrieve(key: str) -> Any
+    async def delete(key: str) -> None
+```
+
+## Specialized Tools
+
+### REST API Tools
+
+```python
+from google.adk.tools.openapi_tool import RestApiTool, OpenAPIToolset
+
+# Single REST API tool
+tool = RestApiTool(
+    name="api_call",
+    description="Call external API",
+    endpoint={"base_url": "https://api.example.com", "path": "/data", "method": "GET"},
+    operation=operation_spec,
+    auth_scheme=auth_scheme,
+    auth_credential=auth_credential
+)
+
+# OpenAPI toolset - parse entire API spec
+openapi_toolset = OpenAPIToolset(
+    spec_str=openapi_spec_str,
+    spec_str_type="json",  # or "yaml"
+    auth_scheme=auth_scheme,
+    auth_credential=auth_credential
+)
+
+# Add all tools from spec
+agent = LlmAgent(
+    name="api_agent",
+    tools=[*openapi_toolset.get_tools()]
+)
+
+# Add specific tool from spec
+agent = LlmAgent(
+    name="api_agent",
+    tools=[openapi_toolset.get_tool('specific_tool_name')]
+)
+```
+
+### Retrieval Tools
+
+```python
+from google.adk.tools.retrieval import (
+    BaseRetrievalTool,
+    FilesRetrieval,
+    LlamaIndexRetrieval,
+    VertexAiRagRetrieval
+)
+
+# File-based retrieval
+files_retrieval = FilesRetrieval(
+    name="file_search",
+    description="Search through files",
+    input_dir="/path/to/files"
+)
+
+# Vertex AI RAG retrieval
+rag_retrieval = VertexAiRagRetrieval(
+    name="rag_search",
+    description="RAG-powered search",
+    rag_corpora=["corpus_id"],
+    similarity_top_k=10,
+    vector_distance_threshold=0.5
+)
+```
+
+## Agent Patterns
+
+### Single Agent
+
+```python
+# Simple single-purpose agent
+agent = LlmAgent(
+    name="simple_agent",
+    description="Handles basic queries",
+    instruction="You are a helpful assistant...",
+    tools=[tool1, tool2]
+)
+```
+
+### Multi-Agent Hierarchy
+
+```python
+# Parent agent with sub-agents
+main_agent = LlmAgent(
+    name="main_agent",
+    description="Routes requests to specialist agents",
+    instruction="You coordinate between specialist agents...",
+    sub_agents=[
+        LlmAgent(
+            name="specialist_1",
+            description="Handles type A queries",
+            instruction="You specialize in...",
+            tools=[specialist_tools]
+        ),
+        LlmAgent(
+            name="specialist_2",
+            description="Handles type B queries",
+            instruction="You specialize in...",
+            tools=[other_tools]
+        )
+    ]
+)
+```
+
+### Agent Callbacks
+
+```python
+async def before_callback(callback_context):
+    """Called before agent run"""
+    # Pre-processing logic
+    return None  # Continue with agent run
+    # return Content(...) to skip agent run
+
+async def after_callback(callback_context):
+    """Called after agent run"""
+    # Post-processing logic
+    return None  # Use agent's response
+    # return Content(...) to override response
+
+agent = LlmAgent(
+    name="callback_agent",
+    before_agent_callback=before_callback,
+    after_agent_callback=after_callback
+)
+```
+
+## Session and Context
+
+### Session Management
+
+```python
+from google.adk.sessions import Session
+
+# Sessions automatically provide user context
+# user_id is available in tool_context from session
+```
+
+### Tool Context Usage
+
+```python
+@FunctionTool
+async def context_aware_tool(*, tool_context: ToolContext) -> dict:
+    user_id = tool_context.user_id  # From session
+    session_id = tool_context.session_id
+
+    # Use context for personalized responses
+    return {"user_id": user_id, "data": "personalized"}
+```
+
+## Error Handling
+
+### Tool Error Patterns
+
+```python
+@FunctionTool
+async def robust_tool(param: str) -> dict:
+    try:
+        result = await some_operation(param)
+        return {"success": True, "data": result}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+```
+
+### Agent Error Handling
+
+```python
+agent = LlmAgent(
+    name="robust_agent",
+    instruction="""
+    If tools fail, provide helpful fallback responses.
+    Never say you cannot help without trying available tools.
+    Always be helpful and constructive.
+    """
+)
+```
+
+## Best Practices
+
+### Tool Design
+
+1. **Single Responsibility**: Each tool should have one clear purpose
+2. **Async Operations**: Always use `async def` for tool functions
+3. **Error Handling**: Return structured error responses
+4. **Context Awareness**: Use `tool_context` for session/user data
+5. **Type Hints**: Use proper typing for parameters and returns
+
+### Agent Design
+
+1. **Clear Instructions**: Provide specific, actionable system prompts
+2. **Tool Selection**: Only include relevant tools for the agent's purpose
+3. **Hierarchical Design**: Use sub-agents for complex, multi-domain tasks
+4. **Routing Logic**: Clear instructions for when to use tools vs sub-agents
+
+### Memory Usage
+
+1. **Session Persistence**: Store user context at session start
+2. **Conversation History**: Track important exchanges
+3. **State Management**: Persist important state across interactions
+
+## Integration Patterns
+
+### Database Integration
+
+```python
+@FunctionTool
+async def database_tool(query: str) -> dict:
+    """Query database with context"""
+    async with database.connection() as conn:
+        result = await conn.execute(query)
+        return {"data": result}
+```
+
+### External API Integration
+
+```python
+# Use OpenAPIToolset for complex APIs
+# Use RestApiTool for simple API calls
+# Use FunctionTool for custom API logic
+```
+
+### File System Integration
+
+```python
+# Use FilesRetrieval for document search
+# Use FunctionTool for file operations
+```

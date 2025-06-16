@@ -9,7 +9,7 @@ export const checkUserStatus = async (userId: string): Promise<UserStatus> => {
       .eq('user_id', userId)
       .single();
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+    if (error && error.code !== 'PGRST116') {
       throw error;
     }
 
@@ -33,7 +33,6 @@ export const createUserWithAcademicDetails = async (
     console.log('Starting user creation for:', userId);
     console.log('Form data:', formData);
 
-    // Step 1: Ensure user record exists in users table
     const userInsertData = {
       user_id: userId,
       name: formData.name,
@@ -52,7 +51,6 @@ export const createUserWithAcademicDetails = async (
 
     let currentUser = insertedUser;
 
-    // If user already exists, update their basic info
     if (insertError && insertError.code === '23505') {
       console.log('User exists, updating...');
       const { data: updatedUser, error: updateError } = await supabase
@@ -77,10 +75,9 @@ export const createUserWithAcademicDetails = async (
 
     console.log('User record ready:', currentUser);
 
-    // Step 2: Create academic details
     const academicInsertData = {
       user_id: userId,
-      college_id: formData.college_id || null, // Use the actual UUID from form
+      college_id: formData.college_id || null,
       department_name: formData.department_name,
       branch_name: formData.branch_name,
       admission_year: formData.admission_year,
@@ -103,7 +100,6 @@ export const createUserWithAcademicDetails = async (
 
     console.log('Academic details created:', academicData);
 
-    // Step 3: Update user with academic_id
     const { data: finalUserData, error: finalUpdateError } = await supabase
       .from('users')
       .update({ academic_id: academicData.academic_id })
@@ -133,7 +129,6 @@ export const updateUserAcademicDetails = async (
   formData: UserFormData
 ): Promise<{ user: User; academicDetails: UserAcademicDetails }> => {
   try {
-    // Get current user data
     const { data: currentUser } = await supabase
       .from('users')
       .select('academic_id')
@@ -144,11 +139,10 @@ export const updateUserAcademicDetails = async (
       throw new Error('User has no academic details to update');
     }
 
-    // Update academic details
     const { data: academicData, error: academicError } = await supabase
       .from('user_academic_details')
       .update({
-        college_id: formData.college_id || null, // Use the actual UUID from form
+        college_id: formData.college_id || null,
         department_name: formData.department_name,
         branch_name: formData.branch_name,
         admission_year: formData.admission_year,
@@ -161,7 +155,6 @@ export const updateUserAcademicDetails = async (
 
     if (academicError) throw academicError;
 
-    // Update user info
     const { data: userData, error: userError } = await supabase
       .from('users')
       .update({
@@ -191,7 +184,6 @@ export const getUserCampusData = async (userId: string): Promise<{
   currentSemester: number | null;
 }> => {
   try {
-    // First, get user data
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('*')
@@ -203,15 +195,12 @@ export const getUserCampusData = async (userId: string): Promise<{
       throw new Error('Unable to fetch user information');
     }
 
-    // Initialize return data
     let academicDetails = null;
     let college = null;
     let currentSemester = null;
 
-    // Only proceed if user has academic_id
     if (userData?.academic_id) {
       try {
-        // Get academic details
         const { data: academicData, error: academicError } = await supabase
           .from('user_academic_details')
           .select('*')
@@ -223,7 +212,6 @@ export const getUserCampusData = async (userId: string): Promise<{
         } else if (academicData) {
           academicDetails = academicData;
 
-          // Get college information if college_id exists
           if (academicData.college_id) {
             try {
               const { data: collegeData, error: collegeError } = await supabase
@@ -239,11 +227,9 @@ export const getUserCampusData = async (userId: string): Promise<{
               }
             } catch (collegeErr) {
               console.warn('Error fetching college data:', collegeErr);
-              // Don't throw, just continue without college data
             }
           }
 
-          // Get current semester if academic details exist
           try {
             const { data: semesterData, error: semesterError } = await supabase
               .from('semesters')
@@ -260,12 +246,10 @@ export const getUserCampusData = async (userId: string): Promise<{
             }
           } catch (semesterErr) {
             console.warn('Error fetching semester data:', semesterErr);
-            // Don't throw, just continue without semester data
           }
         }
       } catch (academicErr) {
-        console.warn('Error fetching academic data:', academicErr);
-        // Don't throw, just continue without academic data
+        console.warn('Error fetching academic data:', academicErr);               
       }
     }
 

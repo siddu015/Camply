@@ -1,8 +1,21 @@
-"""Campus Agent: Provides comprehensive information about the university campus."""
+"""Campus Agent: Provides comprehensive information about the university campus with advanced real-time capabilities."""
 
 from google.adk.agents import LlmAgent
 from . import prompt
-from .tools import fetch_campus_content_tool
+from .tools import (
+    # Enhanced ADK-based tools
+    fetch_campus_content_by_user_id,
+    analyze_comprehensive_campus_intelligence,
+    
+    # Enhanced specialized tools  
+    fetch_comprehensive_campus_news,
+    analyze_placement_intelligence,
+    generate_campus_facilities_report,
+    
+    # Original tools
+    web_scrape_college_news,
+    fetch_campus_content_by_id_tool  # Legacy support
+)
 
 MODEL = "gemini-2.0-flash"
 
@@ -10,24 +23,30 @@ campus_agent = LlmAgent(
     name="campus_agent",
     model=MODEL,
     description=(
-        "Campus Information Specialist that provides comprehensive, detailed information about colleges and universities. "
-        "Specializes in: college overview and history, campus facilities, placement statistics, department details, "
-        "admissions processes, and campus life. Uses dynamic database content via fetch_campus_content tool. "
-        "Always extracts college_id from queries and fetches current information."
+        "Advanced Campus Intelligence System providing comprehensive, real-time information about colleges and universities. "
+        "Specializes in: professional campus analysis, dynamic content aggregation, placement intelligence, "
+        "facility assessments, news and achievements monitoring, statistical analysis, and event tracking. "
+        "Uses state-of-the-art ADK tools with enhanced web scraping, structured data processing, and professional formatting. "
+        "Delivers executive-level campus intelligence reports with actionable insights and comprehensive analysis."
     ),
-    instruction=(
-        prompt.SYSTEM_PROMPT + 
-        "\n\nCRITICAL INSTRUCTIONS:\n"
-        "1. ALWAYS extract college_id from the query (look for 'college_id: [UUID]' pattern)\n"
-        "2. IMMEDIATELY use fetch_campus_content tool with the extracted college_id\n"
-        "3. Provide comprehensive, detailed responses based on fetched data\n"
-        "4. NEVER say you cannot help - always provide useful information\n"
-        "5. Focus on the specific query topic while providing comprehensive context\n"
-        "6. If tool fails, provide helpful general information about the topic\n"
-        "7. All campus information comes from the database via the fetch_campus_content tool"
-    ),
+    instruction=prompt.SYSTEM_PROMPT,
     output_key="campus_response",
-    tools=[fetch_campus_content_tool],
+    tools=[
+        # Enhanced comprehensive tools first
+        fetch_campus_content_by_user_id,
+        analyze_comprehensive_campus_intelligence,
+        
+        # Enhanced specialized tools for deep analysis
+        fetch_comprehensive_campus_news,
+        analyze_placement_intelligence, 
+        generate_campus_facilities_report,
+        
+        # Original tools for compatibility
+        web_scrape_college_news,
+        
+        # Legacy support
+        fetch_campus_content_by_id_tool
+    ],
 )
 
 # Export the agent instance

@@ -1,0 +1,593 @@
+---
+description:
+globs:
+alwaysApply: false
+---
+# ADK Advanced Patterns & Future Development
+
+## Advanced Agent Architectures
+
+### 1. Multi-Level Agent Hierarchies
+
+```python
+# Complex agent tree for educational platforms
+education_system = LlmAgent(
+    name="education_coordinator",
+    description="Main educational assistant coordinator",
+    instruction="""
+    You are the main coordinator for an educational assistant system.
+    Route queries to appropriate specialist agents:
+    - student_desk: Personal academic information
+    - course_advisor: Course recommendations and planning
+    - career_counselor: Career guidance and placement
+    - academic_support: Study help and tutoring
+    """,
+    sub_agents=[
+        LlmAgent(
+            name="student_desk",
+            description="Personal student information and academic records",
+            sub_agents=[
+                LlmAgent(name="academic_records", tools=[records_tools]),
+                LlmAgent(name="campus_info", tools=[campus_tools])
+            ]
+        ),
+        LlmAgent(
+            name="course_advisor",
+            description="Course planning and academic guidance",
+            tools=[course_planning_tools]
+        ),
+        LlmAgent(
+            name="career_counselor", 
+            description="Career guidance and placement assistance",
+            tools=[career_tools]
+        )
+    ]
+)
+```
+
+### 2. Dynamic Agent Discovery
+
+```python
+@FunctionTool
+async def discover_agents(domain: str, *, tool_context) -> dict:
+    """Dynamically discover available agents for a domain."""
+    agent_registry = {
+        "academic": ["student_desk", "course_advisor", "academic_support"],
+        "career": ["career_counselor", "placement_assistant"],
+        "campus": ["campus_info", "facilities_guide", "events_manager"]
+    }
+    
+    available_agents = agent_registry.get(domain, [])
+    return {
+        "success": True,
+        "domain": domain,
+        "available_agents": available_agents
+    }
+```
+
+### 3. Agent Communication Protocols
+
+```python
+# Standard inter-agent communication format
+@FunctionTool
+async def route_to_agent(agent_name: str, request: str, context_data: dict, *, tool_context) -> dict:
+    """Standard routing protocol between agents."""
+    user_id = tool_context.user_id
+    
+    # Standard request format
+    formatted_request = {
+        "user_id": user_id,
+        "request": request,
+        "context": context_data,
+        "routing_agent": "student_desk",
+        "timestamp": datetime.utcnow().isoformat()
+    }
+    
+    # Route to appropriate agent
+    return await agent_dispatcher.route(agent_name, formatted_request)
+```
+
+## Advanced Tool Patterns
+
+### 4. Composite Tools
+
+```python
+@FunctionTool
+async def composite_user_analysis(analysis_type: str, *, tool_context) -> dict:
+    """Combine multiple data sources for comprehensive analysis."""
+    user_id = tool_context.user_id
+    
+    # Gather data from multiple sources concurrently
+    tasks = [
+        get_academic_data(user_id),
+        get_engagement_data(user_id),
+        get_performance_metrics(user_id),
+        get_social_data(user_id)
+    ]
+    
+    results = await asyncio.gather(*tasks, return_exceptions=True)
+    
+    # Combine and analyze
+    analysis = await perform_composite_analysis(results, analysis_type)
+    
+    return {
+        "success": True,
+        "analysis_type": analysis_type,
+        "insights": analysis,
+        "data_sources": len([r for r in results if not isinstance(r, Exception)])
+    }
+```
+
+### 5. Streaming Tools for Real-Time Data
+
+```python
+from google.adk.tools import BaseTool
+
+class StreamingDataTool(BaseTool):
+    def __init__(self):
+        super().__init__(
+            name="streaming_data",
+            description="Real-time data streaming",
+            is_long_running=True
+        )
+    
+    async def run_async(self, *, args, tool_context):
+        user_id = tool_context.user_id
+        
+        # Stream real-time data
+        async for data_chunk in stream_user_data(user_id):
+            yield {
+                "chunk": data_chunk,
+                "timestamp": datetime.utcnow().isoformat(),
+                "user_id": user_id
+            }
+```
+
+### 6. AI-Powered Tool Selection
+
+```python
+@FunctionTool
+async def intelligent_tool_selector(user_query: str, available_tools: list, *, tool_context) -> dict:
+    """Use AI to select the best tool for a query."""
+    user_id = tool_context.user_id
+    
+    # Analyze query intent
+    intent_analysis = await analyze_query_intent(user_query)
+    
+    # Get user context for personalization
+    user_context = await get_user_context_data(user_id)
+    
+    # Score tools based on relevance
+    tool_scores = await score_tools_for_query(
+        query=user_query,
+        intent=intent_analysis,
+        user_context=user_context,
+        available_tools=available_tools
+    )
+    
+    return {
+        "success": True,
+        "recommended_tool": tool_scores[0]["tool"],
+        "confidence": tool_scores[0]["score"],
+        "alternatives": tool_scores[1:3]
+    }
+```
+
+## Advanced Memory Patterns
+
+### 7. Hierarchical Memory Management
+
+```python
+@FunctionTool
+async def hierarchical_memory_store(data_type: str, data: dict, scope: str, *, tool_context) -> dict:
+    """Store data with hierarchical scoping."""
+    user_id = tool_context.user_id
+    session_id = tool_context.session_id
+    
+    # Define memory scopes
+    memory_key = {
+        "session": f"session:{session_id}:{data_type}",
+        "user": f"user:{user_id}:{data_type}",
+        "global": f"global:{data_type}",
+        "agent": f"agent:student_desk:{data_type}"
+    }.get(scope)
+    
+    if not memory_key:
+        return {"success": False, "error": "Invalid scope"}
+    
+    await memory_service.store(memory_key, data)
+    
+    return {
+        "success": True,
+        "stored_at": memory_key,
+        "scope": scope,
+        "data_type": data_type
+    }
+```
+
+### 8. Context-Aware Memory Retrieval
+
+```python
+@FunctionTool
+async def context_aware_memory_retrieve(query: str, context_hints: list = None, *, tool_context) -> dict:
+    """Retrieve memory with context awareness."""
+    user_id = tool_context.user_id
+    
+    # Build search contexts
+    search_contexts = [
+        f"user:{user_id}",
+        f"session:{tool_context.session_id}",
+        "agent:student_desk"
+    ]
+    
+    if context_hints:
+        search_contexts.extend(context_hints)
+    
+    # Search across contexts
+    results = []
+    for context in search_contexts:
+        context_results = await memory_service.search(context, query)
+        results.extend(context_results)
+    
+    # Rank and return best matches
+    ranked_results = await rank_memory_results(results, query)
+    
+    return {
+        "success": True,
+        "query": query,
+        "results": ranked_results[:5],
+        "searched_contexts": search_contexts
+    }
+```
+
+## Advanced Integration Patterns
+
+### 9. Multi-Database Integration
+
+```python
+@FunctionTool
+async def multi_db_query(query_spec: dict, *, tool_context) -> dict:
+    """Query across multiple databases."""
+    user_id = tool_context.user_id
+    
+    database_configs = {
+        "academic": academic_db_config,
+        "social": social_db_config,
+        "analytics": analytics_db_config
+    }
+    
+    results = {}
+    
+    for db_name, config in database_configs.items():
+        if db_name in query_spec:
+            try:
+                async with get_db_connection(config) as conn:
+                    result = await conn.execute(
+                        query_spec[db_name],
+                        user_id=user_id
+                    )
+                    results[db_name] = result
+            except Exception as e:
+                results[db_name] = {"error": str(e)}
+    
+    return {
+        "success": True,
+        "results": results,
+        "queried_databases": list(results.keys())
+    }
+```
+
+### 10. External Service Orchestration
+
+```python
+@FunctionTool
+async def orchestrate_services(workflow: dict, *, tool_context) -> dict:
+    """Orchestrate multiple external services."""
+    user_id = tool_context.user_id
+    
+    results = {}
+    
+    # Execute workflow steps
+    for step_name, step_config in workflow.items():
+        try:
+            if step_config["type"] == "api_call":
+                result = await make_api_call(
+                    step_config["endpoint"],
+                    step_config["params"],
+                    user_id
+                )
+            elif step_config["type"] == "database_query":
+                result = await execute_db_query(
+                    step_config["query"],
+                    user_id
+                )
+            elif step_config["type"] == "ml_prediction":
+                result = await get_ml_prediction(
+                    step_config["model"],
+                    step_config["features"],
+                    user_id
+                )
+            
+            results[step_name] = result
+            
+        except Exception as e:
+            results[step_name] = {"error": str(e)}
+            
+            # Handle workflow failures
+            if step_config.get("critical", False):
+                break
+    
+    return {
+        "success": True,
+        "workflow_results": results,
+        "completed_steps": len([r for r in results.values() if "error" not in r])
+    }
+```
+
+## Advanced Security & Permissions
+
+### 11. Role-Based Access Control
+
+```python
+@FunctionTool
+async def rbac_tool_wrapper(tool_name: str, params: dict, required_roles: list, *, tool_context) -> dict:
+    """Wrapper for role-based access control."""
+    user_id = tool_context.user_id
+    
+    # Get user roles
+    user_roles = await get_user_roles(user_id)
+    
+    # Check permissions
+    has_permission = any(role in user_roles for role in required_roles)
+    
+    if not has_permission:
+        return {
+            "success": False,
+            "error": "insufficient_permissions",
+            "required_roles": required_roles,
+            "user_roles": user_roles
+        }
+    
+    # Execute tool with permissions
+    return await execute_protected_tool(tool_name, params, user_id)
+```
+
+### 12. Data Privacy Compliance
+
+```python
+@FunctionTool
+async def privacy_aware_data_access(data_type: str, purpose: str, *, tool_context) -> dict:
+    """Access data with privacy compliance."""
+    user_id = tool_context.user_id
+    
+    # Check privacy preferences
+    privacy_settings = await get_user_privacy_settings(user_id)
+    
+    # Validate purpose against consent
+    consent_given = await validate_data_purpose(user_id, data_type, purpose)
+    
+    if not consent_given:
+        return {
+            "success": False,
+            "error": "consent_required",
+            "data_type": data_type,
+            "purpose": purpose
+        }
+    
+    # Apply data minimization
+    filtered_data = await get_minimal_data(user_id, data_type, purpose)
+    
+    # Log access for audit
+    await log_data_access(user_id, data_type, purpose)
+    
+    return {
+        "success": True,
+        "data": filtered_data,
+        "privacy_compliant": True
+    }
+```
+
+## Advanced Analytics & ML Integration
+
+### 13. Real-Time Analytics Tools
+
+```python
+@FunctionTool
+async def real_time_analytics(metric_type: str, time_window: str, *, tool_context) -> dict:
+    """Generate real-time analytics."""
+    user_id = tool_context.user_id
+    
+    analytics_pipeline = {
+        "data_collection": lambda: collect_user_metrics(user_id, time_window),
+        "data_processing": lambda data: process_metrics(data, metric_type),
+        "insight_generation": lambda processed: generate_insights(processed),
+        "recommendation": lambda insights: create_recommendations(insights, user_id)
+    }
+    
+    # Execute pipeline
+    data = await analytics_pipeline["data_collection"]()
+    processed = await analytics_pipeline["data_processing"](data)
+    insights = await analytics_pipeline["insight_generation"](processed)
+    recommendations = await analytics_pipeline["recommendation"](insights)
+    
+    return {
+        "success": True,
+        "metric_type": metric_type,
+        "time_window": time_window,
+        "insights": insights,
+        "recommendations": recommendations,
+        "timestamp": datetime.utcnow().isoformat()
+    }
+```
+
+### 14. ML Model Integration
+
+```python
+@FunctionTool
+async def ml_prediction_tool(model_name: str, features: dict, *, tool_context) -> dict:
+    """Integrate ML models for predictions."""
+    user_id = tool_context.user_id
+    
+    # Load model
+    model = await load_ml_model(model_name)
+    
+    # Prepare features with user context
+    enriched_features = await enrich_features_with_context(features, user_id)
+    
+    # Make prediction
+    prediction = await model.predict(enriched_features)
+    
+    # Generate explanation
+    explanation = await generate_prediction_explanation(
+        model, enriched_features, prediction
+    )
+    
+    return {
+        "success": True,
+        "model": model_name,
+        "prediction": prediction,
+        "confidence": prediction.confidence,
+        "explanation": explanation,
+        "features_used": list(enriched_features.keys())
+    }
+```
+
+## Future-Ready Agent Patterns
+
+### 15. Self-Improving Agents
+
+```python
+@FunctionTool
+async def agent_self_improvement(performance_metrics: dict, *, tool_context) -> dict:
+    """Enable agents to improve based on performance."""
+    agent_id = "student_desk"
+    
+    # Analyze performance patterns
+    improvement_areas = await analyze_agent_performance(agent_id, performance_metrics)
+    
+    # Generate improvement suggestions
+    improvements = await generate_improvement_plan(improvement_areas)
+    
+    # Update agent configuration if approved
+    if improvements.get("auto_apply", False):
+        await update_agent_config(agent_id, improvements["config_updates"])
+    
+    return {
+        "success": True,
+        "improvement_areas": improvement_areas,
+        "suggested_improvements": improvements,
+        "auto_applied": improvements.get("auto_apply", False)
+    }
+```
+
+### 16. Cross-Platform Integration
+
+```python
+@FunctionTool
+async def cross_platform_sync(platforms: list, sync_type: str, *, tool_context) -> dict:
+    """Sync data across multiple platforms."""
+    user_id = tool_context.user_id
+    
+    sync_results = {}
+    
+    for platform in platforms:
+        try:
+            platform_adapter = get_platform_adapter(platform)
+            
+            if sync_type == "pull":
+                data = await platform_adapter.pull_user_data(user_id)
+                sync_results[platform] = await store_synced_data(user_id, platform, data)
+            elif sync_type == "push":
+                local_data = await get_user_data_for_platform(user_id, platform)
+                sync_results[platform] = await platform_adapter.push_user_data(user_id, local_data)
+            
+        except Exception as e:
+            sync_results[platform] = {"error": str(e)}
+    
+    return {
+        "success": True,
+        "sync_type": sync_type,
+        "platforms": platforms,
+        "results": sync_results
+    }
+```
+
+## Best Practices for Advanced Development
+
+### 17. Performance Monitoring
+
+```python
+@FunctionTool
+async def performance_monitor(operation: str, *, tool_context) -> dict:
+    """Monitor tool and agent performance."""
+    start_time = time.time()
+    user_id = tool_context.user_id
+    
+    try:
+        # Execute operation with monitoring
+        result = await execute_monitored_operation(operation, user_id)
+        
+        execution_time = time.time() - start_time
+        
+        # Log performance metrics
+        await log_performance_metric(
+            operation=operation,
+            user_id=user_id,
+            execution_time=execution_time,
+            success=True
+        )
+        
+        return {
+            "success": True,
+            "result": result,
+            "execution_time": execution_time,
+            "operation": operation
+        }
+        
+    except Exception as e:
+        execution_time = time.time() - start_time
+        
+        await log_performance_metric(
+            operation=operation,
+            user_id=user_id,
+            execution_time=execution_time,
+            success=False,
+            error=str(e)
+        )
+        
+        return {
+            "success": False,
+            "error": str(e),
+            "execution_time": execution_time
+        }
+```
+
+### 18. Adaptive Configuration
+
+```python
+@FunctionTool
+async def adaptive_configuration(context_changes: dict, *, tool_context) -> dict:
+    """Adapt agent configuration based on context."""
+    user_id = tool_context.user_id
+    
+    # Analyze context changes
+    config_recommendations = await analyze_context_for_config(
+        user_id, context_changes
+    )
+    
+    # Apply safe configuration changes
+    applied_changes = {}
+    for config_key, new_value in config_recommendations.items():
+        if await validate_config_change(config_key, new_value):
+            await update_agent_config(config_key, new_value)
+            applied_changes[config_key] = new_value
+    
+    return {
+        "success": True,
+        "context_changes": context_changes,
+        "recommendations": config_recommendations,
+        "applied_changes": applied_changes
+    }
+```
+
+These advanced patterns prepare the ADK project for future scalability, complex integrations, and sophisticated AI capabilities while maintaining the core principles of async operations, structured responses, and user context awareness.

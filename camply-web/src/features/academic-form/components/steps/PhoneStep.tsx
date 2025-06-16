@@ -7,14 +7,11 @@ export const PhoneStep = ({ formData, validationErrors, onFieldChange, autoFocus
     const { name, value } = e.target;
     
     if (name === 'phone_number') {
-      // Format phone number with +91 prefix
       let phoneValue = value;
       if (!phoneValue.startsWith('+91')) {
         phoneValue = '+91 ' + phoneValue.replace(/^\+91\s?/, '');
       }
-      // Only allow digits after +91
       phoneValue = phoneValue.replace(/(\+91\s?)([^\d])/g, '$1');
-      // Limit to 10 digits after +91
       const match = phoneValue.match(/^\+91\s?(\d{0,10})/);
       if (match) {
         phoneValue = '+91 ' + match[1];
@@ -24,8 +21,7 @@ export const PhoneStep = ({ formData, validationErrors, onFieldChange, autoFocus
       onFieldChange(name, value);
     }
   };
-
-  // Directional animation variants
+    
   const getAnimationVariants = () => {
     const isGoingNext = direction === 'next';
     const isGoingPrev = direction === 'prev';

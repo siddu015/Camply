@@ -25,14 +25,13 @@ export const DepartmentStep = ({
     const category = e.target.value;
     onDepartmentCategoryChange(category);
     onFieldChange('department_name', category);
-    onFieldChange('branch_name', ''); // Reset branch when department changes
+    onFieldChange('branch_name', '');
   };
 
   const handleBranchChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     onFieldChange('branch_name', e.target.value);
   };
 
-  // Directional animation variants
   const getAnimationVariants = () => {
     const isGoingNext = direction === 'next';
     const isGoingPrev = direction === 'prev';

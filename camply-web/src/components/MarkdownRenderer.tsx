@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../lib/theme-provider';
-import { cn } from '../features/sidebar/lib/utils';
+import { cn } from './sidebar/lib/utils';
 
 interface MarkdownRendererProps {
   content: string;
@@ -20,12 +20,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
       const line = lines[i];
       const trimmedLine = line.trim();
 
-      // Skip empty lines
       if (!trimmedLine) {
         continue;
       }
 
-      // Main headers (with === separators)
       if (trimmedLine.includes('===') && trimmedLine.length > 10) {
         elements.push(
           <div key={currentIndex++} className="my-4">
@@ -38,7 +36,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
         continue;
       }
 
-      // Section headers (ALL CAPS or title case with specific patterns)
       if (
         (trimmedLine === trimmedLine.toUpperCase() && trimmedLine.length > 3 && !trimmedLine.includes('•')) ||
         trimmedLine.match(/^[A-Z][A-Z\s&-]+:?$/) ||
@@ -70,7 +67,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
         continue;
       }
 
-      // Sub-headers (with --- separators or specific patterns)
       if (
         trimmedLine.includes('---') ||
         trimmedLine.match(/^[A-Z][a-zA-Z\s&-]+:$/) ||
@@ -98,7 +94,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
         continue;
       }
 
-      // Bullet points
       if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
         const bulletContent = trimmedLine.replace(/^[•\-*]\s*/, '');
         elements.push(
@@ -118,7 +113,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
         continue;
       }
 
-      // Numbered lists
       if (trimmedLine.match(/^\d+\.\s/)) {
         const listContent = trimmedLine.replace(/^\d+\.\s*/, '');
         const number = trimmedLine.match(/^(\d+)\./)?.[1];
@@ -143,14 +137,10 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
         continue;
       }
 
-      // Regular paragraphs
       if (trimmedLine.length > 0) {
-        // Process bold text and other inline formatting
         const processInlineFormatting = (text: string) => {
-          // Handle **bold** text
           let parts = text.split(/(\*\*[^*]+\*\*)/g);
           
-          // Process each part for additional formatting
           return parts.map((part, index) => {
             if (part.startsWith('**') && part.endsWith('**')) {
               return (
@@ -163,7 +153,6 @@ export const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, cla
               );
             }
             
-            // Highlight numbers and percentages
             const numberRegex = /(\d+(?:,\d{3})*(?:\.\d+)?%?|\d+\+?)/g;
             const textParts = part.split(numberRegex);
             
