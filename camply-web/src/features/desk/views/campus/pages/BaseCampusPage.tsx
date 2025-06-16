@@ -109,6 +109,8 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   };
 
   const handleRefresh = () => {
+    // Clear content before fetching to hide the tracing beam
+    setContent('');
     fetchContent(true);
   };
 
@@ -133,20 +135,57 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   return (
     <div className="min-h-screen bg-background w-full overflow-x-hidden">
       <div 
-        className="relative h-80 overflow-hidden"
+        className="relative h-72 overflow-hidden"
         style={gradientStyle}
       >
-       
         <div className="absolute inset-0 opacity-30">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent animate-pulse" />
         </div>
         
-        <div className="relative z-10 px-8 py-8 h-full flex flex-col max-w-7xl mx-auto">
-          <div className="flex items-center justify-end mb-8">
+        <div className="relative z-10 px-8 h-full flex flex-col max-w-7xl mx-auto">
+          <div className="flex-1 flex items-center justify-between">
+            <div className="flex items-center space-x-6">
+              <div className={cn(
+                "p-4 backdrop-blur-sm rounded-2xl border group transition-colors shadow-xl",
+                isDark 
+                  ? "bg-white/10 hover:bg-white/20 border-white/20" 
+                  : "bg-primary/10 hover:bg-primary/20 border-primary/20"
+              )}>
+                <IconComponent className={cn(
+                  "h-12 w-12 group-hover:scale-110 transition-transform",
+                  isDark ? "text-white" : "text-primary"
+                )} />
+              </div>
+              <div>
+                <h1 className={cn(
+                  "text-4xl md:text-5xl font-bold mb-3 flex items-center",
+                  isDark ? "text-white" : "text-primary"
+                )}>
+                  {promptConfig?.title}
+                </h1>
+                <p className={cn(
+                  "text-lg md:text-xl flex items-center",
+                  isDark ? "text-white/90" : "text-black"
+                )}>
+                  <span className={cn(
+                    "w-2 h-2 bg-white/80 rounded-full mr-2",
+                    isDark ? "bg-white/80" : "bg-black"
+                  )}></span>
+                  {college?.name || 'Campus Intelligence'}
+                </p>
+              </div>
+            </div>
+            
             <button
               onClick={handleRefresh}
               disabled={loading}
-              className="group flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-white/20"
+              className={cn(
+                "group flex items-center space-x-2 backdrop-blur-sm rounded-full px-4 py-2 transition-all self-start mt-6",
+                "disabled:opacity-50 disabled:cursor-not-allowed border",
+                isDark 
+                  ? "bg-white/10 hover:bg-white/20 text-white border-white/20" 
+                  : "bg-primary/10 hover:bg-primary/20 text-primary border-primary/20"
+              )}
             >
               <RefreshCw className={cn(
                 "h-4 w-4 group-hover:rotate-180 transition-transform",
@@ -155,96 +194,79 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
               <span className="text-sm font-medium">{loading ? "Refreshing..." : "Refresh"}</span>
             </button>
           </div>
-          
-          <div className="flex-1 flex items-center">
-            <div className="flex items-center space-x-6">
-              <div className="p-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 group hover:bg-white/20 transition-colors shadow-xl">
-                <IconComponent className="h-12 w-12 text-white group-hover:scale-110 transition-transform" />
-              </div>
-              <div>
-                <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 flex items-center">
-                  {promptConfig?.title}
-                </h1>
-                <p className="text-white/90 text-lg md:text-xl flex items-center">
-                  <span className="w-2 h-2 bg-white/80 rounded-full mr-2"></span>
-                  {college?.name || 'Campus Intelligence'}
-                </p>
-              </div>
-            </div>
-          </div>
         </div>
       </div>
 
       <div className="w-full pb-24">
-        <TracingBeam className="max-w-6xl mx-auto px-4 md:px-8 py-8">
-          <div ref={contentRef} className="min-h-[500px]">
-            {loading && (
-              <div className="flex items-center justify-center py-24">
-                <div className="text-center">
-                  <div className="relative flex flex-col items-center">
-                    <div className="absolute -inset-x-16 -inset-y-16 opacity-30">
-                      <div className="w-full h-full rounded-full bg-gradient-to-r from-primary to-primary-foreground/20 animate-pulse blur-3xl" />
-                    </div>
-                    <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
-                    <div className="absolute inset-0 animate-ping opacity-50 rounded-full bg-primary/20" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">Generating Analysis</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Our AI is analyzing the latest information about <span className="font-medium text-foreground">{college?.name}</span>. 
-                    This may take a few moments for comprehensive results.
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {error && !loading && (
-              <div className="max-w-4xl mx-auto bg-destructive/10 border border-destructive/20 text-destructive p-8 rounded-xl shadow-sm">
-                <div className="flex items-center space-x-4 mb-6">
-                  <div className="p-3 bg-destructive/20 rounded-full">
-                    <AlertCircle className="h-8 w-8" />
-                  </div>
-                  <h3 className="text-xl font-semibold">Unable to Load Content</h3>
-                </div>
-                <p className="mb-6 text-lg">{error}</p>
-                <button
-                  onClick={() => fetchContent(true)}
-                  className="px-6 py-3 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-all transform hover:scale-105 focus:ring-2 focus:ring-destructive/20 focus:outline-none"
-                >
-                  Try Again
-                </button>
-              </div>
-            )}
-
-            {content && !loading && (
+        {!loading && content ? (
+          <TracingBeam className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+            <div ref={contentRef} className="min-h-[500px]">
               <div className="bg-background border border-border rounded-xl shadow-sm overflow-hidden">
                 <div className="p-8 md:p-12">
                   <CampusMarkdownRenderer content={content} />
                 </div>
               </div>
-            )}
-
-            {!content && !loading && !error && (
-              <div className="text-center py-24">
-                <div className="relative flex flex-col items-center">
-                  <div className="absolute -inset-x-16 -inset-y-16 opacity-20">
-                    <div className="w-full h-full rounded-full bg-gradient-to-r from-primary/40 to-primary-foreground/10 blur-3xl" />
+            </div>
+          </TracingBeam>
+        ) : (
+          <div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+            <div className="min-h-[500px]">
+              {loading && (
+                <div className="flex items-center justify-center py-24">
+                  <div className="text-center">
+                    <div className="relative flex flex-col items-center">
+                      <div className="absolute -inset-x-16 -inset-y-16 opacity-30">
+                        <div className="w-full h-full rounded-full bg-gradient-to-r from-primary to-primary-foreground/20 animate-pulse blur-3xl" />
+                      </div>
+                      <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
+                      <div className="absolute inset-0 animate-ping opacity-50 rounded-full bg-primary/20" />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">Generating Analysis</h3>
                   </div>
-                  <Bot className="h-20 w-20 text-primary mx-auto" />
                 </div>
-                <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">No Content Available</h3>
-                <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                  Click the button below to generate fresh content for this section.
-                </p>
-                <button
-                  onClick={() => fetchContent()}
-                  className="px-8 py-4 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all transform hover:scale-105 focus:ring-2 focus:ring-primary/20 focus:outline-none shadow-md"
-                >
-                  Generate Content
-                </button>
-              </div>
-            )}
+              )}
+
+              {error && !loading && (
+                <div className="max-w-4xl mx-auto bg-destructive/10 border border-destructive/20 text-destructive p-8 rounded-xl shadow-sm">
+                  <div className="flex items-center space-x-4 mb-6">
+                    <div className="p-3 bg-destructive/20 rounded-full">
+                      <AlertCircle className="h-8 w-8" />
+                    </div>
+                    <h3 className="text-xl font-semibold">Unable to Load Content</h3>
+                  </div>
+                  <p className="mb-6 text-lg">{error}</p>
+                  <button
+                    onClick={() => fetchContent(true)}
+                    className="px-6 py-3 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-all transform hover:scale-105 focus:ring-2 focus:ring-destructive/20 focus:outline-none"
+                  >
+                    Try Again
+                  </button>
+                </div>
+              )}
+
+              {!content && !loading && !error && (
+                <div className="text-center py-24">
+                  <div className="relative flex flex-col items-center">
+                    <div className="absolute -inset-x-16 -inset-y-16 opacity-20">
+                      <div className="w-full h-full rounded-full bg-gradient-to-r from-primary/40 to-primary-foreground/10 blur-3xl" />
+                    </div>
+                    <Bot className="h-20 w-20 text-primary mx-auto" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">No Content Available</h3>
+                  <p className="text-muted-foreground mb-8 max-w-md mx-auto">
+                    Click the button below to generate fresh content for this section.
+                  </p>
+                  <button
+                    onClick={() => fetchContent()}
+                    className="px-8 py-4 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all transform hover:scale-105 focus:ring-2 focus:ring-primary/20 focus:outline-none shadow-md"
+                  >
+                    Generate Content
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
-        </TracingBeam>
+        )}
       </div>
     </div>
   );
