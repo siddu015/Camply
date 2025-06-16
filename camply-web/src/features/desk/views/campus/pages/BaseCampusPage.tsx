@@ -131,13 +131,9 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   return (
     <div className="min-h-screen bg-background w-full overflow-x-hidden">
       <div 
-        className="relative h-72 overflow-hidden"
-        style={gradientStyle}
+        className="relative h-72 -mt-6 mb-6 overflow-hidden w-full"
       >
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent animate-pulse" />
-        </div>
-        
+
         <div className="relative z-10 px-8 h-full flex flex-col max-w-7xl mx-auto">
           <div className="flex-1 flex items-center justify-between">
             <div className="flex items-center space-x-6">
@@ -145,22 +141,22 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
                 "p-4 backdrop-blur-sm rounded-2xl border group transition-colors shadow-xl",
                 isDark 
                   ? "bg-white/10 hover:bg-white/20 border-white/20" 
-                  : "bg-primary/10 hover:bg-primary/20 border-primary/20"
+                  : "bg-black/10 hover:bg-primary/20 border-primary/20"
               )}>
                 <IconComponent className={cn(
-                  "h-12 w-12 group-hover:scale-110 transition-transform",
+                  "h-10 w-10 group-hover:scale-110 transition-transform",
                   isDark ? "text-white" : "text-primary"
                 )} />
               </div>
               <div>
                 <h1 className={cn(
-                  "text-4xl md:text-5xl font-bold mb-3 flex items-center",
+                  "text-2xl md:text-3xl font-bold mb-3 flex items-center",
                   isDark ? "text-white" : "text-primary"
                 )}>
                   {promptConfig?.title}
                 </h1>
                 <p className={cn(
-                  "text-lg md:text-xl flex items-center",
+                  "text-base md:text-lg flex items-center",
                   isDark ? "text-white/90" : "text-black"
                 )}>
                   <span className={cn(
@@ -217,7 +213,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
                       <Loader2 className="h-16 w-16 animate-spin text-primary mx-auto" />
                       <div className="absolute inset-0 animate-ping opacity-50 rounded-full bg-primary/20" />
                     </div>
-                    <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">Generating Analysis</h3>
+                    <h3 className="text-lg font-semibold text-foreground mt-8 mb-3">Generating Analysis</h3>
                   </div>
                 </div>
               )}
@@ -228,7 +224,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
                     <div className="p-3 bg-destructive/20 rounded-full">
                       <AlertCircle className="h-8 w-8" />
                     </div>
-                    <h3 className="text-xl font-semibold">Unable to Load Content</h3>
+                    <h3 className="text-lg font-semibold">Unable to Load Content</h3>
                   </div>
                   <p className="mb-6 text-lg">{error}</p>
                   <button
@@ -248,7 +244,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
                     </div>
                     <Bot className="h-20 w-20 text-primary mx-auto" />
                   </div>
-                  <h3 className="text-xl font-semibold text-foreground mt-8 mb-3">No Content Available</h3>
+                  <h3 className="text-lg font-semibold text-foreground mt-8 mb-3">No Content Available</h3>
                   <p className="text-muted-foreground mb-8 max-w-md mx-auto">
                     Click the button below to generate fresh content for this section.
                   </p>

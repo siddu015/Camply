@@ -20,7 +20,7 @@ export function CampusHeader({ college, academicDetails }: CampusHeaderProps) {
 
   return (
     <div 
-      className="relative h-80 -mt-6 mb-6 overflow-hidden border-b border-border"
+      className="relative h-96 -mt-6 mb-6 overflow-hidden"
       style={{ 
         width: 'calc(100% + 50px)', 
         marginLeft: '-25px',
