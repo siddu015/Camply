@@ -10,13 +10,14 @@ import {
   Globe,
   Info
 } from 'lucide-react';
-import ReactMarkdown from 'react-markdown';
 import { useCampusData } from '../hooks/useCampusData';
 import { supabase } from '@/lib/supabase.ts';
 import { CamplyBotService } from '@/features/camply-ai/camply-bot';
 import { CampusCacheService } from '../lib/campus-cache';
 import { getCampusPrompt, generatePromptText } from '../lib/campus-prompts';
+import { CampusMarkdownRenderer } from '../components/CampusMarkdownRenderer';
 import type { ChatRequest, ChatResponse } from '@/features/camply-ai/camply-bot';
+import { cn } from '@/components/sidebar/lib/utils';
 
 interface BaseCampusPageProps {
   featureId: string;
@@ -163,14 +164,19 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={() => navigate('/profile/campus')}
-              className="flex items-center space-x-2 text-white hover:text-white/80 transition-colors"
+              className="group flex items-center space-x-2 text-white hover:text-white/80 transition-colors"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-5 w-5 group-hover:-translate-x-1 transition-transform" />
               <span>Back to Campus Overview</span>
             </button>
             
-            <div className="flex items-center space-x-2">
-              <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-sm text-white">
+            <div className="flex items-center space-x-3">
+              <div className={cn(
+                "flex items-center space-x-2 backdrop-blur-sm rounded-full px-3 py-1.5 text-sm text-white border transition-colors",
+                cacheStatus.isCached 
+                  ? "bg-green-500/20 border-green-500/30" 
+                  : "bg-blue-500/20 border-blue-500/30"
+              )}>
                 {cacheStatus.isCached ? (
                   <>
                     <CheckCircle className="h-4 w-4" />
@@ -187,21 +193,26 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
               <button
                 onClick={handleRefresh}
                 disabled={loading}
-                className="flex items-center space-x-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm rounded-full px-4 py-2 text-white transition-colors disabled:opacity-50"
+                className="group flex items-center space-x-2 bg-white/10 hover:bg-white/20 backdrop-blur-sm rounded-full px-4 py-2 text-white transition-all disabled:opacity-50 disabled:cursor-not-allowed border border-white/20"
               >
-                <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                <span>Refresh</span>
+                <RefreshCw className={cn(
+                  "h-4 w-4 group-hover:rotate-180 transition-transform",
+                  loading && "animate-spin"
+                )} />
+                <span>{loading ? "Refreshing..." : "Refresh"}</span>
               </button>
             </div>
           </div>
           
           <div className="flex-1 flex items-center">
             <div className="flex items-center space-x-4">
-              <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
-                <IconComponent className="h-8 w-8 text-white" />
+              <div className="p-3 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 group hover:bg-white/20 transition-colors">
+                <IconComponent className="h-8 w-8 text-white group-hover:scale-110 transition-transform" />
               </div>
               <div>
-                <h1 className="text-4xl font-bold text-white mb-2">{promptConfig.title}</h1>
+                <h1 className="text-4xl font-bold text-white mb-2 flex items-center space-x-3">
+                  <span>{promptConfig.title}</span>
+                </h1>
                 <p className="text-white/90 text-lg">
                   {college?.name || 'Campus Intelligence'}
                 </p>
@@ -240,8 +251,11 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
         {loading && (
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
-              <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-foreground mb-2">Generating Analysis</h3>
+              <div className="relative">
+                <Loader2 className="h-12 w-12 animate-spin text-primary mx-auto" />
+                <div className="absolute inset-0 animate-ping opacity-50 rounded-full bg-primary/20" />
+              </div>
+              <h3 className="text-lg font-semibold text-foreground mt-6 mb-2">Generating Analysis</h3>
               <p className="text-muted-foreground max-w-md">
                 Our AI is analyzing the latest information about {college?.name}. 
                 This may take a few moments for comprehensive results.
@@ -267,27 +281,26 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
         )}
 
         {content && !loading && (
-          <div className="bg-background border border-border rounded-lg shadow-sm">
-            <div className="p-6">
-                             <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-foreground prose-strong:text-foreground prose-li:text-foreground prose-a:text-primary hover:prose-a:text-primary/80">
-                 <ReactMarkdown>
-                   {content}
-                 </ReactMarkdown>
-               </div>
+          <div className="bg-background border border-border rounded-lg shadow-sm overflow-hidden">
+            <div className="p-8">
+              <CampusMarkdownRenderer content={content} />
             </div>
           </div>
         )}
 
         {!content && !loading && !error && (
           <div className="text-center py-16">
-            <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-foreground mb-2">No Content Available</h3>
-            <p className="text-muted-foreground mb-4">
+            <div className="relative">
+              <Bot className="h-16 w-16 text-muted-foreground mx-auto" />
+              <div className="absolute inset-0 animate-pulse opacity-50 rounded-full bg-primary/20" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground mt-6 mb-2">No Content Available</h3>
+            <p className="text-muted-foreground mb-6">
               Click refresh to generate fresh content for this section.
             </p>
             <button
               onClick={() => fetchContent()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
+              className="px-6 py-3 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all transform hover:scale-105 focus:ring-2 focus:ring-primary/20 focus:outline-none"
             >
               Generate Content
             </button>

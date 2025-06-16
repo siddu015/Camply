@@ -6,8 +6,8 @@ import { useUserData } from './hooks/useUserData';
 import { ThemeProvider } from './lib/theme-provider';
 import Onboarding from './pages/Onboarding';
 import LandingPage from './pages/LandingPage';
-import { Layout, Desk, CampusOverview, AcademicOverview, CurrentSemester, Courses} from './features/desk';
-import { CampusFeaturePage } from './features/desk/views/campus/pages/CampusFeaturePage';
+import { Layout, Desk, AcademicOverview, CurrentSemester, Courses} from './features/desk';
+import { CampusOverview, CampusFeaturePage } from './features/desk/views/campus';
 import { OfflinePage } from './pages/OfflinePage';
 
 function App() {
