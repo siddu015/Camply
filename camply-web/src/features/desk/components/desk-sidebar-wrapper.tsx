@@ -3,17 +3,10 @@ import { BookOpenIcon, CalendarIcon, GraduationCapIcon } from "lucide-react"
 import { signOut } from "../../../lib/supabase"
 
 import { AppSidebar } from "../../../components/sidebar/app-sidebar"
-import { SiteHeader, type RouteConfig } from "../../../components/sidebar/components/site-header"
+import { SiteHeader } from "../../../components/sidebar/components/site-header"
 import type { NavigationGroup } from "../../../components/sidebar/components/nav-menu"
 import type { User } from "../../../components/sidebar/components/nav-user"
-
-const deskRouteConfig: Record<string, RouteConfig> = {
-  "/desk": { title: "Desk" },
-  "/profile/campus": { title: "Campus", parent: "Profile" },
-  "/profile/academics": { title: "Academics", parent: "Profile" },
-  "/semester/overview": { title: "Overview", parent: "Semester" },
-  "/semester/courses": { title: "Courses", parent: "Semester" },
-}
+import deskRouteConfig from "../../../lib/route-config"
 
 interface DeskSidebarWrapperProps extends Partial<ComponentProps<typeof AppSidebar>> {
   user: User
@@ -91,6 +84,7 @@ export function DeskSiteHeader() {
     <SiteHeader 
       routeTitles={deskRouteConfig}
       defaultTitle="Desk"
+      homeRoute="/desk"
     />
   )
 } 

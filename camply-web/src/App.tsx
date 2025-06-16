@@ -9,6 +9,7 @@ import LandingPage from './pages/LandingPage';
 import { Layout, Desk, AcademicOverview, CurrentSemester, Courses} from './features/desk';
 import { CampusOverview, CampusFeaturePage } from './features/desk/views/campus';
 import { OfflinePage } from './pages/OfflinePage';
+import './lib/route-config';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -110,10 +111,10 @@ const AuthenticatedRoutes = ({ session }: { session: Session }) => {
       <Routes>
         <Route path="/desk" element={<Desk />} />
         <Route path="/profile/campus" element={<CampusOverview />} />
+        <Route path="/profile/campus/:feature" element={<CampusFeaturePage />} />
         <Route path="/profile/academics" element={<AcademicOverview />} />
         <Route path="/semester/overview" element={<CurrentSemester />} />
         <Route path="/semester/courses" element={<Courses />} />
-        <Route path="/desk/campus/:feature" element={<CampusFeaturePage />} />
         <Route path="/" element={<Navigate to="/desk" replace />} />
         <Route path="*" element={<Navigate to="/desk" replace />} />
       </Routes>

@@ -1,59 +1,32 @@
 import { useLocation } from "react-router-dom"
-import { ChevronRight } from "lucide-react"
 import { Separator } from "./ui/separator"
 import { SidebarTrigger } from "./ui/sidebar"
 import { ThemeToggle } from "../../../components/theme-toggle"
+import { Breadcrumbs, type RouteConfig } from "./breadcrumb"
 
-export interface RouteConfig {
-  title: string
-  parent?: string
-}
-
-interface SiteHeaderProps {
+export interface SiteHeaderProps {
   routeTitles?: Record<string, RouteConfig>
   defaultTitle?: string
+  homeRoute?: string
 }
 
 export function SiteHeader({ 
   routeTitles = {}, 
-  defaultTitle = "App" 
+  defaultTitle = "App",
+  homeRoute = "/"
 }: SiteHeaderProps) {
-  const location = useLocation()
-  const currentRoute = routeTitles[location.pathname]
-  
-  const getBreadcrumbs = () => {
-    if (!currentRoute) return [defaultTitle]
-    
-    const breadcrumbs = [defaultTitle]
-    if (currentRoute.parent) {
-      breadcrumbs.push(currentRoute.parent)
-    }
-    if (currentRoute.title !== defaultTitle) {
-      breadcrumbs.push(currentRoute.title)
-    }
-    
-    return breadcrumbs
-  }
-
-  const breadcrumbs = getBreadcrumbs()
+  const breadcrumbConfig = {
+    routes: routeTitles,
+    defaultTitle,
+    homeRoute
+  };
 
   return (
     <header className="group-has-data-[collapsible=icon]/sidebar-wrapper:h-16 flex h-14 shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear">
       <div className="flex w-full items-center gap-1 px-4 lg:gap-2 lg:px-6">
         <SidebarTrigger className="-ml-1" />
         <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
-        <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          {breadcrumbs.map((crumb, index) => (
-            <div key={crumb} className="flex items-center gap-2">
-              <span className={index === breadcrumbs.length - 1 ? "text-foreground" : ""}>
-                {crumb}
-              </span>
-              {index < breadcrumbs.length - 1 && (
-                <ChevronRight className="h-3 w-3" />
-              )}
-            </div>
-          ))}
-        </div>
+        <Breadcrumbs config={breadcrumbConfig} />
         <div className="ml-auto">
           <ThemeToggle />
         </div>

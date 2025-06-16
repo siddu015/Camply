@@ -8,8 +8,6 @@ import {
   Calendar,
   Map,
   GraduationCap,
-  Activity,
-  Sparkles
 } from 'lucide-react';
 import { useCampusData } from '../hooks/useCampusData';
 import { supabase } from '@/lib/supabase';
@@ -23,7 +21,7 @@ const CAMPUS_FEATURES = [
     description: 'Stay informed with the latest campus developments, announcements, and key institutional updates.',
     icon: Newspaper,
     gradient: 'bg-gradient-to-br from-blue-500 to-indigo-600',
-    route: '/desk/campus/news'
+    route: '/profile/campus/news'
   },
   {
     id: 'placements',
@@ -31,7 +29,7 @@ const CAMPUS_FEATURES = [
     description: 'Explore comprehensive placement statistics, industry trends, and career opportunities.',
     icon: TrendingUp,
     gradient: 'bg-gradient-to-br from-emerald-500 to-green-600',
-    route: '/desk/campus/placements'
+    route: '/profile/campus/placements'
   },
   {
     id: 'achievements',
@@ -39,7 +37,7 @@ const CAMPUS_FEATURES = [
     description: 'Discover notable achievements, awards, and recognition across academic and research domains.',
     icon: Trophy,
     gradient: 'bg-gradient-to-br from-amber-500 to-yellow-600',
-    route: '/desk/campus/achievements'
+    route: '/profile/campus/achievements'
   },
   {
     id: 'campus-stats',
@@ -47,7 +45,7 @@ const CAMPUS_FEATURES = [
     description: 'Access key metrics, demographics, and performance indicators for data-driven insights.',
     icon: BarChart3,
     gradient: 'bg-gradient-to-br from-violet-500 to-purple-600',
-    route: '/desk/campus/statistics'
+    route: '/profile/campus/statistics'
   },
   {
     id: 'events',
@@ -55,7 +53,7 @@ const CAMPUS_FEATURES = [
     description: 'Track upcoming events, cultural activities, and academic gatherings in real-time.',
     icon: Calendar,
     gradient: 'bg-gradient-to-br from-rose-500 to-pink-600',
-    route: '/desk/campus/events'
+    route: '/profile/campus/events'
   },
   {
     id: 'campus-tour',
@@ -63,7 +61,7 @@ const CAMPUS_FEATURES = [
     description: 'Explore campus facilities, infrastructure, and resources through an interactive guide.',
     icon: Map,
     gradient: 'bg-gradient-to-br from-teal-500 to-cyan-600',
-    route: '/desk/campus/tour'
+    route: '/profile/campus/tour'
   }
 ];
 
