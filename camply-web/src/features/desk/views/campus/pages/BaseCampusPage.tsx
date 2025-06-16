@@ -13,10 +13,10 @@ import {
 import ReactMarkdown from 'react-markdown';
 import { useCampusData } from '../hooks/useCampusData';
 import { supabase } from '@/lib/supabase.ts';
-import { CamplyBotService } from '@/lib/camply-bot';
+import { CamplyBotService } from '@/features/camply-ai/camply-bot';
 import { CampusCacheService } from '../lib/campus-cache';
 import { getCampusPrompt, generatePromptText } from '../lib/campus-prompts';
-import type { ChatRequest, ChatResponse } from '@/lib/camply-bot';
+import type { ChatRequest, ChatResponse } from '@/features/camply-ai/camply-bot';
 
 interface BaseCampusPageProps {
   featureId: string;
