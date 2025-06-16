@@ -7,3 +7,5 @@ export function Courses() {
     </div>
   )
 }
+
+export default Courses

@@ -3,23 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
   RefreshCw, 
-  Clock, 
-  CheckCircle, 
+  CheckCircle,
   AlertCircle,
   Bot,
   Loader2,
-  Calendar,
   Globe,
-  ExternalLink,
   Info
 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { useCampusData } from '../../../../hooks/useCampusData';
-import { supabase } from '../../../../lib/supabase';
-import { CamplyBotService } from '../../../../lib/camply-bot';
-import { CampusCacheService } from '../../../../lib/campus-cache';
-import { getCampusPrompt, generatePromptText } from '../../../../lib/campus-prompts';
-import type { ChatRequest, ChatResponse } from '../../../../lib/camply-bot';
+import { useCampusData } from '../hooks/useCampusData';
+import { supabase } from '@/lib/supabase.ts';
+import { CamplyBotService } from '@/lib/camply-bot';
+import { CampusCacheService } from '../lib/campus-cache';
+import { getCampusPrompt, generatePromptText } from '../lib/campus-prompts';
+import type { ChatRequest, ChatResponse } from '@/lib/camply-bot';
 
 interface BaseCampusPageProps {
   featureId: string;

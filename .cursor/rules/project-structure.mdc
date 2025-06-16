@@ -26,22 +26,212 @@ camply-web/
 │   ├── Departments.json     # Static department/branch data
 │   └── Colleges.json        # Legacy college data (deprecated)
 ├── src/
-│   ├── components/          # Reusable UI components
-│   │   ├── AcademicDetailsForm.tsx
-│   │   └── [ComponentName].tsx
-│   ├── pages/              # Route-level components
+│   ├── components/          # Global reusable UI components
+│   │   ├── ui/             # Shadcn/ui components
+│   │   ├── sidebar/        # Global sidebar components (moved from features)
+│   │   │   ├── app-sidebar.tsx
+│   │   │   ├── components/
+│   │   │   │   ├── nav-menu.tsx        # Generic navigation menu
+│   │   │   │   ├── nav-user.tsx        # Generic user navigation
+│   │   │   │   ├── site-header.tsx     # Generic site header
+│   │   │   │   └── ui/                 # Sidebar UI components
+│   │   │   ├── hooks/
+│   │   │   └── lib/
+│   │   ├── forms/          # Global form components
+│   │   │   └── AcademicDetailsForm.tsx
+│   │   ├── layout/         # Layout components
+│   │   └── shared/         # Other shared components
+│   │
+│   ├── pages/              # Route-level entry points
 │   │   ├── Onboarding.tsx
 │   │   └── [PageName].tsx
-│   ├── hooks/              # Custom React hooks
+│   │
+│   ├── hooks/              # Global custom React hooks
 │   │   ├── useUserData.ts
 │   │   └── use[HookName].ts
-│   ├── lib/                # Utilities and configurations
+│   │
+│   ├── lib/                # Global utilities and configurations
 │   │   ├── supabase.ts     # Supabase client setup
 │   │   ├── database.ts     # Database operations
 │   │   └── [utility].ts
-│   ├── types/              # TypeScript type definitions
+│   │
+│   ├── types/              # Global TypeScript type definitions
 │   │   ├── database.ts     # Database-related types
 │   │   └── [domain].ts
+│   │
+│   ├── features/           # Feature-specific code
+│   │   ├── academic-form/  # Academic form feature
+│   │   │   ├── components/
+│   │   │   ├── hooks/
+│   │   │   └── types/
+│   │   │
+│   │   └── desk/           # Desk feature (renamed from desk-sidebar)
+│   │       ├── components/ # Shared desk components
+│   │       │   ├── Layout.tsx
+│   │       │   ├── desk-sidebar-wrapper.tsx  # Desk-specific sidebar wrapper
+│   │       │   └── shared/
+│   │       ├── hooks/      # Shared desk hooks
+│   │       │   ├── useCacheService.ts
+│   │       │   └── useNavigation.ts
+│   │       ├── lib/        # Desk utilities
+│   │       │   ├── cacheService.ts
+│   │       │   └── constants.ts
+│   │       ├── types/      # Desk-specific types
+│   │       │   └── index.ts
+│   │       │
+│   │       └── views/      # Each view gets dedicated ecosystem
+│   │           │
+│   │           ├── campus/ # Campus Intelligence System
+│   │           │   ├── index.tsx                    # Main CampusOverview
+│   │           │   ├── components/                  # Campus-specific components
+│   │           │   │   ├── CampusHeader.tsx
+│   │           │   │   ├── FeatureButton.tsx
+│   │           │   │   └── CampusStats.tsx
+│   │           │   ├── hooks/                       # Campus-specific hooks
+│   │           │   │   ├── useCampusData.ts
+│   │           │   │   ├── useCampusCache.ts
+│   │           │   │   └── useContextualHelp.ts
+│   │           │   ├── lib/                         # Campus utilities
+│   │           │   │   ├── campusService.ts
+│   │           │   │   ├── markdownRenderer.ts
+│   │           │   │   └── socialMediaScraper.ts
+│   │           │   ├── types/                       # Campus-specific types
+│   │           │   │   ├── campus.ts
+│   │           │   │   └── campusContent.ts
+│   │           │   │
+│   │           │   └── pages/                       # Campus subpages (6+ pages)
+│   │           │       ├── news/
+│   │           │       │   ├── index.tsx            # Campus news page
+│   │           │       │   ├── components/
+│   │           │       │   │   ├── NewsCard.tsx
+│   │           │       │   │   ├── NewsFilter.tsx
+│   │           │       │   │   └── AnnouncementsList.tsx
+│   │           │       │   ├── hooks/
+│   │           │       │   │   ├── useNewsData.ts
+│   │           │       │   │   └── useNewsCache.ts
+│   │           │       │   └── types/
+│   │           │       │       └── news.ts
+│   │           │       │
+│   │           │       ├── placements/
+│   │           │       │   ├── index.tsx            # Placement analytics
+│   │           │       │   ├── components/
+│   │           │       │   │   ├── PlacementStats.tsx
+│   │           │       │   │   ├── CompanyList.tsx
+│   │           │       │   │   └── TrendChart.tsx
+│   │           │       │   ├── hooks/
+│   │           │       │   │   └── usePlacementData.ts
+│   │           │       │   └── types/
+│   │           │       │       └── placements.ts
+│   │           │       │
+│   │           │       ├── achievements/            # Recent achievements
+│   │           │       ├── statistics/              # Campus statistics
+│   │           │       ├── events/                  # Campus events & fests
+│   │           │       └── tour/                    # Virtual campus tour
+│   │           │
+│   │           ├── academic/ # Academic Intelligence System
+│   │           │   ├── index.tsx                    # Main AcademicOverview
+│   │           │   ├── components/
+│   │           │   │   ├── AcademicTimeline.tsx
+│   │           │   │   ├── PerformanceMetrics.tsx
+│   │           │   │   ├── HandbookQuery.tsx
+│   │           │   │   └── InsightAnalytics.tsx
+│   │           │   ├── hooks/
+│   │           │   │   ├── useAcademicData.ts
+│   │           │   │   ├── useHandbookSystem.ts
+│   │           │   │   ├── usePerformanceAnalysis.ts
+│   │           │   │   └── useCareerAnalysis.ts
+│   │           │   ├── lib/
+│   │           │   │   ├── handbookParser.ts
+│   │           │   │   ├── performanceCalculator.ts
+│   │           │   │   └── insightGenerator.ts
+│   │           │   ├── types/
+│   │           │   │   ├── academic.ts
+│   │           │   │   ├── handbook.ts
+│   │           │   │   └── performance.ts
+│   │           │   │
+│   │           │   └── pages/                       # Academic subpages
+│   │           │       ├── timeline/                # Academic timeline
+│   │           │       ├── performance/             # Performance metrics
+│   │           │       ├── career-analysis/         # Career path analysis
+│   │           │       ├── handbook-query/          # Rulebook questions
+│   │           │       ├── semester-insights/       # Semester analysis
+│   │           │       └── break-recommendations/   # Semester break activities
+│   │           │
+│   │           ├── courses/ # Advanced Course Management
+│   │           │   ├── index.tsx                    # Main Courses view
+│   │           │   ├── components/
+│   │           │   │   ├── CourseCard.tsx
+│   │           │   │   ├── UnitProgress.tsx
+│   │           │   │   ├── TopicManager.tsx
+│   │           │   │   ├── StudySession.tsx
+│   │           │   │   ├── NoteEditor.tsx
+│   │           │   │   └── AssignmentTracker.tsx
+│   │           │   ├── hooks/
+│   │           │   │   ├── useCourseData.ts
+│   │           │   │   ├── useUnitProgress.ts
+│   │           │   │   ├── useStudySession.ts
+│   │           │   │   ├── useNoteManager.ts
+│   │           │   │   └── useAssignmentTracker.ts
+│   │           │   ├── lib/
+│   │           │   │   ├── studyPlanGenerator.ts
+│   │           │   │   ├── progressCalculator.ts
+│   │           │   │   ├── noteSerializer.ts
+│   │           │   │   └── unitFlowchartGenerator.ts
+│   │           │   ├── types/
+│   │           │   │   ├── course.ts
+│   │           │   │   ├── unit.ts
+│   │           │   │   ├── study.ts
+│   │           │   │   └── assignment.ts
+│   │           │   │
+│   │           │   └── pages/                       # Course subpages
+│   │           │       ├── course-detail/           # Individual course pages
+│   │           │       │   ├── [courseId]/
+│   │           │       │   │   ├── index.tsx        # Course overview
+│   │           │       │   │   ├── units/           # Unit-by-unit study
+│   │           │       │   │   │   ├── [unitId]/
+│   │           │       │   │   │   │   ├── index.tsx
+│   │           │       │   │   │   │   ├── topics/
+│   │           │       │   │   │   │   └── progress/
+│   │           │       │   │   ├── study-ia1/       # IA-1 preparation
+│   │           │       │   │   ├── study-ia2/       # IA-2 preparation
+│   │           │       │   │   ├── study-sem/       # Semester end prep
+│   │           │       │   │   ├── assignments/     # Assignment management
+│   │           │       │   │   └── notes/           # Saved notes
+│   │           │       │   └── components/
+│   │           │       ├── current-semester/        # Current semester courses
+│   │           │       ├── course-flowchart/        # Course interconnections
+│   │           │       └── study-schedule/          # AI-optimized schedule
+│   │           │
+│   │           └── current-semester/ # Semester Management Hub
+│   │               ├── index.tsx                    # Main CurrentSemester view
+│   │               ├── components/
+│   │               │   ├── SemesterTimeline.tsx
+│   │               │   ├── CourseGrid.tsx
+│   │               │   ├── ScoreTracker.tsx
+│   │               │   ├── PerformanceAnalyzer.tsx
+│   │               │   └── ImprovementSuggestions.tsx
+│   │               ├── hooks/
+│   │               │   ├── useSemesterData.ts
+│   │               │   ├── useScoreAnalysis.ts
+│   │               │   ├── usePerformanceTracking.ts
+│   │               │   └── useImprovementPlan.ts
+│   │               ├── lib/
+│   │               │   ├── scoreAnalyzer.ts
+│   │               │   ├── performancePredictor.ts
+│   │               │   └── improvementEngine.ts
+│   │               ├── types/
+│   │               │   ├── semester.ts
+│   │               │   ├── scores.ts
+│   │               │   └── analysis.ts
+│   │               │
+│   │               └── pages/                       # Semester subpages
+│   │                   ├── schedule/                # Semester schedule
+│   │                   ├── exams/                   # Exam management
+│   │                   ├── attendance/              # Attendance tracking
+│   │                   ├── performance/             # Performance analysis
+│   │                   ├── ia-analysis/             # IA score analysis
+│   │                   └── optimization/            # Semester-end optimization
+│   │
 │   └── assets/             # Static assets
 ├── package.json
 ├── tsconfig.json
@@ -85,11 +275,25 @@ supabase/
 
 ## Component Organization Rules
 
+### Component Hierarchy
+
+1. **Global Components** (`src/components/`): Used across multiple features
+   - UI components, shared forms, layout components
+   - Sidebar components (moved from features for reusability)
+
+2. **Feature Components** (`src/features/[feature]/components/`): Feature-specific shared components
+   - Used by multiple views within the same feature
+
+3. **View Components** (`src/features/[feature]/views/[view]/components/`): View-specific components
+   - Only used within that specific view
+
+4. **Page Components** (`src/features/[feature]/views/[view]/pages/[page]/components/`): Page-specific components
+   - Used only within that specific page
+
 ### Component File Structure
 
 ```typescript
 // 1. Imports (in order)
-import React from "react";
 import { useState, useEffect } from "react";
 import type { ComponentProps } from "../types/database";
 import { supabase } from "../lib/supabase";
@@ -115,11 +319,84 @@ const SubComponent = () => {};
 export default ComponentName;
 ```
 
+### View Organization Rules
+
+Each view in `features/desk/views/` follows this pattern:
+
+```
+view-name/
+├── index.tsx           # Main view component
+├── components/         # View-specific components
+├── hooks/             # View-specific hooks
+├── lib/               # View-specific utilities
+├── types/             # View-specific types
+└── pages/             # Subpages for the view
+    ├── page-name/
+    │   ├── index.tsx   # Main page component
+    │   ├── components/ # Page-specific components
+    │   ├── hooks/      # Page-specific hooks
+    │   └── types/      # Page-specific types
+    └── other-page/
+```
+
 ### Page Component Structure
 
 - Pages should be thin wrappers around components
 - Handle routing logic and data fetching at page level
 - Pass data down to presentational components
+- Subpages can have their own components, hooks, and types for complex functionality
+
+### Desk Feature Architecture
+
+The desk feature follows a multi-level hierarchy designed for scalability:
+
+#### 1. Sidebar Architecture
+- **Global Sidebar** (`components/sidebar/`): Generic, reusable sidebar components
+- **Desk Wrapper** (`features/desk/components/desk-sidebar-wrapper.tsx`): Feature-specific wrapper that provides data to generic sidebar
+
+#### 2. View Structure
+Each view supports complex functionality with dedicated subpages:
+
+- **Campus View**: AI-powered campus intelligence with 6+ subpages (news, placements, achievements, statistics, events, tour)
+- **Academic View**: Personal academic management with timeline, performance, handbook queries, and career analysis
+- **Courses View**: Advanced course management with unit-based learning, study preparation, and assignment tracking
+- **Current Semester View**: Semester management with schedule, exams, attendance, and performance optimization
+
+#### 3. Import Patterns
+
+```typescript
+// Global components (from any feature)
+import { AppSidebar } from '@/components/sidebar/app-sidebar'
+import { NavMenu } from '@/components/sidebar/components/nav-menu'
+
+// Feature-specific (within desk feature)
+import { DeskSidebarWrapper } from '../components/desk-sidebar-wrapper'
+import { Layout } from '../components/Layout'
+
+// View-specific (within same view)
+import { CampusHeader } from './components/CampusHeader'
+import { useCampusData } from './hooks/useCampusData'
+
+// Page-specific (within same page)
+import { NewsCard } from './components/NewsCard'
+import { useNewsData } from './hooks/useNewsData'
+```
+
+#### 4. Export Patterns
+
+```typescript
+// Feature index exports
+export { Layout } from "./components/Layout"
+export { DeskSidebarWrapper, DeskSiteHeader } from "./components/desk-sidebar-wrapper"
+
+// View index exports
+export { CampusOverview } from "./views/campus"
+export { AcademicOverview } from "./views/academic"
+
+// Page index exports (for subpages)
+export { CampusNews } from "./pages/news"
+export { PlacementAnalytics } from "./pages/placements"
+```
 
 ## Database Schema Organization
 

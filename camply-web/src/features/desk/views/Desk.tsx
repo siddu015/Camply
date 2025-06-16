@@ -6,4 +6,6 @@ export function Desk() {
       <ComingSoon title="Desk" description="Desk features are under development" />
     </div>
   )
-} 
+}
+
+export default Desk

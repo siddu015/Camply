@@ -6,14 +6,9 @@ import { useUserData } from './hooks/useUserData';
 import { ThemeProvider } from './lib/theme-provider';
 import Onboarding from './pages/Onboarding';
 import LandingPage from './pages/LandingPage';
-import { Layout } from './features/desk-sidebar/components/Layout';
-import { Desk } from './features/desk-sidebar/views/Desk';
-import { CampusOverview } from './features/desk-sidebar/views/CampusOverview';
-import { AcademicOverview } from './features/desk-sidebar/views/AcademicOverview';
-import { CurrentSemester } from './features/desk-sidebar/views/CurrentSemester';
-import { Courses } from './features/desk-sidebar/views/Courses';
-import { CampusFeaturePage } from './features/desk-sidebar/views/campus-pages/CampusFeaturePage';
-import { OfflinePage } from './components/OfflinePage';
+import { Layout, Desk, CampusOverview, AcademicOverview, CurrentSemester, Courses} from './features/desk';
+import { CampusFeaturePage } from './features/desk/views/campus/pages/CampusFeaturePage';
+import { OfflinePage } from './pages/OfflinePage';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);

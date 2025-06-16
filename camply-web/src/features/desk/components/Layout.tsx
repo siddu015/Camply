@@ -48,13 +48,13 @@ const generateDeskNavigation = () => {
   return { campusItems, semesterItems }
 }
 
-export function Layout({ children, user, appConfig }: LayoutProps) {
+export function Layout({ children, user}: LayoutProps) {
   const { campusItems, semesterItems } = generateDeskNavigation()
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   
   // Default to desk configuration, but allow override for homeRoute
-  const config = appConfig || { homeRoute: "/desk" }
+  // const config = appConfig || { homeRoute: "/desk" }
 
   useEffect(() => {
     const handleScroll = () => {

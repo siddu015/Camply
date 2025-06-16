@@ -7,3 +7,5 @@ export function CurrentSemester() {
     </div>
   )
 }
+
+export default CurrentSemester

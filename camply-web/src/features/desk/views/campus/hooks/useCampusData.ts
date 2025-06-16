@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { User, UserAcademicDetails, College } from '../types/database';
-import { getUserCampusData } from '../lib/database';
+import type { User, UserAcademicDetails, College } from '../../../../../types/database';
+import { getUserCampusData } from '../../../../../lib/database';
 
 interface CampusData {
   user: User | null;

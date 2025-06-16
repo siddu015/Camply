@@ -15,9 +15,9 @@ import {
   ArrowRight,
   Sparkles
 } from 'lucide-react';
-import { useCampusData } from '../../../hooks/useCampusData';
-import { supabase } from '../../../lib/supabase';
-import { useTheme } from '../../../lib/theme-provider';
+import { useCampusData } from './hooks/useCampusData';
+import { supabase } from '../../../../lib/supabase';
+import { useTheme } from '../../../../lib/theme-provider';
 
 export function CampusOverview() {
   const [session, setSession] = useState<any>(null);
@@ -310,4 +310,7 @@ export function CampusOverview() {
       </div>
     </div>
   );
-} 
+}
+
+// Export the component as default
+export default CampusOverview; 

@@ -5,7 +5,7 @@ import { useTheme } from '../lib/theme-provider';
 import { cn } from './sidebar/lib/utils';
 import { CamplyBotService, type ChatMessage, type ChatRequest } from '../lib/camply-bot';
 import { supabase } from '../lib/supabase';
-import { useCampusData } from '../hooks/useCampusData';
+import { useCampusData } from '../features/desk/views/campus/hooks/useCampusData';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { PlaceholdersAndVanishInput } from './ui/placeholders-and-vanish-input';
 
