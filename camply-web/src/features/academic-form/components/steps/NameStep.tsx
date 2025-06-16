@@ -7,7 +7,6 @@ export const NameStep = ({ formData, validationErrors, onFieldChange, autoFocus,
     onFieldChange(e.target.name, e.target.value);
   };
 
-  // Directional animation variants
   const getAnimationVariants = () => {
     const isGoingNext = direction === 'next';
     const isGoingPrev = direction === 'prev';

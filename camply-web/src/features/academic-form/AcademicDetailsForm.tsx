@@ -29,7 +29,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
   const [selectedDepartmentCategory, setSelectedDepartmentCategory] = useState<string>('');
   const [availableBranches, setAvailableBranches] = useState<string[]>([]);
   
-  // Add validation states
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [isValidating, setIsValidating] = useState(false);
   const validationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -49,7 +48,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
 
   const { validateField, canProceedFromStep } = useFormValidation(formData);
 
-  // Load colleges and departments data
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -74,7 +72,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     loadData();
   }, []);
 
-  // Update available branches when department category changes
   useEffect(() => {
     if (selectedDepartmentCategory && departments[selectedDepartmentCategory]) {
       setAvailableBranches(departments[selectedDepartmentCategory]);
@@ -120,7 +117,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
   const handleFinalSubmit = async () => {
     setIsValidating(true);
     
-    // Check if phone number already exists (only if phone number is provided)
     const phoneDigits = formData.phone_number ? formData.phone_number.replace(/^\+91\s?/, '') : '';
     
     if (phoneDigits && phoneDigits.length === 10) {
@@ -128,7 +124,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
         const phoneExists = await checkPhoneNumberExists(phoneDigits);
         if (phoneExists) {
           setValidationErrors({ phone_number: 'This phone number is already registered. Please use a different number.' });
-          setCurrentStep(1); // Go back to phone step
+          setCurrentStep(1);
           setIsValidating(false);
           return;
         }
@@ -152,7 +148,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
   };
 
   const handleFieldChange = (name: string, value: any) => {
-    // Clear field-specific error when user starts typing
     if (validationErrors[name]) {
       setValidationErrors(prev => {
         const newErrors = { ...prev };
@@ -161,22 +156,18 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
       });
     }
 
-    // Update form data
     setFormData(prev => ({
       ...prev,
       [name]: value
     }));
 
-    // Clear previous validation timeout
     if (validationTimeoutRef.current) {
       clearTimeout(validationTimeoutRef.current);
     }
     
-    // Real-time validation for the changed field (debounced)
     validationTimeoutRef.current = setTimeout(() => {
       const fieldErrors = validateField(name, value);
       
-      // Only update validation errors if there are actual changes
       setValidationErrors(prev => {
         const hasChanges = Object.keys(fieldErrors).length > 0 || prev[name];
         if (!hasChanges) return prev;
@@ -186,7 +177,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
           ...fieldErrors
         };
       });
-    }, 300); // Reduced timeout for better responsiveness
+    }, 300);
   };
 
   const handleDepartmentCategoryChange = (category: string) => {
@@ -234,7 +225,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
 
         
         <div className="relative z-10">
-          {/* Header */}
           <div className="text-left mb-6 sm:mb-8">
             <h2 className="text-responsive-2xl font-black text-white drop-shadow-lg">
               Welcome to Camply
@@ -244,7 +234,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             </p>
           </div>
 
-          {/* Progress Indicator */}
           <ProgressIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
 
           {error && (
@@ -253,7 +242,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             </div>
           )}
 
-          {/* Step Content - Responsive height container */}
           <div className="mb-6 sm:mb-8 min-h-[120px] sm:min-h-[140px] md:min-h-[160px] relative">
             <AnimatePresence mode="wait" onExitComplete={() => setNavigationDirection(null)}>
               <div key={currentStep}>
@@ -262,7 +250,6 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
             </AnimatePresence>
           </div>
 
-          {/* Navigation */}
           <NavigationControls
             currentStep={currentStep}
             totalSteps={TOTAL_STEPS}

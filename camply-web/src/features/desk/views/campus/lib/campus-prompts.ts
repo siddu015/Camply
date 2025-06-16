@@ -279,16 +279,10 @@ FORMAT:
   }
 };
 
-/**
- * Get prompt configuration for a specific campus feature
- */
 export function getCampusPrompt(featureId: string): CampusPromptConfig | null {
   return CAMPUS_PROMPTS[featureId] || null;
 }
 
-/**
- * Generate final prompt with college name replacement
- */
 export function generatePromptText(featureId: string, collegeName: string): string {
   const config = getCampusPrompt(featureId);
   if (!config) {
@@ -298,9 +292,6 @@ export function generatePromptText(featureId: string, collegeName: string): stri
   return config.prompt.replace(/\{college_name\}/g, collegeName || 'the college');
 }
 
-/**
- * Get all available campus prompts
- */
 export function getAllCampusPrompts(): CampusPromptConfig[] {
   return Object.values(CAMPUS_PROMPTS);
 } 

@@ -17,12 +17,10 @@ const Onboarding = ({ session, onOnboardingComplete }: OnboardingProps) => {
     try {
       await saveUserData(formData);
       
-      // Notify parent component to refresh its user data
       if (onOnboardingComplete) {
         await onOnboardingComplete();
       }
       
-      // Navigate will happen automatically due to user status change
     } catch (err) {
       console.error('Failed to save user data:', err);
     }
@@ -39,13 +37,11 @@ const Onboarding = ({ session, onOnboardingComplete }: OnboardingProps) => {
     );
   }
 
-  // If user exists and has academic details, redirect to home
   if (userStatus.exists && userStatus.hasAcademicDetails) {
     navigate('/desk');
     return null;
   }
 
-  // Only show error if it's not a network error or if user definitely needs onboarding
   const shouldShowError = error && (!error.includes('Failed to check user status') || (!userStatus.exists && !userStatus.hasAcademicDetails));
 
   return (

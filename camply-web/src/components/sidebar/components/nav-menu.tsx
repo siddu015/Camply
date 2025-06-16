@@ -42,7 +42,6 @@ export function NavMenu({ groups }: NavMenuProps) {
               <SidebarMenu>
                 {group.items.map((item) => {
                   const IconComponent = item.icon
-                  // Match original icon sizing: Profile section uses h-4 w-4, Semester section uses h-3 w-3
                   const iconClassName = group.label === "Profile" ? "h-4 w-4" : "h-3 w-3"
                   return (
                     <SidebarMenuItem key={item.name}>

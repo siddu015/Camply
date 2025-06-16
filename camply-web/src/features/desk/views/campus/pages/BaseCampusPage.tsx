@@ -65,16 +65,13 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   const checkCacheAndLoad = () => {
     if (!session?.user?.id || !college?.college_id) return;
 
-    // Check cache status
     const cacheInfo = cacheService.getCacheInfo(featureId, session.user.id, college.college_id);
     setCacheStatus(cacheInfo);
 
-    // Load cached content if available
     const cachedContent = cacheService.getCachedContent(featureId, session.user.id, college.college_id);
     if (cachedContent) {
       setContent(cachedContent.content);
     } else {
-      // No cache, fetch new content
       fetchContent();
     }
   };
@@ -89,15 +86,12 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
     setError(null);
 
     try {
-      // Clear cache if force refresh
       if (forceRefresh) {
         cacheService.clearCache(featureId, session.user.id, college.college_id);
       }
 
-      // Generate prompt with college name
       const promptText = generatePromptText(featureId, college.name);
 
-      // Prepare the chat request
       const chatRequest: ChatRequest = {
         message: promptText,
         user_id: session.user.id,
@@ -112,13 +106,11 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
         }
       };
 
-      // Send request to CamplyBot
       const response: ChatResponse = await camplyBot.sendMessage(chatRequest);
 
       if (response.success && response.response) {
         setContent(response.response);
         
-        // Cache the successful response
         cacheService.setCachedContent(
           featureId, 
           session.user.id, 
@@ -126,7 +118,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
           college.college_id
         );
         
-        // Update cache status
         const newCacheInfo = cacheService.getCacheInfo(featureId, session.user.id, college.college_id);
         setCacheStatus(newCacheInfo);
       } else {
@@ -158,20 +149,17 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Enhanced Header */}
       <div 
         className="relative h-64 overflow-hidden"
         style={{
           background: `linear-gradient(135deg, ${gradient.replace('from-', '').replace('to-', ', ')})`,
         }}
       >
-        {/* Background pattern */}
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,white_2px,transparent_2px)] bg-[length:60px_60px]" />
         </div>
         
         <div className="relative z-10 p-6 h-full flex flex-col">
-          {/* Navigation */}
           <div className="flex items-center justify-between mb-6">
             <button
               onClick={() => navigate('/profile/campus')}
@@ -182,7 +170,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
             </button>
             
             <div className="flex items-center space-x-2">
-              {/* Cache status indicator */}
               <div className="flex items-center space-x-2 bg-white/20 backdrop-blur-sm rounded-full px-3 py-1.5 text-sm text-white">
                 {cacheStatus.isCached ? (
                   <>
@@ -197,7 +184,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
                 )}
               </div>
               
-              {/* Refresh button */}
               <button
                 onClick={handleRefresh}
                 disabled={loading}
@@ -209,7 +195,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
             </div>
           </div>
           
-          {/* Title section */}
           <div className="flex-1 flex items-center">
             <div className="flex items-center space-x-4">
               <div className="p-3 bg-white/20 backdrop-blur-sm rounded-2xl">
@@ -226,9 +211,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
         </div>
       </div>
 
-      {/* Content Area */}
       <div className="max-w-5xl mx-auto px-6 py-8">
-        {/* Cache info banner */}
         {cacheStatus.isCached && cacheStatus.lastFetch && (
           <div className="mb-6 p-4 bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg">
             <div className="flex items-center justify-between">
@@ -254,7 +237,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
           </div>
         )}
 
-        {/* Loading State */}
         {loading && (
           <div className="flex items-center justify-center py-16">
             <div className="text-center">
@@ -268,7 +250,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
           </div>
         )}
 
-        {/* Error State */}
         {error && !loading && (
           <div className="bg-destructive/10 border border-destructive/20 text-destructive p-6 rounded-lg">
             <div className="flex items-center space-x-3 mb-4">
@@ -285,7 +266,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
           </div>
         )}
 
-        {/* Content Display */}
         {content && !loading && (
           <div className="bg-background border border-border rounded-lg shadow-sm">
             <div className="p-6">
@@ -298,7 +278,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
           </div>
         )}
 
-        {/* Empty State */}
         {!content && !loading && !error && (
           <div className="text-center py-16">
             <Bot className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

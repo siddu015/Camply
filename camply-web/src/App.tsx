@@ -45,13 +45,11 @@ function App() {
       <Router>
         <Routes>
           {!session ? (
-            // Unauthenticated routes
             <>
               <Route path="/" element={<LandingPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </>
           ) : (
-            // Authenticated routes with shared user data
             <Route path="/*" element={<AuthenticatedRoutes session={session} />} />
           )}
         </Routes>
@@ -78,8 +76,6 @@ const AuthenticatedRoutes = ({ session }: { session: Session }) => {
     );
   }
 
-  // If there's an error (like network failure) but we're not on onboarding route,
-  // show the offline page instead of redirecting to onboarding
   if (error && !window.location.pathname.includes('/onboarding')) {
     return <OfflinePage onRetry={refreshUser} error={error} />;
   }

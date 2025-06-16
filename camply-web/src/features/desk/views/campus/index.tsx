@@ -26,7 +26,6 @@ export function CampusOverview() {
   const { user, academicDetails, college, loading, error } = useCampusData(session?.user?.id);
   const { theme } = useTheme();
   
-  // Determine if dark mode (considering system preference)
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   useEffect(() => {
@@ -41,7 +40,6 @@ export function CampusOverview() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Enhanced feature buttons configuration
   const featureButtons = [
     {
       id: 'campus-news',
@@ -148,7 +146,6 @@ export function CampusOverview() {
 
   return (
     <div className="animate-in fade-in-50 duration-300 slide-in-from-bottom-2 w-full">
-      {/* Enhanced Campus Header */}
       <div 
         className="relative h-80 -mt-6 mb-6 overflow-hidden border-b border-border"
         style={{ 
@@ -156,7 +153,6 @@ export function CampusOverview() {
           marginLeft: '-25px',
         }}
       >
-        {/* Dynamic theme background */}
         <div 
           className="absolute inset-0"
           style={{
@@ -165,10 +161,8 @@ export function CampusOverview() {
               : 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%)',
           }}
         />
-        {/* Background pattern overlay */}
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,theme(colors.foreground/0.1)_1px,transparent_0)] bg-[length:20px_20px] opacity-30" />
         
-        {/* Content container */}
         <div className="relative z-10 flex flex-col justify-center h-full p-8">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
             {college?.name || `${academicDetails.department_name} Campus`}
@@ -209,7 +203,6 @@ export function CampusOverview() {
           </div>
         </div>
         
-        {/* Campus image */}
         {college?.college_icon && (
           <div className="absolute bottom-6 right-6 z-10">
             <div className="w-32 h-20 md:w-40 md:h-24 rounded-xl overflow-hidden shadow-lg border border-border/50 bg-white">
@@ -224,9 +217,7 @@ export function CampusOverview() {
       </div>
 
       <div className="space-y-10">
-        {/* Enhanced Campus Intelligence Section */}
         <div className="bg-gradient-to-br from-background via-background to-muted/30 border border-border rounded-2xl p-8 shadow-sm">
-          {/* Section Header */}
           <div className="flex items-start justify-between mb-8">
             <div className="flex items-center space-x-4">
               <div className="relative">
@@ -246,7 +237,6 @@ export function CampusOverview() {
             </div>
           </div>
           
-          {/* Enhanced Feature Buttons Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featureButtons.map((button) => {
               const IconComponent = button.icon;
@@ -256,20 +246,15 @@ export function CampusOverview() {
                   onClick={() => handleFeatureClick(button)}
                   className="group relative p-6 bg-background hover:bg-accent/30 border border-border hover:border-primary/30 rounded-2xl transition-all duration-300 hover:shadow-lg hover:shadow-primary/5 hover:scale-[1.02] text-left overflow-hidden"
                 >
-                  {/* Background gradient effect */}
                   <div className={`absolute inset-0 bg-gradient-to-br ${button.gradient} opacity-0 group-hover:opacity-[0.03] rounded-2xl transition-opacity duration-500`} />
                   
-                  {/* Top accent line */}
                   <div className={`absolute top-0 left-0 right-0 h-1 bg-gradient-to-r ${button.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                   
-                  {/* Main content */}
                   <div className="relative">
-                    {/* Icon with enhanced styling */}
                     <div className={`w-14 h-14 bg-gradient-to-br ${button.gradient} rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-all duration-300 shadow-lg`}>
                       <IconComponent className="h-7 w-7 text-white" />
                     </div>
                     
-                    {/* Title and description */}
                     <h3 className="text-lg font-semibold text-foreground mb-3 group-hover:text-primary transition-colors duration-300">
                       {button.title}
                     </h3>
@@ -278,7 +263,6 @@ export function CampusOverview() {
                       {button.description}
                     </p>
                     
-                    {/* Action indicator */}
                     <div className="flex items-center justify-between">
                       <span className="text-xs text-muted-foreground group-hover:text-primary/70 transition-colors duration-300 font-medium">
                         Explore insights
@@ -291,7 +275,6 @@ export function CampusOverview() {
             })}
           </div>
           
-          {/* Enhanced info section */}
           <div className="mt-8 p-6 bg-gradient-to-r from-blue-50/50 to-indigo-50/50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl border border-blue-200/30 dark:border-blue-800/30">
             <div className="flex items-start space-x-4">
               <div className="p-2 bg-blue-500/10 rounded-lg">
@@ -312,5 +295,4 @@ export function CampusOverview() {
   );
 }
 
-// Export the component as default
 export default CampusOverview; 

@@ -2,7 +2,7 @@ import type { ReactNode } from "react"
 import { useState, useEffect } from "react"
 import { DeskSidebarWrapper, DeskSiteHeader } from "./desk-sidebar-wrapper"
 import { SidebarInset, SidebarProvider } from "@/components/sidebar/components/ui/sidebar.tsx"
-import { CamplyBot } from "@/components/CamplyBot.tsx"
+import { CamplyBot } from "@/features/camply-ai/CamplyBot"
 
 type User = {
   name: string
@@ -10,7 +10,6 @@ type User = {
   avatar: string
 }
 
-// App configuration for different sections (homeRoute only, appName is always "Camply")
 type AppConfig = {
   homeRoute: string
 }
@@ -21,7 +20,6 @@ interface LayoutProps {
   appConfig?: AppConfig
 }
 
-// Generate desk-specific navigation
 const generateDeskNavigation = () => {
   const campusItems = [
     {
@@ -53,22 +51,16 @@ export function Layout({ children, user}: LayoutProps) {
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   
-  // Default to desk configuration, but allow override for homeRoute
-  // const config = appConfig || { homeRoute: "/desk" }
-
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
       
-      // Show header when at top of page
       if (currentScrollY < 10) {
         setIsHeaderVisible(true)
       }
-      // Show header when scrolling up (and not at very top)
       else if (currentScrollY < lastScrollY && currentScrollY > 10) {
         setIsHeaderVisible(true)
       }
-      // Hide header when scrolling down (after some scroll distance)
       else if (currentScrollY > lastScrollY && currentScrollY > 30) {
         setIsHeaderVisible(false)
       }
@@ -76,11 +68,10 @@ export function Layout({ children, user}: LayoutProps) {
       setLastScrollY(currentScrollY)
     }
 
-    // Throttle scroll events for better performance
     let timeoutId: NodeJS.Timeout
     const throttledScroll = () => {
       clearTimeout(timeoutId)
-      timeoutId = setTimeout(handleScroll, 16) // ~60fps
+      timeoutId = setTimeout(handleScroll, 16)
     }
 
     window.addEventListener('scroll', throttledScroll, { passive: true })
@@ -100,7 +91,6 @@ export function Layout({ children, user}: LayoutProps) {
         semesterItems={semesterItems}
       />
       <SidebarInset className="!p-0 !m-0 !border-0 !rounded-none">
-        {/* Smart Sticky Header - Hides on scroll down, shows on scroll up */}
         <div 
           className={`
             sticky top-0 z-40 transition-transform duration-300 ease-in-out
@@ -117,7 +107,6 @@ export function Layout({ children, user}: LayoutProps) {
         </main>
       </SidebarInset>
       
-      {/* Global CamplyBot - Available across all desk views */}
       <CamplyBot />
     </SidebarProvider>
   )

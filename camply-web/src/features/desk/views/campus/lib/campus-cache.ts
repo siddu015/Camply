@@ -11,7 +11,7 @@ interface CacheMetadata {
   version: string;
 }
 
-const CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+const CACHE_DURATION = 24 * 60 * 60 * 1000;
 const CACHE_VERSION = '1.0.0';
 
 export class CampusCacheService {
@@ -52,7 +52,6 @@ export class CampusCacheService {
       const meta: CacheMetadata = JSON.parse(metadata);
       const now = Date.now();
       
-      // Check if cache is expired or version mismatch
       if (now > meta.expirationTime || meta.version !== CACHE_VERSION) {
         this.clearCache(type, userId, collegeId);
         return false;
@@ -119,7 +118,6 @@ export class CampusCacheService {
       localStorage.setItem(metaKey, JSON.stringify(metadata));
     } catch (error) {
       console.error('Error caching content:', error);
-      // If localStorage is full, try to clear old cache entries
       this.cleanupOldCache();
     }
   }
@@ -205,11 +203,10 @@ export class CampusCacheService {
               const meta: CacheMetadata = JSON.parse(metadata);
               if (now > meta.expirationTime || meta.version !== CACHE_VERSION) {
                 keysToRemove.push(key);
-                keysToRemove.push(key.replace('_meta', '')); // Remove content key too
+                keysToRemove.push(key.replace('_meta', ''));
               }
             }
           } catch (error) {
-            // If we can't parse metadata, remove it
             keysToRemove.push(key);
           }
         }
@@ -220,10 +217,7 @@ export class CampusCacheService {
       console.error('Error cleaning up cache:', error);
     }
   }
-
-  /**
-   * Get total cache size (approximate)
-   */
+  
   getCacheSize(): { totalKeys: number; estimatedSize: string } {
     try {
       let totalSize = 0;

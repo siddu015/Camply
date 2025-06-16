@@ -45,7 +45,6 @@ export const useFormValidation = (formData: AcademicFormData) => {
         if (value && value.trim().length > 20) {
           errors.roll_number = 'Roll number cannot exceed 20 characters';
         }
-        // Roll number is optional, so no required validation
         break;
         
       case 'admission_year':
@@ -85,17 +84,17 @@ export const useFormValidation = (formData: AcademicFormData) => {
 
   const canProceedFromStep = useCallback((step: number, validationErrors: Record<string, string>): boolean => {
     switch (step) {
-      case 0: // Name step
+      case 0:
         return !!(formData.name && formData.name.trim().length >= 2 && !validationErrors.name);
-      case 1: // Phone step (optional)
-        return true; // Always can proceed since phone is optional
-      case 2: // College step
+      case 1:
+        return true;
+      case 2:
         return !!(formData.college_id && !validationErrors.college_id);
-      case 3: // Department & Branch step
+      case 3:
         return !!(formData.department_name && formData.branch_name && !validationErrors.department_name && !validationErrors.branch_name);
-      case 4: // Roll number step (optional)
-        return true; // Always can proceed
-      case 5: // Academic years step
+      case 4:
+        return true;
+      case 5:
         return !!(formData.admission_year && formData.graduation_year && !validationErrors.admission_year && !validationErrors.graduation_year);
       default:
         return false;

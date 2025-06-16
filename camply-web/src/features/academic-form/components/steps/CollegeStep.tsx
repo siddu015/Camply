@@ -12,7 +12,6 @@ export const CollegeStep = ({ formData, validationErrors, onFieldChange, autoFoc
     onFieldChange(e.target.name, e.target.value);
   };
 
-  // Directional animation variants
   const getAnimationVariants = () => {
     const isGoingNext = direction === 'next';
     const isGoingPrev = direction === 'prev';

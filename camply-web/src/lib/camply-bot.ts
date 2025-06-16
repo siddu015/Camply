@@ -71,7 +71,6 @@ export class CamplyBotService {
     const startTime = Date.now();
     
     try {
-      // Add session ID to request
       const enrichedRequest: ChatRequest = {
         ...request,
         session_id: this.sessionId,
@@ -94,7 +93,6 @@ export class CamplyBotService {
       const data: ChatResponse = await response.json();
       const processingTime = Date.now() - startTime;
       
-      // Add metadata
       return {
         ...data,
         metadata: {
@@ -180,7 +178,6 @@ export class CamplyBotService {
     this.sessionId = this.generateSessionId();
   }
 
-  // Quick suggestions based on context
   getQuickSuggestions(context?: ChatRequest['context']): string[] {
     const baseSuggestions = [
       "Tell me about my campus",
@@ -211,7 +208,6 @@ export class CamplyBotService {
     return baseSuggestions;
   }
 
-  // Get conversation starters based on user context
   getConversationStarters(context?: ChatRequest['context']): string[] {
     const starters = [
       "Ask me anything about your campus",

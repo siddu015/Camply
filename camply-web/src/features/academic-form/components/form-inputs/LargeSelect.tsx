@@ -46,7 +46,7 @@ export const LargeSelect = ({ children, disabled = false, ...props }: LargeSelec
             "group-hover/input:shadow-lg file:border-0 file:bg-transparent file:text-sm file:font-medium",
             "focus-visible:ring-[2px] focus-visible:ring-white/30 focus-visible:outline-none",
             "disabled:cursor-not-allowed disabled:opacity-50 appearance-none shadow-lg relative",
-            "touch-target", // Ensures minimum touch target size
+            "touch-target",
             disabled && "bg-white/[0.008] cursor-not-allowed opacity-50"
           )}
         >

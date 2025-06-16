@@ -10,7 +10,6 @@ export const useUserData = (session: Session | null) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Load cached user status on mount
   useEffect(() => {
     if (session?.user) {
       const cached = localStorage.getItem(`${USER_STATUS_CACHE_KEY}_${session.user.id}`);
@@ -37,13 +36,11 @@ export const useUserData = (session: Session | null) => {
       const status = await checkUserStatus(session.user.id);
       setUserStatus(status);
       
-      // Cache successful status
       localStorage.setItem(`${USER_STATUS_CACHE_KEY}_${session.user.id}`, JSON.stringify(status));
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to check user status';
       setError(errorMessage);
       
-      // Check if we have cached data to fall back to
       const cached = localStorage.getItem(`${USER_STATUS_CACHE_KEY}_${session.user.id}`);
       if (cached) {
         try {
@@ -70,10 +67,8 @@ export const useUserData = (session: Session | null) => {
 
       let result;
       if (userStatus.exists && userStatus.hasAcademicDetails) {
-        // Update existing user
         result = await updateUserAcademicDetails(session.user.id, formData);
       } else {
-        // Create new user with academic details
         result = await createUserWithAcademicDetails(
           session.user.id,
           session.user.email!,
@@ -81,7 +76,6 @@ export const useUserData = (session: Session | null) => {
         );
       }
 
-      // Immediately update the user status to reflect successful save
       const newStatus = {
         exists: true,
         hasAcademicDetails: true,
@@ -90,8 +84,7 @@ export const useUserData = (session: Session | null) => {
       };
       
       setUserStatus(newStatus);
-      
-      // Cache the new status
+                      
       localStorage.setItem(`${USER_STATUS_CACHE_KEY}_${session.user.id}`, JSON.stringify(newStatus));
       
       return result;

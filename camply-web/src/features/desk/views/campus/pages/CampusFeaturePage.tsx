@@ -9,7 +9,6 @@ import {
 } from 'lucide-react';
 import { BaseCampusPage } from './BaseCampusPage';
 
-// Configuration for all campus features
 const CAMPUS_FEATURES = {
   'news': {
     id: 'campus-news',
@@ -48,7 +47,6 @@ type FeatureKey = keyof typeof CAMPUS_FEATURES;
 export function CampusFeaturePage() {
   const { feature } = useParams<{ feature: string }>();
   
-  // Validate feature parameter
   if (!feature || !(feature in CAMPUS_FEATURES)) {
     return <Navigate to="/profile/campus" replace />;
   }

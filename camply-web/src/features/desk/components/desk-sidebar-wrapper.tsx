@@ -7,7 +7,6 @@ import { SiteHeader, type RouteConfig } from "../../../components/sidebar/compon
 import type { NavigationGroup } from "../../../components/sidebar/components/nav-menu"
 import type { User } from "../../../components/sidebar/components/nav-user"
 
-// Desk-specific route configuration
 const deskRouteConfig: Record<string, RouteConfig> = {
   "/desk": { title: "Desk" },
   "/profile/campus": { title: "Campus", parent: "Profile" },
@@ -27,7 +26,6 @@ export function DeskSidebarWrapper({
   campusItems, 
   semesterItems,
   variant,
-  // Extract props that would conflict
   navigationGroups: _ignoredNavGroups,
   onLogout: _ignoredOnLogout,
   onProfileClick: _ignoredOnProfile,
@@ -37,7 +35,6 @@ export function DeskSidebarWrapper({
   appName: _ignoredAppName,
   ...restProps
 }: DeskSidebarWrapperProps) {
-  // Transform legacy props to new navigation groups format
   const navigationGroups: NavigationGroup[] = [
     {
       label: "Profile",
@@ -66,12 +63,10 @@ export function DeskSidebarWrapper({
   }
 
   const handleProfileClick = () => {
-    // TODO: Navigate to profile page
     console.log('Profile clicked')
   }
 
   const handleSettingsClick = () => {
-    // TODO: Navigate to settings page
     console.log('Settings clicked')
   }
 

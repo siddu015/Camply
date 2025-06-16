@@ -28,8 +28,7 @@ export interface FormContextType {
   isValidating: boolean;
   loading: boolean;
   error: string | null;
-  
-  // Actions
+
   setFormData: (data: Partial<AcademicFormData>) => void;
   setValidationErrors: (errors: Record<string, string>) => void;
   setSelectedDepartmentCategory: (category: string) => void;

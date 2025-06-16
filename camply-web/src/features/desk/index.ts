@@ -1,9 +1,7 @@
 export { Layout } from "./components/Layout"
 export { DeskSidebarWrapper, DeskSiteHeader } from "./components/desk-sidebar-wrapper"
 
-// View exports
 export { CampusOverview } from "./views/campus"
-
 export { Desk } from "./views/Desk"
 export { AcademicOverview } from "./views/AcademicOverview"
 export { Courses } from "./views/Courses"

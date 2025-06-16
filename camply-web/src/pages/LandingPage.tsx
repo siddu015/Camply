@@ -30,7 +30,6 @@ const LandingPage = () => {
         bottom: 0
       }}
     >
-      {/* Login Button - Top Right */}
       <button 
         onClick={handleGoogleLogin}
         className="group cursor-pointer relative rounded-full text-sm font-bold leading-6 text-white inline-block transition-all duration-500"
@@ -41,13 +40,11 @@ const LandingPage = () => {
           zIndex: 50
         }}
       >
-        {/* Moving lines across the button */}
         <div className="absolute inset-0 rounded-full overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent w-full h-[1px] top-1/2 animate-pulse"></div>
           <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent w-full h-[1px] top-3/4 animate-pulse"></div>
         </div>
         
-        {/* Glass background with blur effect */}
         <div className="relative flex space-x-3 items-center z-10 rounded-full bg-white/10 backdrop-blur-md py-3 px-6 ring-1 ring-white/20 shadow-lg">
           <svg className="w-5 h-5" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -73,24 +70,19 @@ const LandingPage = () => {
           </svg>
         </div>
         
-        {/* Bottom accent line */}
         <span className="absolute -bottom-0 left-[1.125rem] h-px w-[calc(100%-2.25rem)] bg-gradient-to-r from-emerald-400/0 via-emerald-400/70 to-emerald-400/0 opacity-100" />
       </button>
 
-      {/* Main Heading */}
       <h1 className="md:text-7xl text-3xl lg:text-9xl font-bold text-center text-white relative z-20 mb-4">
         Camply
       </h1>
 
-      {/* Sparkles and Gradients Container */}
       <div className="w-[40rem] h-40 relative">
-        {/* Gradients */}
         <div className="absolute inset-x-20 top-0 bg-gradient-to-r from-transparent via-indigo-500 to-transparent h-[2px] w-3/4 blur-sm" />
         <div className="absolute inset-x-20 top-0 bg-gradient-to-r from-transparent via-indigo-500 to-transparent h-px w-3/4" />
         <div className="absolute inset-x-60 top-0 bg-gradient-to-r from-transparent via-sky-500 to-transparent h-[5px] w-1/4 blur-sm" />
         <div className="absolute inset-x-60 top-0 bg-gradient-to-r from-transparent via-sky-500 to-transparent h-px w-1/4" />
 
-        {/* Core component */}
         <SparklesCore
           background="transparent"
           minSize={0.4}
@@ -100,14 +92,12 @@ const LandingPage = () => {
           particleColor="#FFFFFF"
         />
 
-        {/* Radial Gradient to prevent sharp edges */}
         <div className="absolute inset-0 w-full h-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
       </div>
 
-      {/* Subtitle */}
-      {/* <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto px-4 text-center relative z-20 mt-8">
+      <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto px-4 text-center relative z-20 mt-8">
         Discover and book amazing camping experiences
-      </p> */}
+      </p>
     </div>
   );
 };

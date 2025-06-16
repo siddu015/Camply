@@ -47,8 +47,6 @@ export function NavUser({
       if (error) {
         console.error('Error signing out:', error)
       } else {
-        // The auth state change will be handled by the App component
-        // and will redirect to the landing page
       }
     } catch (error) {
       console.error('Error during logout:', error)
