@@ -1,11 +1,10 @@
 "use client"
 
 import { LogOutIcon, MoreVerticalIcon, SettingsIcon, UserCircleIcon, Moon, Sun } from "lucide-react"
-import { signOut } from "../../../lib/supabase"
 import { useState } from "react"
 import { useTheme } from "../../../lib/theme-provider"
 
-import { Avatar, AvatarFallback, AvatarImage } from "../../../components/sidebar/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +12,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../../components/sidebar/components/ui/dropdown-menu"
+} from "./ui/dropdown-menu"
 import {
   LogoutDialog,
   LogoutDialogAction,
@@ -23,18 +22,28 @@ import {
   LogoutDialogFooter,
   LogoutDialogHeader,
   LogoutDialogTitle,
-} from "../../../components/ui/logout-dialog-adaptive"
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "../../../components/sidebar/components/ui/sidebar"
+} from "../../ui/logout-dialog-adaptive"
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "./ui/sidebar"
+
+export interface User {
+  name: string
+  email: string
+  avatar: string
+}
+
+interface NavUserProps {
+  user: User
+  onLogout: () => Promise<void>
+  onProfileClick?: () => void
+  onSettingsClick?: () => void
+}
 
 export function NavUser({
   user,
-}: {
-  user: {
-    name: string
-    email: string
-    avatar: string
-  }
-}) {
+  onLogout,
+  onProfileClick,
+  onSettingsClick,
+}: NavUserProps) {
   const { isMobile } = useSidebar()
   const { theme, setTheme } = useTheme()
   const [showLogoutDialog, setShowLogoutDialog] = useState(false)
@@ -43,13 +52,7 @@ export function NavUser({
   const handleLogout = async () => {
     setIsLoggingOut(true)
     try {
-      const { error } = await signOut()
-      if (error) {
-        console.error('Error signing out:', error)
-      } else {
-        // The auth state change will be handled by the App component
-        // and will redirect to the landing page
-      }
+      await onLogout()
     } catch (error) {
       console.error('Error during logout:', error)
     } finally {
@@ -97,11 +100,11 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={onProfileClick}>
               <UserCircleIcon />
               Account
             </DropdownMenuItem>
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={onSettingsClick}>
               <SettingsIcon />
               Settings
             </DropdownMenuItem>
@@ -145,4 +148,4 @@ export function NavUser({
       </SidebarMenuItem>
     </SidebarMenu>
   )
-}
+} 

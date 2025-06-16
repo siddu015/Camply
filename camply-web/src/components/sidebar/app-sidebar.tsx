@@ -1,11 +1,10 @@
 import type { ComponentProps } from "react"
 import { Link } from "react-router-dom"
+import type { LucideIcon } from "lucide-react"
 import { GraduationCap } from "lucide-react"
-// Alternative icons you can use:
-// import { BookOpen, School, Users, Building2, Briefcase, Target } from "lucide-react"
 
-import { NavAcademic } from "../desk-sidebar/components/nav-academic"
-import { NavUser } from "../desk-sidebar/components/nav-user"
+import { NavMenu, type NavigationGroup } from "./components/nav-menu"
+import { NavUser, type User } from "./components/nav-user"
 import {
   Sidebar,
   SidebarContent,
@@ -16,29 +15,26 @@ import {
   SidebarMenuItem,
 } from "./components/ui/sidebar"
 
-type NavigationItem = {
-  name: string
-  url: string
-}
-
-type User = {
-  name: string
-  email: string
-  avatar: string
-}
-
 interface AppSidebarProps extends ComponentProps<typeof Sidebar> {
   user: User
-  campusItems: NavigationItem[]
-  semesterItems: NavigationItem[]
+  navigationGroups: NavigationGroup[]
   homeRoute?: string
+  homeIcon?: LucideIcon
+  appName?: string
+  onLogout: () => Promise<void>
+  onProfileClick?: () => void
+  onSettingsClick?: () => void
 }
 
 export function AppSidebar({ 
   user, 
-  campusItems, 
-  semesterItems, 
-  homeRoute = "/desk",
+  navigationGroups,
+  homeRoute = "/",
+  homeIcon: HomeIcon = GraduationCap,
+  appName = "App",
+  onLogout,
+  onProfileClick,
+  onSettingsClick,
   ...props 
 }: AppSidebarProps) {
   return (
@@ -48,18 +44,23 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton asChild className="data-[slot=sidebar-menu-button]:!p-1.5">
               <Link to={homeRoute}>
-                <GraduationCap className="h-6 w-6" />
-                <span className="text-lg font-bold">Camply</span>
+                <HomeIcon className="h-6 w-6" />
+                <span className="text-lg font-bold">{appName}</span>
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
       <SidebarContent>
-        <NavAcademic campusItems={campusItems} semesterItems={semesterItems} />
+        <NavMenu groups={navigationGroups} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={user} />
+        <NavUser 
+          user={user} 
+          onLogout={onLogout}
+          onProfileClick={onProfileClick}
+          onSettingsClick={onSettingsClick}
+        />
       </SidebarFooter>
     </Sidebar>
   )

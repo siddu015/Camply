@@ -1,8 +1,7 @@
 import type { ReactNode } from "react"
 import { useState, useEffect } from "react"
-import { AppSidebar } from "../../sidebar/app-sidebar"
-import { SiteHeader } from "../../sidebar/components/site-header"
-import { SidebarInset, SidebarProvider } from "../../sidebar/components/ui/sidebar"
+import { DeskSidebarWrapper, DeskSiteHeader } from "./desk-sidebar-wrapper"
+import { SidebarInset, SidebarProvider } from "../../../components/sidebar/components/ui/sidebar"
 import { CamplyBot } from "../../../components/CamplyBot"
 
 type User = {
@@ -94,12 +93,10 @@ export function Layout({ children, user, appConfig }: LayoutProps) {
 
   return (
     <SidebarProvider>
-      <AppSidebar 
-        variant="inset" 
+      <DeskSidebarWrapper 
         user={user}
         campusItems={campusItems}
         semesterItems={semesterItems}
-        homeRoute={config.homeRoute}
       />
       <SidebarInset>
         {/* Smart Sticky Header - Hides on scroll down, shows on scroll up */}
@@ -110,7 +107,7 @@ export function Layout({ children, user, appConfig }: LayoutProps) {
             ${isHeaderVisible ? 'translate-y-0' : '-translate-y-full'}
           `}
         >
-          <SiteHeader />
+          <DeskSiteHeader />
         </div>
         <main className="flex flex-1 flex-col transition-smooth">
           <div className="flex-1 flex items-center justify-center transition-smooth duration-200 ease-in-out p-6">

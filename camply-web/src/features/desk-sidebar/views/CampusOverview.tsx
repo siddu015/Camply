@@ -4,10 +4,6 @@ import {
   MapPin, 
   GraduationCap, 
   Calendar, 
-  BookOpen, 
-  User, 
-  Building2, 
-  Upload,
   Globe,
   Newspaper,
   TrendingUp,
@@ -15,11 +11,7 @@ import {
   BarChart3,
   MapPin as Map,
   ExternalLink,
-  Users,
-  Clock,
-  X,
   Bot,
-  Loader2,
   ArrowRight,
   Sparkles
 } from 'lucide-react';
@@ -31,7 +23,7 @@ export function CampusOverview() {
   const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
   
-  const { user, academicDetails, college, currentSemester, loading, error } = useCampusData(session?.user?.id);
+  const { user, academicDetails, college, loading, error } = useCampusData(session?.user?.id);
   const { theme } = useTheme();
   
   // Determine if dark mode (considering system preference)
@@ -158,85 +150,73 @@ export function CampusOverview() {
     <div className="animate-in fade-in-50 duration-300 slide-in-from-bottom-2 w-full">
       {/* Enhanced Campus Header */}
       <div 
-        className="relative h-96 -mt-6 mb-8 overflow-hidden border-b border-border"
+        className="relative h-80 -mt-6 mb-6 overflow-hidden border-b border-border"
         style={{ 
           width: 'calc(100% + 50px)', 
           marginLeft: '-25px',
         }}
       >
-        {/* Professional gradient background */}
+        {/* Dynamic theme background */}
         <div 
           className="absolute inset-0"
           style={{
             background: isDark 
-              ? 'linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #334155 50%, #475569 75%, #64748b 100%)'
-              : 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 25%, #e2e8f0 50%, #cbd5e1 75%, #94a3b8 100%)',
+              ? 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)'
+              : 'linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 50%, #cbd5e1 100%)',
           }}
         />
+        {/* Background pattern overlay */}
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,theme(colors.foreground/0.1)_1px,transparent_0)] bg-[length:20px_20px] opacity-30" />
         
-        {/* Subtle geometric pattern overlay */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,theme(colors.primary)_2px,transparent_2px)] bg-[length:60px_60px]" />
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_75%_75%,theme(colors.primary)_1px,transparent_1px)] bg-[length:40px_40px]" />
-        </div>
-        
-        {/* Content overlay with better positioning */}
+        {/* Content container */}
         <div className="relative z-10 flex flex-col justify-center h-full p-8">
-          <div className="max-w-4xl">
-            {/* Enhanced title with subtitle */}
-            <div className="mb-6">
-              <div className="flex items-center space-x-3 mb-3">
-                <div className="p-2 bg-primary/10 rounded-xl border border-primary/20">
-                  <Building2 className="h-6 w-6 text-primary" />
-                </div>
-                <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Campus Intelligence</span>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-foreground">
+            {college?.name || `${academicDetails.department_name} Campus`}
+          </h1>
+          
+          <div className="text-xl text-muted-foreground space-y-2">
+            {college?.city && college?.state ? (
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-6 w-6" />
+                <span>{college.city}, {college.state}</span>
               </div>
-              <h1 className="text-5xl md:text-6xl font-bold mb-4 text-foreground leading-tight">
-                {college?.name || `${academicDetails.department_name} Campus`}
-              </h1>
-              <p className="text-xl text-muted-foreground max-w-2xl leading-relaxed">
-                Explore comprehensive insights about your campus through AI-powered analytics and real-time data intelligence.
-              </p>
-            </div>
+            ) : college?.city ? (
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-6 w-6" />
+                <span>{college.city}</span>
+              </div>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <MapPin className="h-6 w-6" />
+                <span>Location not specified</span>
+              </div>
+            )}
             
-            {/* Enhanced location and website info */}
-            <div className="flex flex-wrap items-center gap-6 text-lg">
-              {college?.city && college?.state ? (
-                <div className="flex items-center space-x-2 bg-background/20 backdrop-blur-sm rounded-full px-4 py-2 border border-border/30">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <span className="text-foreground">{college.city}, {college.state}</span>
-                </div>
-              ) : college?.city && (
-                <div className="flex items-center space-x-2 bg-background/20 backdrop-blur-sm rounded-full px-4 py-2 border border-border/30">
-                  <MapPin className="h-5 w-5 text-primary" />
-                  <span className="text-foreground">{college.city}</span>
-                </div>
-              )}
-              
-              {college?.college_website_url && (
+            {college?.college_website_url && (
+              <div className="flex items-center space-x-2">
+                <Globe className="h-5 w-5" />
                 <a 
                   href={college.college_website_url} 
                   target="_blank" 
                   rel="noopener noreferrer"
-                  className="flex items-center space-x-2 bg-primary/10 backdrop-blur-sm rounded-full px-4 py-2 border border-primary/20 hover:bg-primary/20 transition-all duration-300 group"
+                  className="text-lg hover:text-primary transition-colors flex items-center space-x-1 group"
                 >
-                  <Globe className="h-5 w-5 text-primary" />
-                  <span className="text-foreground">Visit Website</span>
-                  <ExternalLink className="h-4 w-4 text-primary opacity-0 group-hover:opacity-100 transition-opacity" />
+                  <span>Visit Website</span>
+                  <ExternalLink className="h-3 w-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </a>
-              )}
-            </div>
+              </div>
+            )}
           </div>
         </div>
         
-        {/* Enhanced campus image with better styling */}
+        {/* Campus image */}
         {college?.college_icon && (
-          <div className="absolute bottom-8 right-8 z-10">
-            <div className="w-40 h-28 md:w-48 md:h-32 rounded-2xl overflow-hidden shadow-2xl border-2 border-background/50 bg-background">
+          <div className="absolute bottom-6 right-6 z-10">
+            <div className="w-32 h-20 md:w-40 md:h-24 rounded-xl overflow-hidden shadow-lg border border-border/50 bg-white">
               <img 
                 src={college.college_icon} 
                 alt={`${college.name} campus`}
-                className="w-full h-full object-contain p-2"
+                className="w-full h-full object-contain"
               />
             </div>
           </div>

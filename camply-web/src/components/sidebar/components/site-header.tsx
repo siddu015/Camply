@@ -4,26 +4,31 @@ import { Separator } from "./ui/separator"
 import { SidebarTrigger } from "./ui/sidebar"
 import { ThemeToggle } from "../../../components/theme-toggle"
 
-const routeTitles: Record<string, { title: string; parent?: string }> = {
-  "/desk": { title: "Desk" },
-  "/profile/campus": { title: "Campus", parent: "Profile" },
-  "/profile/academics": { title: "Academics", parent: "Profile" },
-  "/semester/overview": { title: "Overview", parent: "Semester" },
-  "/semester/courses": { title: "Courses", parent: "Semester" },
+export interface RouteConfig {
+  title: string
+  parent?: string
 }
 
-export function SiteHeader() {
+interface SiteHeaderProps {
+  routeTitles?: Record<string, RouteConfig>
+  defaultTitle?: string
+}
+
+export function SiteHeader({ 
+  routeTitles = {}, 
+  defaultTitle = "App" 
+}: SiteHeaderProps) {
   const location = useLocation()
   const currentRoute = routeTitles[location.pathname]
   
   const getBreadcrumbs = () => {
-    if (!currentRoute) return ["Desk"]
+    if (!currentRoute) return [defaultTitle]
     
-    const breadcrumbs = ["Desk"]
+    const breadcrumbs = [defaultTitle]
     if (currentRoute.parent) {
       breadcrumbs.push(currentRoute.parent)
     }
-    if (currentRoute.title !== "Desk") {
+    if (currentRoute.title !== defaultTitle) {
       breadcrumbs.push(currentRoute.title)
     }
     

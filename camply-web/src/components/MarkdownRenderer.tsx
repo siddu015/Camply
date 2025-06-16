@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '../lib/theme-provider';
-import { cn } from '../features/sidebar/lib/utils';
+import { cn } from './sidebar/lib/utils';
 
 interface MarkdownRendererProps {
   content: string;

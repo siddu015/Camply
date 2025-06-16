@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useMotionTemplate, useMotionValue } from "framer-motion";
-import { cn } from "../../features/sidebar/lib/utils";
+import { cn } from "../sidebar/lib/utils";
 
 export function PlaceholdersAndVanishInput({
   placeholders,

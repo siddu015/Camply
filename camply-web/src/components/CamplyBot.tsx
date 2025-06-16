@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose, IoRefresh, IoExpand, IoContract } from 'react-icons/io5';
 import { useTheme } from '../lib/theme-provider';
-import { cn } from '../features/sidebar/lib/utils';
+import { cn } from './sidebar/lib/utils';
 import { CamplyBotService, type ChatMessage, type ChatRequest } from '../lib/camply-bot';
 import { supabase } from '../lib/supabase';
 import { useCampusData } from '../hooks/useCampusData';

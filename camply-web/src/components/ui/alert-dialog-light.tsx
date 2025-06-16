@@ -1,7 +1,7 @@
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 
-import { cn } from "../../features/sidebar/lib/utils"
+import { cn } from "../sidebar/lib/utils"
 import { WavyBackground } from "./wavy-background"
 
 const AlertDialog = AlertDialogPrimitive.Root

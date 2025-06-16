@@ -1,5 +1,5 @@
 "use client";
-import { cn } from "../../features/sidebar/lib/utils";
+import { cn } from "../sidebar/lib/utils";
 import React, { useEffect, useRef, useState } from "react";
 import { createNoise3D } from "simplex-noise";
 
