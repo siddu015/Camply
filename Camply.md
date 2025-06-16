@@ -34,8 +34,8 @@
 
 **Campus Component Enhancements**
 
-- Button prompts in the campus-content section should open dedicated pages
-- These pages should display responses as clear, well-formatted markdown
+[//]: # (- Button prompts in the campus-content section should open dedicated pages)
+[//]: # (- These pages should display responses as clear, well-formatted markdown)
 - Create defined prompt files for each button with clear specifications including:
   - What the response should include
   - Whether images are needed
