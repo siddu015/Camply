@@ -7,12 +7,12 @@ import {
   BarChart3,
   Calendar,
   Map,
-  GraduationCap,
 } from 'lucide-react';
 import { useCampusData } from '../hooks/useCampusData';
 import { supabase } from '@/lib/supabase';
 import { CampusHeader } from '../components/CampusHeader';
 import { CampusFeatureCard } from '../components/CampusFeatureCard';
+import SimpleLoader from '@/components/SimpleLoader';
 
 const CAMPUS_FEATURES = [
   {
@@ -92,13 +92,7 @@ export function CampusOverview() {
   };
 
   if (loading) {
-    return (
-      <div className="animate-in fade-in-50 duration-300 slide-in-from-bottom-2 w-full">
-        <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-foreground"></div>
-        </div>
-      </div>
-    );
+    return <SimpleLoader />;
   }
 
   if (error) {
@@ -119,15 +113,7 @@ export function CampusOverview() {
   }
 
   if (!user || !academicDetails) {
-    return (
-      <div className="animate-in fade-in-50 duration-300 slide-in-from-bottom-2 w-full">
-        <div className="text-center py-12">
-          <GraduationCap className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium text-foreground mb-2">Academic details not found</h3>
-          <p className="text-muted-foreground">Your academic information could not be retrieved. Please contact support if this issue persists.</p>
-        </div>
-      </div>
-    );
+    return <SimpleLoader />;
   }
 
   const headerCollege = college ? {

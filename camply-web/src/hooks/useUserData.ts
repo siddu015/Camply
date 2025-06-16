@@ -9,6 +9,7 @@ export const useUserData = (session: Session | null) => {
   const [userStatus, setUserStatus] = useState<UserStatus>({ exists: false, hasAcademicDetails: false });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     if (session?.user) {
@@ -27,6 +28,7 @@ export const useUserData = (session: Session | null) => {
   const checkUser = async () => {
     if (!session?.user) {
       setLoading(false);
+      setInitialized(true);
       return;
     }
 
@@ -53,6 +55,7 @@ export const useUserData = (session: Session | null) => {
       }
     } finally {
       setLoading(false);
+      setInitialized(true);
     }
   };
 
@@ -105,6 +108,7 @@ export const useUserData = (session: Session | null) => {
     userStatus,
     loading,
     error,
+    initialized,
     saveUserData,
     refreshUser: checkUser
   };

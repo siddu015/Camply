@@ -36,12 +36,12 @@
 
 [//]: # (- Button prompts in the campus-content section should open dedicated pages)
 [//]: # (- These pages should display responses as clear, well-formatted markdown)
+[//]: # (- Pages should professionally render markdown responses for optimal readability)
+[//]: # (- Generated responses should be saved and not updated on every click &#40;cached for one day&#41;)
 - Create defined prompt files for each button with clear specifications including:
   - What the response should include
   - Whether images are needed
   - Complete page layout requirements from top to bottom
-- Pages should professionally render markdown responses for optimal readability
-- Generated responses should be saved and not updated on every click (cached for one day)
 - Implement contextual help: when users select specific text in responses, they can click "Explain More Clearly" to display additional clarification in a dialog above or below the selected text
 
 **Academic Component Development**

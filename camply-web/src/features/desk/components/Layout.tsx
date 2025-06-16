@@ -46,10 +46,26 @@ const generateDeskNavigation = () => {
   return { campusItems, semesterItems }
 }
 
+const getCookieValue = (name: string): string | null => {
+  if (typeof document === 'undefined') return null
+  
+  const cookies = document.cookie.split(';')
+  for (let i = 0; i < cookies.length; i++) {
+    const cookie = cookies[i].trim()
+    if (cookie.startsWith(name + '=')) {
+      return cookie.substring(name.length + 1)
+    }
+  }
+  return null
+}
+
 export function Layout({ children, user}: LayoutProps) {
   const { campusItems, semesterItems } = generateDeskNavigation()
   const [isHeaderVisible, setIsHeaderVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
+  
+  // Get the initial sidebar state from cookie
+  const initialSidebarOpen = getCookieValue("sidebar:state") !== "false"
   
   useEffect(() => {
     const handleScroll = () => {
@@ -83,7 +99,7 @@ export function Layout({ children, user}: LayoutProps) {
   }, [lastScrollY])
 
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={initialSidebarOpen}>
       <DeskSidebarWrapper 
         variant="inset"
         user={user}

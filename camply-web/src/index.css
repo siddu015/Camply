@@ -79,6 +79,18 @@
     --sidebar-ring: 0 0% 59.8%;
   }
 
+  html.sidebar-collapsed [data-sidebar="sidebar"] {
+    transform: translateX(-100%);
+  }
+  
+  html.sidebar-collapsed [data-collapsible="offcanvas"] {
+    width: 0 !important;
+  }
+
+  .bg-background {
+    background-color: hsl(var(--background));
+  }
+
   *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;

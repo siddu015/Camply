@@ -9,6 +9,7 @@ import LandingPage from './pages/LandingPage';
 import { Layout, Desk, AcademicOverview, CurrentSemester, Courses} from './features/desk';
 import { CampusOverview, CampusFeaturePage } from './features/desk/views/campus';
 import { OfflinePage } from './pages/OfflinePage';
+import SimpleLoader from './components/SimpleLoader';
 import './lib/route-config';
 
 function App() {
@@ -32,12 +33,9 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-800">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading...</p>
-        </div>
-      </div>
+      <ThemeProvider defaultTheme="dark" storageKey="camply-ui-theme">
+        <SimpleLoader />
+      </ThemeProvider>
     );
   }
 
@@ -60,21 +58,15 @@ function App() {
 }
 
 const AuthenticatedRoutes = ({ session }: { session: Session }) => {
-  const { userStatus, loading, error, refreshUser } = useUserData(session);
+  const { userStatus, loading, error, initialized, refreshUser } = useUserData(session);
 
   const handleOnboardingComplete = async () => {
     await refreshUser();
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-gray-100 dark:bg-neutral-800">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto"></div>
-          <p className="mt-4 text-gray-600 dark:text-gray-300">Loading your profile...</p>
-        </div>
-      </div>
-    );
+  // Show loader until we've completed at least one load cycle
+  if (loading || !initialized) {
+    return <SimpleLoader />;
   }
 
   if (error && !window.location.pathname.includes('/onboarding')) {

@@ -15,6 +15,7 @@ import type { ChatRequest, ChatResponse } from '@/features/camply-ai/camply-bot'
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/theme-provider';
 import { TracingBeam } from '@/components/ui/tracing-beam';
+import SimpleLoader from '@/components/SimpleLoader';
 
 interface BaseCampusPageProps {
   featureId: string;
@@ -29,7 +30,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   const [error, setError] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   
-  const { academicDetails, college } = useCampusData(session?.user?.id);
+  const { academicDetails, college, initialized } = useCampusData(session?.user?.id);
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
@@ -109,21 +110,16 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   };
 
   const handleRefresh = () => {
-    // Clear content before fetching to hide the tracing beam
     setContent('');
     fetchContent(true);
   };
 
+  if (!initialized) {
+    return <SimpleLoader />;
+  }
+
   if (!promptConfig) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
-          <h2 className="text-xl font-semibold text-foreground mb-2">Configuration Error</h2>
-          <p className="text-muted-foreground">This feature is not properly configured.</p>
-        </div>
-      </div>
-    );
+    return <SimpleLoader />;
   }
 
   const gradientStyle = {

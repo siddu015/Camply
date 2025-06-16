@@ -18,11 +18,13 @@ export const useCampusData = (userId: string | undefined) => {
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {
     const fetchCampusData = async () => {
       if (!userId) {
         setLoading(false);
+        setInitialized(true);
         return;
       }
 
@@ -32,10 +34,11 @@ export const useCampusData = (userId: string | undefined) => {
         const campusData = await getUserCampusData(userId);
         setData(campusData);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch campus data');
+        // Hide error from UI by not setting error state
         console.error('Error fetching campus data:', err);
       } finally {
         setLoading(false);
+        setInitialized(true);
       }
     };
 
@@ -45,7 +48,8 @@ export const useCampusData = (userId: string | undefined) => {
   return {
     ...data,
     loading,
-    error,
+    error: null, // Always return null for error to prevent error messages
+    initialized,
     refetch: () => {
       if (userId) {
         const fetchCampusData = async () => {
@@ -55,7 +59,8 @@ export const useCampusData = (userId: string | undefined) => {
             const campusData = await getUserCampusData(userId);
             setData(campusData);
           } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to fetch campus data');
+            // Hide error from UI by not setting error state
+            console.error('Error fetching campus data:', err);
           } finally {
             setLoading(false);
           }
