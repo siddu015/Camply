@@ -74,6 +74,7 @@ export default {
         shimmer: "shimmer 2s linear infinite",
         scroll: "scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite",
         aurora: "aurora 60s linear infinite",
+        float: "float 15s ease-in-out infinite",
       },
       keyframes: {
         "accordion-down": {
@@ -174,6 +175,13 @@ export default {
           to: {
             backgroundPosition: "350% 50%, 350% 50%",
           },
+        },
+        float: {
+          "0%": { transform: "translateY(0) translateX(0)" },
+          "25%": { transform: "translateY(-10px) translateX(10px)" },
+          "50%": { transform: "translateY(0) translateX(20px)" },
+          "75%": { transform: "translateY(10px) translateX(10px)" },
+          "100%": { transform: "translateY(0) translateX(0)" },
         },
       },
     },

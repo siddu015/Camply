@@ -1,7 +1,5 @@
-import { useEffect, useState, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useState, useRef } from 'react';                
 import { 
-  ArrowLeft, 
   RefreshCw, 
   AlertCircle,
   Bot,
@@ -14,7 +12,9 @@ import { getCampusPrompt, generatePromptText } from '../lib/campus-prompts';
 import { CampusMarkdownRenderer } from '../components/CampusMarkdownRenderer';
 import { CampusCacheService } from '../lib/campus-cache';
 import type { ChatRequest, ChatResponse } from '@/features/camply-ai/camply-bot';
-import { cn } from '@/components/sidebar/lib/utils';
+import { cn } from '@/lib/utils';
+import { useTheme } from '@/lib/theme-provider';
+import { TracingBeam } from '@/components/ui/tracing-beam';
 
 interface BaseCampusPageProps {
   featureId: string;
@@ -29,8 +29,9 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   const [error, setError] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   
-  const navigate = useNavigate();
   const { academicDetails, college } = useCampusData(session?.user?.id);
+  const { theme } = useTheme();
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
   const camplyBot = CamplyBotService.getInstance();
   const cacheService = CampusCacheService.getInstance();
@@ -64,13 +65,11 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
     setError(null);
 
     try {
-      // Check cache first unless forced refresh
       if (!forceRefresh) {
         const cachedContent = cacheService.getCachedContent(featureId, session.user.id, college.college_id);
         if (cachedContent) {
           setContent(cachedContent.content);
           setLoading(false);
-          // Scroll to top after content loads
           window.scrollTo({ top: 0, behavior: 'smooth' });
           return;
         }
@@ -96,9 +95,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
 
       if (response.success && response.response) {
         setContent(response.response);
-        // Cache the content
         cacheService.setCachedContent(featureId, session.user.id, response.response, college.college_id);
-        // Scroll to top after content loads
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         setError(response.error || 'Failed to fetch content');
@@ -117,7 +114,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
 
   if (!promptConfig) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-destructive mx-auto mb-4" />
           <h2 className="text-xl font-semibold text-foreground mb-2">Configuration Error</h2>
@@ -127,35 +124,25 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
     );
   }
 
+  const gradientStyle = {
+    background: isDark
+      ? `linear-gradient(135deg, ${gradient.split('from-')[1].split(' ')[0]} 0%, ${gradient.split('to-')[1]} 100%)`
+      : `linear-gradient(135deg, ${gradient.replace('from-', '').replace('to-', ', ')})`,
+  };
+
   return (
     <div className="min-h-screen bg-background w-full overflow-x-hidden">
       <div 
-        className="relative h-72 overflow-hidden"
-        style={{
-          background: `linear-gradient(135deg, ${gradient.replace('from-', '').replace('to-', ', ')})`,
-        }}
+        className="relative h-80 overflow-hidden"
+        style={gradientStyle}
       >
-        {/* Background Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_25%_25%,white_2px,transparent_2px)] bg-[length:60px_60px]" />
-        </div>
-        
-        {/* Animated Gradient Overlay */}
+       
         <div className="absolute inset-0 opacity-30">
           <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent animate-pulse" />
         </div>
         
-        {/* Content */}
         <div className="relative z-10 px-8 py-8 h-full flex flex-col max-w-7xl mx-auto">
-          <div className="flex items-center justify-between mb-8">
-            <button
-              onClick={() => navigate('/profile/campus')}
-              className="group flex items-center space-x-2 text-white hover:text-white/80 transition-colors bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 border border-white/20"
-            >
-              <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform" />
-              <span className="text-sm font-medium">Back to Campus Overview</span>
-            </button>
-            
+          <div className="flex items-center justify-end mb-8">
             <button
               onClick={handleRefresh}
               disabled={loading}
@@ -172,7 +159,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
           <div className="flex-1 flex items-center">
             <div className="flex items-center space-x-6">
               <div className="p-4 bg-white/10 backdrop-blur-sm rounded-2xl border border-white/20 group hover:bg-white/20 transition-colors shadow-xl">
-                <IconComponent className="h-10 w-10 text-white group-hover:scale-110 transition-transform" />
+                <IconComponent className="h-12 w-12 text-white group-hover:scale-110 transition-transform" />
               </div>
               <div>
                 <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 flex items-center">
@@ -189,7 +176,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
       </div>
 
       <div className="w-full pb-24">
-        <div className="px-4 md:px-8 py-8 w-full max-w-6xl mx-auto">
+        <TracingBeam className="max-w-6xl mx-auto px-4 md:px-8 py-8">
           <div ref={contentRef} className="min-h-[500px]">
             {loading && (
               <div className="flex items-center justify-center py-24">
@@ -257,7 +244,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
               </div>
             )}
           </div>
-        </div>
+        </TracingBeam>
       </div>
     </div>
   );
