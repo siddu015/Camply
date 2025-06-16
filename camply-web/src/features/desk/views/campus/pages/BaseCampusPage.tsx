@@ -26,7 +26,7 @@ interface BaseCampusPageProps {
 export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: BaseCampusPageProps) {
   const [session, setSession] = useState<any>(null);
   const [content, setContent] = useState<string>('');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   
@@ -51,19 +51,24 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   }, []);
 
   useEffect(() => {
-    if (session?.user?.id && college?.college_id) {
-      fetchContent();
+    if (initialized) {
+      if (session?.user?.id && college?.college_id) {
+        fetchContent();
+      } else {
+        setLoading(false);
+      }
     }
-  }, [session?.user?.id, college?.college_id, featureId]);
+  }, [initialized, session?.user?.id, college?.college_id, featureId]);
 
   const fetchContent = async (forceRefresh = false) => {
-    if (!session?.user?.id || !college || !promptConfig) {
-      setError('Required information not available');
-      return;
-    }
-
     setLoading(true);
     setError(null);
+
+    if (!session?.user?.id || !college || !promptConfig) {
+      setError('Required information not available');
+      setLoading(false);
+      return;
+    }
 
     try {
       if (!forceRefresh) {
@@ -131,7 +136,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   return (
     <div className="min-h-screen bg-background w-full overflow-x-hidden">
       <div 
-        className="relative h-72 -mt-6 mb-6 overflow-hidden w-full"
+        className="relative h-72 -mt-6 mb-0 overflow-hidden w-full"
       >
 
         <div className="relative z-10 px-8 h-full flex flex-col max-w-7xl mx-auto">
@@ -189,9 +194,9 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
         </div>
       </div>
 
-      <div className="w-full pb-24">
+      <div className="w-full">
         {!loading && content ? (
-          <TracingBeam className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+          <TracingBeam className="max-w-6xl mx-auto px-4 md:px-8 pb-8">
             <div ref={contentRef} className="min-h-[500px]">
               <div className="bg-background border border-border rounded-xl shadow-sm overflow-hidden">
                 <div className="p-8 md:p-12">
@@ -201,7 +206,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
             </div>
           </TracingBeam>
         ) : (
-          <div className="max-w-6xl mx-auto px-4 md:px-8 py-8">
+          <div className="max-w-6xl mx-auto px-4 md:px-8 pb-8">
             <div className="min-h-[500px]">
               {loading && (
                 <div className="flex items-center justify-center py-24">
@@ -232,27 +237,6 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
                     className="px-6 py-3 bg-destructive text-destructive-foreground rounded-full hover:bg-destructive/90 transition-all transform hover:scale-105 focus:ring-2 focus:ring-destructive/20 focus:outline-none"
                   >
                     Try Again
-                  </button>
-                </div>
-              )}
-
-              {!content && !loading && !error && (
-                <div className="text-center py-24">
-                  <div className="relative flex flex-col items-center">
-                    <div className="absolute -inset-x-16 -inset-y-16 opacity-20">
-                      <div className="w-full h-full rounded-full bg-gradient-to-r from-primary/40 to-primary-foreground/10 blur-3xl" />
-                    </div>
-                    <Bot className="h-20 w-20 text-primary mx-auto" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground mt-8 mb-3">No Content Available</h3>
-                  <p className="text-muted-foreground mb-8 max-w-md mx-auto">
-                    Click the button below to generate fresh content for this section.
-                  </p>
-                  <button
-                    onClick={() => fetchContent()}
-                    className="px-8 py-4 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-all transform hover:scale-105 focus:ring-2 focus:ring-primary/20 focus:outline-none shadow-md"
-                  >
-                    Generate Content
                   </button>
                 </div>
               )}

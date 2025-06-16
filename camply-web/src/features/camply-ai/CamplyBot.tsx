@@ -158,9 +158,9 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
         )}
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.95 }}
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        initial={{ scale: 0, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'tween', ease: 'easeOut', duration: 0.4 }}
       >
         <img 
           src="/logo.png" 
