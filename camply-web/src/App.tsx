@@ -12,6 +12,7 @@ import { CampusOverview } from './features/desk-sidebar/views/CampusOverview';
 import { AcademicOverview } from './features/desk-sidebar/views/AcademicOverview';
 import { CurrentSemester } from './features/desk-sidebar/views/CurrentSemester';
 import { Courses } from './features/desk-sidebar/views/Courses';
+import { CampusFeaturePage } from './features/desk-sidebar/views/campus-pages/CampusFeaturePage';
 import { OfflinePage } from './components/OfflinePage';
 
 function App() {
@@ -121,6 +122,7 @@ const AuthenticatedRoutes = ({ session }: { session: Session }) => {
         <Route path="/profile/academics" element={<AcademicOverview />} />
         <Route path="/semester/overview" element={<CurrentSemester />} />
         <Route path="/semester/courses" element={<Courses />} />
+        <Route path="/desk/campus/:feature" element={<CampusFeaturePage />} />
         <Route path="/" element={<Navigate to="/desk" replace />} />
         <Route path="*" element={<Navigate to="/desk" replace />} />
       </Routes>
