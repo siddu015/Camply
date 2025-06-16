@@ -1,5 +1,4 @@
 "use client";
-import React from "react";
 import { SparklesCore } from "@/components/ui/sparkles";
 import { signInWithGoogle } from '@/lib/supabase';
 

@@ -20,7 +20,6 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [session, setSession] = useState<any>(null);
-  const [botStatus, setBotStatus] = useState({ isOnline: false, responseTime: 0 });
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
@@ -42,13 +41,6 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
     const initializeBot = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setSession(session);
-
-      const isOnline = await camplyBotService.checkHealth();
-      const status = camplyBotService.getStatus();
-      setBotStatus({ 
-        isOnline, 
-        responseTime: status.responseTime || 0 
-      });
     };
 
     initializeBot();

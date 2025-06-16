@@ -1,4 +1,4 @@
-import { RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { RefreshCw, WifiOff } from 'lucide-react';
 
 interface OfflinePageProps {
   onRetry: () => void;

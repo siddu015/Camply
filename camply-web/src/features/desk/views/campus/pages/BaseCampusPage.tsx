@@ -38,7 +38,7 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
   const [cacheStatus, setCacheStatus] = useState<CacheStatus>({ isCached: false });
   
   const navigate = useNavigate();
-  const { user, academicDetails, college } = useCampusData(session?.user?.id);
+  const { academicDetails, college } = useCampusData(session?.user?.id);
   
   const camplyBot = CamplyBotService.getInstance();
   const cacheService = CampusCacheService.getInstance();

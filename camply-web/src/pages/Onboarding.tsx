@@ -11,7 +11,7 @@ interface OnboardingProps {
 
 const Onboarding = ({ session, onOnboardingComplete }: OnboardingProps) => {
   const navigate = useNavigate();
-  const { userStatus, loading, error, saveUserData, refreshUser } = useUserData(session);
+  const { userStatus, loading, error, saveUserData } = useUserData(session);
 
   const handleFormSubmit = async (formData: UserFormData) => {
     try {
