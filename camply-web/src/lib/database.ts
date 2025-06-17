@@ -236,13 +236,12 @@ export const getUserCampusData = async (userId: string): Promise<{
               .select('semester_number')
               .eq('academic_id', academicData.academic_id)
               .order('semester_number', { ascending: false })
-              .limit(1)
-              .single();
+              .limit(1);
             
             if (semesterError && semesterError.code !== 'PGRST116') {
               console.warn('No semesters found:', semesterError);
-            } else if (semesterData) {
-              currentSemester = semesterData.semester_number;
+            } else if (semesterData && semesterData.length > 0) {
+              currentSemester = semesterData[0].semester_number;
             }
           } catch (semesterErr) {
             console.warn('Error fetching semester data:', semesterErr);

@@ -90,7 +90,7 @@ export const subscribeToHandbookChanges = (
   callback: () => void
 ) => {
   return supabase
-    .channel('handbook-updates')
+    .channel(`handbook-updates-${userId}`)
     .on(
       'postgres_changes',
       {

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, Loader2, Book, Bot, User } from "lucide-react";
+import { Send, MessageCircle, Loader2, Bot, User } from "lucide-react";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "motion/react";
@@ -31,7 +31,6 @@ export function HandbookQuery({
   const { 
     handbookExists, 
     loading: checkingHandbook, 
-    error: handbookError,
     refreshHandbook 
   } = useHandbook(userId);
 
@@ -57,7 +56,7 @@ export function HandbookQuery({
     };
 
     checkHandbookStatus();
-  }, [handbookExists, userId]);
+  }, [handbookExists, userId, refreshHandbook]);  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
