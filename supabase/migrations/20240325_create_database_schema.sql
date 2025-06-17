@@ -34,7 +34,6 @@ create table public.user_academic_details (
   admission_year integer not null,
   graduation_year integer not null,
   roll_number varchar not null,
-  college_rulebook_url text,
   latest_semester_id uuid,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -77,6 +76,52 @@ create table public.campus_ai_content (
   is_active boolean default true
 );
 
+-- User Handbooks table for handbook upload and processing system
+create table public.user_handbooks (
+  handbook_id uuid primary key default uuid_generate_v4(),
+  user_id uuid references public.users not null,
+  academic_id uuid references public.user_academic_details not null,
+
+  -- Storage info
+  storage_path text not null,
+  original_filename varchar not null,
+  file_size_bytes bigint,
+
+  -- Processing status
+  processing_status varchar default 'uploaded' check (processing_status in ('uploaded', 'processing', 'completed', 'failed')),
+  upload_date timestamp with time zone default timezone('utc'::text, now()) not null,
+  processed_date timestamp with time zone,
+  processing_started_at timestamp with time zone,
+  error_message text,
+
+  -- Structured JSON Data (extracted from handbook)
+  basic_info jsonb,
+  semester_structure jsonb,
+  examination_rules jsonb,
+  evaluation_criteria jsonb,
+  attendance_policies jsonb,
+  academic_calendar jsonb,
+  course_details jsonb,
+  assessment_methods jsonb,
+  disciplinary_rules jsonb,
+  graduation_requirements jsonb,
+  fee_structure jsonb,
+  facilities_rules jsonb,
+
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Create handbooks storage bucket (for handbook file storage)
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) 
+values (
+  'handbooks', 
+  'handbooks', 
+  false, 
+  104857600, -- 100MB limit
+  array['application/pdf']
+);
+
 -- Enable RLS
 alter table public.users enable row level security;
 alter table public.user_academic_details enable row level security;
@@ -84,6 +129,7 @@ alter table public.semesters enable row level security;
 alter table public.courses enable row level security;
 alter table public.colleges enable row level security;
 alter table public.campus_ai_content enable row level security;
+alter table public.user_handbooks enable row level security;
 
 -- Policies for users
 create policy "Users can view own data" on public.users
@@ -168,6 +214,38 @@ create policy "Anyone can view campus AI content" on public.campus_ai_content
 create policy "System can manage campus AI content" on public.campus_ai_content
   for all using (false);
 
+-- Handbook policies
+create policy "Users can view own handbooks" on public.user_handbooks
+  for select using (user_id = auth.uid());
+create policy "Users can insert own handbooks" on public.user_handbooks
+  for insert with check (user_id = auth.uid());
+create policy "Users can update own handbooks" on public.user_handbooks
+  for update using (user_id = auth.uid());
+create policy "Users can delete own handbooks" on public.user_handbooks
+  for delete using (user_id = auth.uid());
+
+-- Storage policies for handbooks bucket
+create policy "Users can upload own handbooks" on storage.objects
+  for insert with check (
+    bucket_id = 'handbooks' 
+    and auth.uid()::text = (storage.foldername(name))[1]
+  );
+create policy "Users can view own handbooks" on storage.objects
+  for select using (
+    bucket_id = 'handbooks' 
+    and auth.uid()::text = (storage.foldername(name))[1]
+  );
+create policy "Users can update own handbooks" on storage.objects
+  for update using (
+    bucket_id = 'handbooks' 
+    and auth.uid()::text = (storage.foldername(name))[1]
+  );
+create policy "Users can delete own handbooks" on storage.objects
+  for delete using (
+    bucket_id = 'handbooks' 
+    and auth.uid()::text = (storage.foldername(name))[1]
+  );
+
 -- Add foreign key constraints after tables are created
 alter table public.users 
   add constraint fk_academic_details 
@@ -183,6 +261,12 @@ alter table public.user_academic_details
 create index idx_campus_ai_content_college_id on public.campus_ai_content(college_id);
 create index idx_campus_ai_content_active on public.campus_ai_content(college_id, is_active) where is_active = true;
 
+-- Add indexes for handbook queries
+create index idx_user_handbooks_user_id on public.user_handbooks(user_id);
+create index idx_user_handbooks_academic_id on public.user_handbooks(academic_id);    
+create index idx_user_handbooks_status on public.user_handbooks(processing_status);
+create index idx_user_handbooks_upload_date on public.user_handbooks(upload_date desc);
+
 -- Add trigger to update updated_at timestamp for campus AI content
 create or replace function update_updated_at_column()
 returns trigger as $$
@@ -194,4 +278,9 @@ $$ language 'plpgsql';
 
 create trigger update_campus_ai_content_updated_at 
     before update on public.campus_ai_content 
+    for each row execute function update_updated_at_column();
+
+-- Add trigger for handbook updated_at timestamp
+create trigger update_user_handbooks_updated_at 
+    before update on public.user_handbooks 
     for each row execute function update_updated_at_column(); 
