@@ -7,7 +7,7 @@ export const checkHandbookExists = async (userId: string): Promise<boolean> => {
       .from('user_handbooks')
       .select('handbook_id')
       .eq('user_id', userId)
-      .eq('processing_status', 'completed')
+      .in('processing_status', ['uploaded', 'processing', 'completed'])
       .limit(1);
 
     if (error) {
@@ -28,15 +28,17 @@ export const getUserHandbook = async (userId: string): Promise<UserHandbook | nu
       .from('user_handbooks')
       .select('*')
       .eq('user_id', userId)
-      .eq('processing_status', 'completed')
+      .in('processing_status', ['uploaded', 'processing', 'completed'])
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single();
 
-    if (error) {
+    if (error && error.code !== 'PGRST116') {
       console.error('Error fetching handbook:', error);
       return null;
     }
 
-    return data;
+    return data || null;
   } catch (err) {
     console.error('Error fetching handbook:', err);
     return null;

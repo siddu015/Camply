@@ -6,10 +6,10 @@ import { motion, AnimatePresence } from "motion/react";
 import { useHandbook } from '../hooks/useHandbook';
 import { HandbookUpload } from './HandbookUpload';
 import { 
-  type QueryResponse, 
   processHandbookQuery, 
   getSuggestedQuestions 
 } from '../lib/handbookQuery';
+import type { QueryResponse } from '../lib/handbookQuery';
 
 interface HandbookQueryProps {
   userId: string;
@@ -23,6 +23,7 @@ export function HandbookQuery({
   const [question, setQuestion] = useState("");
   const [responses, setResponses] = useState<QueryResponse[]>([]);
   const [loading, setLoading] = useState(false);
+  const [handbookStatus, setHandbookStatus] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -30,6 +31,7 @@ export function HandbookQuery({
   const { 
     handbookExists, 
     loading: checkingHandbook, 
+    error: handbookError,
     refreshHandbook 
   } = useHandbook(userId);
 
@@ -40,6 +42,22 @@ export function HandbookQuery({
   useEffect(() => {
     scrollToBottom();
   }, [responses]);
+
+  useEffect(() => {
+    const checkHandbookStatus = async () => {
+      if (handbookExists) {
+        try {
+          const { getUserHandbook } = await import('../lib/handbook');
+          const handbook = await getUserHandbook(userId);
+          setHandbookStatus(handbook?.processing_status || null);
+        } catch (err) {
+          console.error('Error checking handbook status:', err);
+        }
+      }
+    };
+
+    checkHandbookStatus();
+  }, [handbookExists, userId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -145,6 +163,39 @@ export function HandbookQuery({
         <h3 className="text-lg font-semibold text-foreground">Ask Your Handbook</h3>
       </div>
 
+      {handbookStatus && handbookStatus !== 'completed' && (
+        <div className="mx-6 mb-4">
+          <div className={cn(
+            "p-3 rounded-lg border",
+            handbookStatus === 'uploaded' || handbookStatus === 'processing'
+              ? isDark 
+                ? "bg-blue-950/50 border-blue-800 text-blue-200"
+                : "bg-blue-50 border-blue-200 text-blue-800"
+              : isDark
+                ? "bg-red-950/50 border-red-800 text-red-200"
+                : "bg-red-50 border-red-200 text-red-800"
+          )}>
+            <div className="flex items-center space-x-2">
+              {handbookStatus === 'uploaded' || handbookStatus === 'processing' ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <MessageCircle className="h-4 w-4" />
+              )}
+              <span className="text-sm font-medium">
+                {handbookStatus === 'uploaded' && "Processing handbook..."}
+                {handbookStatus === 'processing' && "Processing handbook..."}
+                {handbookStatus === 'failed' && "Processing failed"}
+              </span>
+            </div>
+            <p className="text-xs mt-1">
+              {handbookStatus === 'uploaded' && "Your handbook is being analyzed. This may take a few minutes."}
+              {handbookStatus === 'processing' && "Your handbook is currently being processed. Please wait."}
+              {handbookStatus === 'failed' && "There was an error processing your handbook. Please try re-uploading."}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex-1 overflow-y-auto space-y-4 px-6 pr-4 min-h-0">
         <AnimatePresence>
           {responses.length === 0 && (
@@ -158,7 +209,7 @@ export function HandbookQuery({
               <p className="text-sm text-muted-foreground mt-1">
                 Ask questions about rules, policies, procedures, and more
               </p>
-              
+                            
               <div className="mt-6">
                 <p className="text-sm font-medium text-foreground mb-3">Try asking:</p>
                 <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
@@ -166,10 +217,12 @@ export function HandbookQuery({
                     <button
                       key={index}
                       onClick={() => handleSuggestedQuestion(suggestion)}
+                      disabled={handbookStatus !== 'completed'}
                       className={cn(
                         "text-xs px-3 py-2 rounded-lg text-left transition-colors",
                         "border border-border hover:border-primary/50",
-                        "hover:bg-primary/5 text-muted-foreground hover:text-foreground"
+                        "hover:bg-primary/5 text-muted-foreground hover:text-foreground",
+                        "disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-border"
                       )}
                     >
                       {suggestion}
@@ -271,8 +324,12 @@ export function HandbookQuery({
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder="Ask a question about your handbook..."
-                disabled={loading}
+                placeholder={
+                  handbookStatus !== 'completed'
+                    ? "Handbook is being processed..."
+                    : "Ask a question about your handbook..."
+                }
+                disabled={loading || handbookStatus !== 'completed'}
                 rows={1}
                 className={cn(
                   "w-full px-4 py-3 pr-12 border border-border rounded-xl resize-none",
@@ -284,7 +341,7 @@ export function HandbookQuery({
               />
               <button
                 type="submit"
-                disabled={loading || !question.trim()}
+                disabled={loading || !question.trim() || handbookStatus !== 'completed'}
                 className={cn(
                   "absolute right-3 top-1/2 -translate-y-1/2",
                   "p-2 rounded-lg transition-colors",

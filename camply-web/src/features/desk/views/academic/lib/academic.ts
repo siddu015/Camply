@@ -52,8 +52,7 @@ export const getAcademicDetails = async (userId: string): Promise<{
 
 export const calculateCurrentYear = (admissionYear: number): number => {
   const currentYear = new Date().getFullYear();
-  const currentMonth = new Date().getMonth() + 1; 
-  
+  const currentMonth = new Date().getMonth() + 1;  
   const academicYearStart = currentMonth >= 7 ? currentYear : currentYear - 1;
   const yearsSinceAdmission = academicYearStart - admissionYear;
   

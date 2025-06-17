@@ -92,10 +92,41 @@ export const processHandbookQuery = async (
   error?: string;
 }> => {
   try {
+    const { getUserHandbook } = await import('./handbook');
+    
     if (!handbookExists) {
       return {
         success: false,
         error: "No handbook found. Please upload a handbook first."
+      };
+    }
+
+    const handbook = await getUserHandbook(userId);
+    if (!handbook) {
+      return {
+        success: false,
+        error: "No handbook found. Please upload a handbook first."
+      };
+    }
+
+    if (handbook.processing_status === 'uploaded') {
+      return {
+        success: false,
+        error: "Your handbook is still being processed. Please wait a few minutes and try again."
+      };
+    }
+
+    if (handbook.processing_status === 'processing') {
+      return {
+        success: false,
+        error: "Your handbook is currently being processed. Please wait a few minutes and try again."
+      };
+    }
+
+    if (handbook.processing_status === 'failed') {
+      return {
+        success: false,
+        error: "There was an error processing your handbook. Please try re-uploading it."
       };
     }
 
