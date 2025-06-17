@@ -214,36 +214,37 @@ create policy "Anyone can view campus AI content" on public.campus_ai_content
 create policy "System can manage campus AI content" on public.campus_ai_content
   for all using (false);
 
--- Handbook policies
+-- Handbook policies (with TO clause for better performance)
 create policy "Users can view own handbooks" on public.user_handbooks
-  for select using (user_id = auth.uid());
+  for select to authenticated using (user_id = auth.uid());
 create policy "Users can insert own handbooks" on public.user_handbooks
-  for insert with check (user_id = auth.uid());
+  for insert to authenticated with check (user_id = auth.uid());
 create policy "Users can update own handbooks" on public.user_handbooks
-  for update using (user_id = auth.uid());
+  for update to authenticated using (user_id = auth.uid());
 create policy "Users can delete own handbooks" on public.user_handbooks
-  for delete using (user_id = auth.uid());
+  for delete to authenticated using (user_id = auth.uid());
 
--- Storage policies for handbooks bucket
+-- Storage policies for handbooks bucket (using improved folder structure)
 create policy "Users can upload own handbooks" on storage.objects
-  for insert with check (
+  for insert to authenticated with check (
     bucket_id = 'handbooks' 
-    and auth.uid()::text = (storage.foldername(name))[1]
+    and auth.role() = 'authenticated'
+    and (storage.foldername(name))[2] = auth.uid()::text
   );
 create policy "Users can view own handbooks" on storage.objects
-  for select using (
+  for select to authenticated using (
     bucket_id = 'handbooks' 
-    and auth.uid()::text = (storage.foldername(name))[1]
+    and (storage.foldername(name))[2] = auth.uid()::text
   );
 create policy "Users can update own handbooks" on storage.objects
-  for update using (
+  for update to authenticated using (
     bucket_id = 'handbooks' 
-    and auth.uid()::text = (storage.foldername(name))[1]
+    and (storage.foldername(name))[2] = auth.uid()::text
   );
 create policy "Users can delete own handbooks" on storage.objects
-  for delete using (
+  for delete to authenticated using (
     bucket_id = 'handbooks' 
-    and auth.uid()::text = (storage.foldername(name))[1]
+    and (storage.foldername(name))[2] = auth.uid()::text
   );
 
 -- Add foreign key constraints after tables are created
@@ -283,4 +284,9 @@ create trigger update_campus_ai_content_updated_at
 -- Add trigger for handbook updated_at timestamp
 create trigger update_user_handbooks_updated_at 
     before update on public.user_handbooks 
-    for each row execute function update_updated_at_column(); 
+    for each row execute function update_updated_at_column();
+
+-- Add comment for documentation
+comment on table public.user_handbooks is 'Stores uploaded academic handbooks and their processed data';
+comment on column public.user_handbooks.processing_status is 'Status: uploaded, processing, completed, failed';
+comment on column public.user_handbooks.storage_path is 'Path in Supabase Storage handbooks bucket'; 
