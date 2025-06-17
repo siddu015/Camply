@@ -21,7 +21,6 @@ export const useAcademicData = (userId: string | undefined): AcademicContextData
 
     const fetchAcademicData = async () => {
       try {
-        // Fetch user data
         const { data: userData, error: userError } = await supabase
           .from('users')
           .select('*')
@@ -30,7 +29,6 @@ export const useAcademicData = (userId: string | undefined): AcademicContextData
 
         if (userError) throw new Error('Failed to fetch user data');
         
-        // Fetch academic details if available
         let academicDetails = null;
         let college = null;
         
@@ -44,7 +42,6 @@ export const useAcademicData = (userId: string | undefined): AcademicContextData
           if (academicError) throw new Error('Failed to fetch academic details');
           academicDetails = academicData;
           
-          // Fetch college data if available
           if (academicData.college_id) {
             const { data: collegeData, error: collegeError } = await supabase
               .from('colleges')
@@ -57,7 +54,6 @@ export const useAcademicData = (userId: string | undefined): AcademicContextData
           }
         }
         
-        // Calculate current academic year
         const currentYear = calculateCurrentYear(academicDetails?.admission_year);
         const totalYears = academicDetails ? 
           academicDetails.graduation_year - academicDetails.admission_year : null;
@@ -87,15 +83,13 @@ export const useAcademicData = (userId: string | undefined): AcademicContextData
   return academicData;
 };
 
-// Helper function to calculate current academic year
 const calculateCurrentYear = (admissionYear: number | undefined): number | null => {
   if (!admissionYear) return null;
   
   const currentDate = new Date();
-  const currentMonth = currentDate.getMonth() + 1; // 0-indexed
+  const currentMonth = currentDate.getMonth() + 1;
   const currentYear = currentDate.getFullYear();
   
-  // Academic year calculation (assuming academic year starts in August)
   const yearDifference = currentYear - admissionYear;
   const adjustedYear = currentMonth < 8 ? yearDifference : yearDifference + 1;
   

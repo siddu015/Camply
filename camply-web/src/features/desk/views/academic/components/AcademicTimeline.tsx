@@ -18,7 +18,6 @@ export const AcademicTimeline = ({ admissionYear, graduationYear, currentYear }:
   const currentProgress = currentYear || 0;
   const progressPercentage = Math.min(Math.max((currentProgress / totalYears) * 100, 0), 100);
   
-  // Generate timeline items
   const timelineItems: TimelineItem[] = [];
   for (let i = 0; i <= totalYears; i++) {
     const year = admissionYear + i;
@@ -42,7 +41,6 @@ export const AcademicTimeline = ({ admissionYear, graduationYear, currentYear }:
         Academic Timeline
       </h2>
       
-      {/* Progress bar */}
       <div className="mb-8">
         <div className="flex justify-between mb-2">
           <span className="text-sm text-muted-foreground">Progress</span>
@@ -56,12 +54,9 @@ export const AcademicTimeline = ({ admissionYear, graduationYear, currentYear }:
         </div>
       </div>
       
-      {/* Timeline */}
       <div className="relative">
-        {/* Timeline line */}
         <div className="absolute top-0 left-4 w-0.5 h-full bg-border" />
         
-        {/* Timeline points */}
         <div className="space-y-6">
           {timelineItems.map((item, index) => (
             <div key={index} className="relative pl-12">

@@ -5,7 +5,8 @@ import { cn } from '@/lib/utils';
 import { AcademicDetails } from '../components/AcademicDetails';
 import { AcademicTimeline } from '../components/AcademicTimeline';
 import { useAcademicData } from '../hooks/useAcademicData';
-import { GraduationCap, Loader2 } from 'lucide-react';
+import { GraduationCap } from 'lucide-react';
+import SimpleLoader from '@/components/SimpleLoader';
 
 export function AcademicOverview() {
   const [session, setSession] = useState<any>(null);
@@ -33,15 +34,8 @@ export function AcademicOverview() {
     return () => subscription.unsubscribe();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[60vh]">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-primary mx-auto" />
-          <h3 className="text-lg font-semibold text-foreground mt-4">Loading academic details...</h3>
-        </div>
-      </div>
-    );
+  if (loading || !session) {
+    return <SimpleLoader />;
   }
 
   if (error) {
@@ -64,7 +58,6 @@ export function AcademicOverview() {
 
   return (
     <div className="w-full animate-in fade-in-50 duration-300 slide-in-from-bottom-2">
-      {/* Header */}
       <div className={cn(
         "px-6 py-10 rounded-xl mb-6",
         isDark ? "bg-primary/10" : "bg-primary/5"
@@ -83,7 +76,6 @@ export function AcademicOverview() {
         </div>
       </div>
 
-      {/* Content */}
       <div className="space-y-6">
         <AcademicDetails 
           user={user}
