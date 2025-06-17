@@ -34,19 +34,19 @@
 
 **Campus Component Enhancements**
 
-[//]: # (- Button prompts in the campus-content section should open dedicated pages)
-[//]: # (- These pages should display responses as clear, well-formatted markdown)
-[//]: # (- Pages should professionally render markdown responses for optimal readability)
-[//]: # (- Generated responses should be saved and not updated on every click &#40;cached for one day&#41;)
+<!-- - Button prompts in the campus-content section should open dedicated pages
+- These pages should display responses as clear, well-formatted markdown
+- Pages should professionally render markdown responses for optimal readability
+- Generated responses should be saved and not updated on every click;cached for one day -->
 - Create defined prompt files for each button with clear specifications including:
   - What the response should include
   - Whether images are needed
   - Complete page layout requirements from top to bottom
 - Implement contextual help: when users select specific text in responses, they can click "Explain More Clearly" to display additional clarification in a dialog above or below the selected text
-
+etails
 **Academic Component Development**
 
-- Display comprehensive user academic details
+- Display comprehensive user academic d
 - Show academic timeline for each semester
 - Implement department/branch handbook collection system:
   - Store handbooks in Supabase
@@ -97,7 +97,8 @@
 
 **Navigation and User Management**
 
-- Implement clickable breadcrumbs for easy page navigation
+<!-- - Implement clickable breadcrumbs for easy page navigation -->
+
 - Create comprehensive profile page for user detail display and updates
 - Develop settings page (features to be determined)
 
