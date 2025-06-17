@@ -2,9 +2,9 @@ import { useState } from "react";
 import { Loader2, AlertCircle, CheckCircle, Book } from "lucide-react";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
-import { supabase } from "@/lib/supabase";
 import type { UserHandbook } from "@/types/database";
 import { FileUpload } from "@/components/ui/file-upload";
+import { uploadHandbook } from '../lib/handbookUpload';
 
 interface HandbookUploadProps {
   userId: string;
@@ -23,18 +23,7 @@ export function HandbookUpload({
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  const validateFile = (file: File): string | null => {
-    if (file.type !== "application/pdf") {
-      return "Please upload a PDF file only";
-    }
-    if (file.size > 100 * 1024 * 1024) {
-      // 100MB limit
-      return "File size must be less than 100MB";
-    }
-    return null;
-  };
-
-  const uploadHandbook = async (files: File[]) => {
+  const handleFileUpload = async (files: File[]) => {
     if (files.length === 0) return;
     
     const file = files[0];
@@ -43,57 +32,18 @@ export function HandbookUpload({
     setSuccess(null);
 
     try {
-      // Validate file
-      const validationError = validateFile(file);
-      if (validationError) {
-        setError(validationError);
-        return;
+      const result = await uploadHandbook(file, userId, academicId);
+      
+      if (result.success && result.handbook) {
+        setSuccess("Handbook uploaded successfully! Processing will begin shortly.");
+        onUploadSuccess(result.handbook);
+      } else {
+        setError(result.error || "Upload failed");
       }
-
-      // Generate unique filename
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2)}.${fileExt}`;
-      const filePath = `user-handbooks/${userId}/${fileName}`;
-
-      // Upload to Supabase Storage
-      const { error: uploadError } = await supabase.storage
-        .from("handbooks")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Create database record
-      const { data: handbook, error: dbError } = await supabase
-        .from("user_handbooks")
-        .insert({
-          user_id: userId,
-          academic_id: academicId,
-          storage_path: filePath,
-          original_filename: file.name,
-          file_size_bytes: file.size,
-        })
-        .select()
-        .single();
-
-      if (dbError) throw dbError;
-
-      // Trigger backend processing
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      await fetch(`${backendUrl}/process-handbook`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          handbook_id: handbook.handbook_id,
-          user_id: userId,
-        }),
-      });
-
-      setSuccess("Handbook uploaded successfully! Processing will begin shortly.");
-      onUploadSuccess(handbook);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed");
+      console.error('Upload error:', err);
+      const errorMessage = err instanceof Error ? err.message : "Upload failed";
+      setError(errorMessage);
     } finally {
       setUploading(false);
     }
@@ -125,11 +75,10 @@ export function HandbookUpload({
               </p>
             </div>
           ) : (
-            <FileUpload onChange={uploadHandbook} />
+            <FileUpload onChange={handleFileUpload} />
           )}
         </div>
 
-        {/* File Requirements */}
         <div className={cn(
           "p-4 rounded-lg",
           isDark ? "bg-muted/30" : "bg-muted/20"
@@ -145,7 +94,6 @@ export function HandbookUpload({
           </ul>
         </div>
 
-        {/* Success Message */}
         {success && (
           <div className="flex items-center space-x-3 text-green-600 bg-green-50 dark:bg-green-950/30 p-4 rounded-lg border border-green-200 dark:border-green-900">
             <CheckCircle className="h-5 w-5 flex-shrink-0" />
@@ -153,7 +101,6 @@ export function HandbookUpload({
           </div>
         )}
 
-        {/* Error Message */}
         {error && (
           <div className="flex items-center space-x-3 text-red-600 bg-red-50 dark:bg-red-950/30 p-4 rounded-lg border border-red-200 dark:border-red-900">
             <AlertCircle className="h-5 w-5 flex-shrink-0" />

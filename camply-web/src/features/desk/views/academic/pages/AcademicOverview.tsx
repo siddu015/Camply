@@ -4,8 +4,6 @@ import { supabase } from '@/lib/supabase';
 import { cn } from '@/lib/utils';
 import { AcademicDetails } from '../components/AcademicDetails';
 import { AcademicTimeline } from '../components/AcademicTimeline';
-import { HandbookUpload } from '../components/HandbookUpload';
-import { HandbookStatus } from '../components/HandbookStatus';
 import { HandbookQuery } from '../components/HandbookQuery';
 import { useAcademicData } from '../hooks/useAcademicData';
 import { GraduationCap } from 'lucide-react';
@@ -13,7 +11,6 @@ import SimpleLoader from '@/components/SimpleLoader';
 
 export function AcademicOverview() {
   const [session, setSession] = useState<any>(null);
-  const [handbookReady, setHandbookReady] = useState(false);
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
@@ -93,30 +90,10 @@ export function AcademicOverview() {
           currentYear={currentYear}
         />
 
-        {/* Handbook Management Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <HandbookUpload
-              userId={user.user_id}
-              academicId={academicDetails.academic_id!}
-              onUploadSuccess={() => {
-                // Refresh will be handled by real-time subscription
-              }}
-            />
-
-            <HandbookStatus
-              userId={user.user_id}
-              onHandbookReady={() => setHandbookReady(true)}
-            />
-          </div>
-
-          <div className="lg:h-[600px]">
-            <HandbookQuery 
-              userId={user.user_id} 
-              disabled={!handbookReady} 
-            />
-          </div>
-        </div>
+        <HandbookQuery 
+          userId={user.user_id}
+          academicId={academicDetails.academic_id!}
+        />
       </div>
     </div>
   );

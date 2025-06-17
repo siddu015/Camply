@@ -3,22 +3,22 @@ import { Send, MessageCircle, Loader2, Book, Bot, User } from "lucide-react";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "motion/react";
+import { useHandbook } from '../hooks/useHandbook';
+import { HandbookUpload } from './HandbookUpload';
+import { 
+  type QueryResponse, 
+  processHandbookQuery, 
+  getSuggestedQuestions 
+} from '../lib/handbookQuery';
 
 interface HandbookQueryProps {
   userId: string;
-  disabled?: boolean;
-}
-
-interface QueryResponse {
-  question: string;
-  answer: string;
-  timestamp: string;
-  id: string;
+  academicId: string;
 }
 
 export function HandbookQuery({
   userId,
-  disabled = false,
+  academicId,
 }: HandbookQueryProps) {
   const [question, setQuestion] = useState("");
   const [responses, setResponses] = useState<QueryResponse[]>([]);
@@ -26,6 +26,12 @@ export function HandbookQuery({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  
+  const { 
+    handbookExists, 
+    loading: checkingHandbook, 
+    refreshHandbook 
+  } = useHandbook(userId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -37,52 +43,53 @@ export function HandbookQuery({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question.trim() || loading || disabled) return;
+    if (!question.trim() || loading || !handbookExists) return;
 
     setLoading(true);
     const currentQuestion = question.trim();
     setQuestion("");
 
-    // Add user message immediately
-    const userResponse: QueryResponse = {
-      id: Date.now().toString(),
-      question: currentQuestion,
-      answer: "",
-      timestamp: new Date().toISOString(),
-    };
-
-    setResponses((prev) => [...prev, userResponse]);
-
     try {
-      const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
-      const response = await fetch(`${backendUrl}/query-handbook`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+      const result = await processHandbookQuery(currentQuestion, userId, handbookExists);
+      
+      if (result.success && result.userResponse && result.botResponse) {
+        setResponses((prev) => [...prev, result.userResponse!, result.botResponse!]);
+      } else if (result.userResponse && result.botResponse) {
+        setResponses((prev) => [...prev, result.userResponse!, result.botResponse!]);
+      } else if (result.error) {
+        const userResponse: QueryResponse = {
+          id: Date.now().toString(),
           question: currentQuestion,
-          user_id: userId,
-        }),
-      });
-
-      const data = await response.json();
-
-      const botResponse: QueryResponse = {
-        id: (Date.now() + 1).toString(),
-        question: "",
-        answer: data.answer || "Sorry, I could not find information about that in your handbook.",
+          answer: "",
+          timestamp: new Date().toISOString(),
+        };
+        
+        const errorResponse: QueryResponse = {
+          id: (Date.now() + 1).toString(),
+          question: "",
+          answer: result.error,
+          timestamp: new Date().toISOString(),
+        };
+        
+        setResponses((prev) => [...prev, userResponse, errorResponse]);
+      }
+    } catch (err) {
+      console.error('Query error:', err);
+      const userResponse: QueryResponse = {
+        id: Date.now().toString(),
+        question: currentQuestion,
+        answer: "",
         timestamp: new Date().toISOString(),
       };
-
-      setResponses((prev) => [...prev, botResponse]);
-    } catch (err) {
+      
       const errorResponse: QueryResponse = {
         id: (Date.now() + 1).toString(),
         question: "",
-        answer: "Sorry, there was an error processing your question. Please try again.",
+        answer: err instanceof Error ? err.message : "Sorry, there was an error processing your question. Please try again.",
         timestamp: new Date().toISOString(),
       };
-
-      setResponses((prev) => [...prev, errorResponse]);
+      
+      setResponses((prev) => [...prev, userResponse, errorResponse]);
     } finally {
       setLoading(false);
     }
@@ -95,9 +102,40 @@ export function HandbookQuery({
     }
   };
 
+  const handleUploadSuccess = () => {
+    refreshHandbook();
+  };
+
+  const handleSuggestedQuestion = (suggestedQuestion: string) => {
+    setQuestion(suggestedQuestion);
+  };
+
+  if (checkingHandbook) {
+    return (
+      <div className="bg-background border border-border rounded-xl h-full flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Checking handbook status...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (handbookExists === false) {
+    return (
+      <HandbookUpload
+        userId={userId}
+        academicId={academicId}
+        onUploadSuccess={handleUploadSuccess}
+      />
+    );
+  }
+
+  const suggestedQuestions = getSuggestedQuestions();
+
   return (
-    <div className="bg-background border border-border rounded-xl p-6 h-full flex flex-col">
-      <div className="flex items-center space-x-3 mb-6">
+    <div className="bg-background border border-border rounded-xl h-full flex flex-col">
+      <div className="flex items-center space-x-3 p-6 pb-4">
         <div className={cn(
           "p-2 rounded-lg",
           isDark ? "bg-primary/10" : "bg-primary/5",
@@ -107,23 +145,9 @@ export function HandbookQuery({
         <h3 className="text-lg font-semibold text-foreground">Ask Your Handbook</h3>
       </div>
 
-      {disabled && (
-        <div className={cn(
-          "p-4 rounded-lg mb-6 text-center",
-          isDark ? "bg-muted/30" : "bg-muted/20"
-        )}>
-          <Book className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-          <p className="text-muted-foreground font-medium">Upload and process a handbook first</p>
-          <p className="text-sm text-muted-foreground mt-1">
-            Once your handbook is processed, you can ask questions about it here.
-          </p>
-        </div>
-      )}
-
-      {/* Chat History */}
-      <div className="flex-1 overflow-y-auto space-y-4 mb-6 min-h-[300px] max-h-[400px] pr-2">
+      <div className="flex-1 overflow-y-auto space-y-4 px-6 pr-4 min-h-0">
         <AnimatePresence>
-          {responses.length === 0 && !disabled && (
+          {responses.length === 0 && (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -134,6 +158,25 @@ export function HandbookQuery({
               <p className="text-sm text-muted-foreground mt-1">
                 Ask questions about rules, policies, procedures, and more
               </p>
+              
+              <div className="mt-6">
+                <p className="text-sm font-medium text-foreground mb-3">Try asking:</p>
+                <div className="grid grid-cols-1 gap-2 max-w-md mx-auto">
+                  {suggestedQuestions.slice(0, 4).map((suggestion, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleSuggestedQuestion(suggestion)}
+                      className={cn(
+                        "text-xs px-3 py-2 rounded-lg text-left transition-colors",
+                        "border border-border hover:border-primary/50",
+                        "hover:bg-primary/5 text-muted-foreground hover:text-foreground"
+                      )}
+                    >
+                      {suggestion}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </motion.div>
           )}
 
@@ -219,55 +262,50 @@ export function HandbookQuery({
         </AnimatePresence>
         <div ref={messagesEndRef} />
       </div>
-
-      {/* Query Input */}
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="flex space-x-3">
-          <div className="flex-1 relative">
-            <textarea
-              value={question}
-              onChange={(e) => setQuestion(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={
-                disabled
-                  ? "Upload and process a handbook first"
-                  : "Ask a question about your handbook..."
-              }
-              disabled={disabled || loading}
-              rows={1}
-              className={cn(
-                "w-full px-4 py-3 pr-12 border border-border rounded-xl resize-none",
-                "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
-                "disabled:bg-muted disabled:cursor-not-allowed",
-                "bg-background text-foreground placeholder:text-muted-foreground"
-              )}
-              style={{ minHeight: '48px', maxHeight: '120px' }}
-            />
-            <button
-              type="submit"
-              disabled={disabled || loading || !question.trim()}
-              className={cn(
-                "absolute right-3 top-1/2 -translate-y-1/2",
-                "p-2 rounded-lg transition-colors",
-                "hover:bg-primary/10 disabled:opacity-50 disabled:cursor-not-allowed",
-                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-              )}
-            >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin text-primary" />
-              ) : (
-                <Send className="h-5 w-5 text-primary" />
-              )}
-            </button>
+            
+      <div className="border-t border-border p-6 pt-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="flex space-x-3">
+            <div className="flex-1 relative">
+              <textarea
+                value={question}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask a question about your handbook..."
+                disabled={loading}
+                rows={1}
+                className={cn(
+                  "w-full px-4 py-3 pr-12 border border-border rounded-xl resize-none",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent",
+                  "disabled:bg-muted disabled:cursor-not-allowed",
+                  "bg-background text-foreground placeholder:text-muted-foreground"
+                )}
+                style={{ minHeight: '48px', maxHeight: '120px' }}
+              />
+              <button
+                type="submit"
+                disabled={loading || !question.trim()}
+                className={cn(
+                  "absolute right-3 top-1/2 -translate-y-1/2",
+                  "p-2 rounded-lg transition-colors",
+                  "hover:bg-primary/10 disabled:opacity-50 disabled:cursor-not-allowed",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                )}
+              >
+                {loading ? (
+                  <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                ) : (
+                  <Send className="h-5 w-5 text-primary" />
+                )}
+              </button>
+            </div>
           </div>
-        </div>
 
-        {!disabled && (
           <div className="text-xs text-muted-foreground">
             <p>💡 <strong>Try asking:</strong> "What is the attendance policy?" or "How is CGPA calculated?"</p>
           </div>
-        )}
-      </form>
+        </form>
+      </div>
     </div>
   );
 } 
