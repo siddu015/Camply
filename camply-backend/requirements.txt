@@ -18,6 +18,13 @@ requests
 pydantic
 fastapi
 uvicorn
+python-multipart
+
+# PDF processing
+PyPDF2==3.0.1
 
 # Date and time handling
-python-dateutil 
+python-dateutil
+
+# Supabase client
+supabase>=2.15.0 

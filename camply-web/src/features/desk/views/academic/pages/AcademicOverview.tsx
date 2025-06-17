@@ -90,11 +90,15 @@ export function AcademicOverview() {
           currentYear={currentYear}
         />
 
-        <div className="min-h-[600px]">
-          <HandbookQuery 
-            userId={user.user_id}
-            academicId={academicDetails.academic_id!}
-          />
+        <div className="bg-card border border-border rounded-xl p-6">
+          <h2 className="text-xl font-semibold text-foreground mb-6">Department Handbook</h2>
+          
+          <div className="min-h-[600px]">
+            <HandbookQuery 
+              userId={user.user_id}
+              academicId={academicDetails.academic_id!}
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -43,7 +43,7 @@ export const queryHandbookBackend = async (
   userId: string
 ): Promise<string> => {
   try {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
     const response = await fetch(`${backendUrl}/query-handbook`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

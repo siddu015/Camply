@@ -3,9 +3,38 @@
 from supabase import create_client, Client
 from typing import Optional, Dict, Any
 from .config import Config
+import asyncpg
+import os
 
 # Initialize Supabase client with service role key for backend operations
 supabase: Client = create_client(Config.SUPABASE_URL, Config.get_supabase_backend_key())
+
+_connection_pool: Optional[asyncpg.Pool] = None
+
+async def get_database_connection():
+    """Get database connection from pool."""
+    global _connection_pool
+
+    if _connection_pool is None:
+        database_url = os.getenv("DATABASE_URL")
+        if not database_url:
+            raise Exception("DATABASE_URL environment variable not set")
+
+        _connection_pool = await asyncpg.create_pool(
+            database_url,
+            min_size=1,
+            max_size=10,
+            command_timeout=60
+        )
+
+    return await _connection_pool.acquire()
+
+async def close_connection_pool():
+    """Close the connection pool."""
+    global _connection_pool
+    if _connection_pool:
+        await _connection_pool.close()
+        _connection_pool = None
 
 class UserDataService:
     """Service for fetching user data from Supabase."""

@@ -162,6 +162,71 @@ async def chat_endpoint(request: ChatRequest):
             error=str(e)
         )
 
+# Handbook processing endpoints
+@app.post("/process-handbook")
+async def process_handbook_endpoint(request: dict):
+    """Process a handbook PDF."""
+    try:
+        print(f"Processing handbook request: {request}")
+        handbook_id = request.get("handbook_id")
+        user_id = request.get("user_id")
+
+        if not handbook_id or not user_id:
+            raise HTTPException(status_code=400, detail="Missing handbook_id or user_id")
+
+        print(f"Processing handbook {handbook_id} for user {user_id}")
+
+        # Import handbook tools
+        from student_desk.sub_agents.handbook_agent.tools import process_handbook_pdf
+
+        # Create mock tool context
+        class MockToolContext:
+            def __init__(self, user_id):
+                self.user_id = user_id
+
+        tool_context = MockToolContext(user_id)
+
+        print("Calling process_handbook_pdf...")
+        # Process handbook - access the underlying function from the FunctionTool
+        result = await process_handbook_pdf.func(handbook_id, tool_context=tool_context)
+        print(f"Process result: {result}")
+
+        return result
+
+    except Exception as e:
+        print(f"Error in process_handbook_endpoint: {e}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/query-handbook")
+async def query_handbook_endpoint(request: dict):
+    """Query handbook data."""
+    try:
+        question = request.get("question")
+        user_id = request.get("user_id")
+
+        if not question or not user_id:
+            raise HTTPException(status_code=400, detail="Missing question or user_id")
+
+        # Import handbook tools
+        from student_desk.sub_agents.handbook_agent.tools import query_handbook_data
+
+        # Create mock tool context
+        class MockToolContext:
+            def __init__(self, user_id):
+                self.user_id = user_id
+
+        tool_context = MockToolContext(user_id)
+
+        # Query handbook - access the underlying function from the FunctionTool
+        result = await query_handbook_data.func(question, tool_context=tool_context)
+
+        return result
+
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
