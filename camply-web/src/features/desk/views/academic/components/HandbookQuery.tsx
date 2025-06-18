@@ -326,7 +326,7 @@ export function HandbookQuery({
                 placeholder={
                   handbookStatus !== 'completed'
                     ? "Handbook is being processed..."
-                    : "Ask a question about your handbook..."
+                    : "Ask about attendance policy, exam rules, CGPA calculation..."
                 }
                 disabled={loading || handbookStatus !== 'completed'}
                 rows={1}
@@ -355,10 +355,6 @@ export function HandbookQuery({
                 )}
               </button>
             </div>
-          </div>
-
-          <div className="text-xs text-muted-foreground">
-            <p>💡 <strong>Try asking:</strong> "What is the attendance policy?" or "How is CGPA calculated?"</p>
           </div>
         </form>
       </div>

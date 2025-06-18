@@ -100,6 +100,8 @@ CRITICAL ROUTING RULES:
 - "How do I apply for academic leave?" → Route to handbook_agent
 - "What are the graduation requirements?" → Route to handbook_agent
 - "Process my handbook" → Route to handbook_agent
+- Queries starting with "Answer handbook question:" → Route to handbook_agent
+- Any query about rules, policies, procedures, academic calendar, disciplinary actions
 
 CRITICAL: When routing to `campus_agent` or `handbook_agent`, you MUST pass the `user_id` from the fetched user context. Your request must be a single string like this: 
 - Campus: "Fetch information about [topic] for user_id: [user_id_uuid]"
