@@ -8,45 +8,39 @@ from google.adk.tools import FunctionTool
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 
-from student_desk.tools.user_context_tool import get_user_context as root_get_user_context
 from shared import UserDataService
 
 @FunctionTool
-async def search_campus_intelligence(query: str, user_id: str = "", search_type: str = "general", *, tool_context) -> Dict[str, Any]:
-    """
-    Comprehensive campus intelligence tool with database-first approach and web search fallback.
-    Provides high-quality responses by combining cached content with contextual guidance.
-    
-    Args:
-        query: The search query (can be custom question or prompt-like request)
-        user_id: User ID to get college context
-        search_type: Type of search (general, news, academic, placement, facilities, events)
-        
-    Returns:
-        Comprehensive intelligence report with database content and actionable guidance
-    """
+async def search_campus_intelligence(query: str, search_type: str = "general", *, tool_context) -> Dict[str, Any]:
     try:
-        session_user_id = getattr(tool_context, 'user_id', None)
-        effective_user_id = user_id or session_user_id
+        session_state = getattr(tool_context, 'state', None)
+        if not session_state:
+            return {
+                "success": False,
+                "error": "session_unavailable",
+                "message": "Session state not available in tool context"
+            }
         
-        if not effective_user_id:
+        user_id = session_state.get('user_id') if hasattr(session_state, 'get') else getattr(session_state, 'user_id', None)
+        
+        if not user_id:
             return {
                 "success": False,
                 "error": "missing_user_id",
-                "message": "User ID is required for campus intelligence search"
+                "message": "User ID not found in session state"
             }
         
-        user_context_result = await root_get_user_context(tool_context=tool_context)
+        user_context = await UserDataService.get_user_context(user_id)
         
-        if not user_context_result.get("success"):
+        if not user_context:
             return {
                 "success": False,
-                "error": user_context_result.get("error", "Failed to get user context"),
+                "error": "user_context_failed",
                 "message": "Could not retrieve user context for campus search"
             }
         
-        college_name = user_context_result.get("college_name")
-        college_id = user_context_result.get("college_id")
+        college_name = user_context.get('college', {}).get('name')
+        college_id = user_context.get('academic_details', {}).get('college_id')
         
         if not college_name or not college_id:
             return {
@@ -61,7 +55,7 @@ async def search_campus_intelligence(query: str, user_id: str = "", search_type:
         relevant_content = find_relevant_database_content(campus_content, query_analysis) if campus_content else None
         
         formatted_response = generate_intelligent_response(
-            query, query_analysis, college_name, relevant_content, user_context_result
+            query, query_analysis, college_name, relevant_content, user_context
         )
         
         response_data = {
@@ -72,9 +66,9 @@ async def search_campus_intelligence(query: str, user_id: str = "", search_type:
                 "query_intent": query_analysis,
                 "analysis_timestamp": datetime.now().isoformat(),
                 "user_context": {
-                    "department": user_context_result.get("department_name"),
-                    "branch": user_context_result.get("branch_name"),
-                    "current_year": user_context_result.get("current_year")
+                    "department": user_context.get('academic_details', {}).get("department_name"),
+                    "branch": user_context.get('academic_details', {}).get("branch_name"),
+                    "current_year": user_context.get("current_year")
                 }
             },
             "content_sources": {
@@ -85,7 +79,7 @@ async def search_campus_intelligence(query: str, user_id: str = "", search_type:
             "formatted_response": formatted_response,
             "metadata": {
                 "search_type": search_type,
-                "personalized": bool(user_context_result.get("branch_name")),
+                "personalized": bool(user_context.get('academic_details', {}).get("branch_name")),
                 "timestamp": datetime.now().isoformat(),
                 "response_quality": "high" if relevant_content else "guidance"
             }
@@ -105,13 +99,11 @@ async def search_campus_intelligence(query: str, user_id: str = "", search_type:
             "message": f"Campus intelligence search failed: {str(e)}",
             "data": {
                 "query": query,
-                "fallback_message": f"Please visit {college_name}'s official website for current information"
+                "fallback_message": "Please visit the college's official website for current information"
             }
         }
 
 def analyze_query_intent(query: str) -> Dict[str, Any]:
-    """Analyze user query to determine intent and relevant content types."""
-    
     query_lower = query.lower()
     
     intent_keywords = {
@@ -142,8 +134,6 @@ def analyze_query_intent(query: str) -> Dict[str, Any]:
     }
 
 def find_relevant_database_content(campus_content: Optional[Dict], query_analysis: Dict) -> Optional[Dict]:
-    """Find relevant content from database based on query analysis."""
-    
     if not campus_content:
         return None
     
@@ -170,8 +160,6 @@ def find_relevant_database_content(campus_content: Optional[Dict], query_analysi
 
 def generate_intelligent_response(query: str, query_analysis: Dict, college_name: str, 
                                 relevant_content: Optional[Dict], user_context: Dict) -> str:
-    """Generate intelligent response combining database content with contextual guidance."""
-    
     department = user_context.get("department_name", "")
     branch = user_context.get("branch_name", "")
     primary_intent = query_analysis.get("primary_intent", "general")
@@ -271,8 +259,6 @@ def generate_intelligent_response(query: str, query_analysis: Dict, college_name
     return response
 
 def format_dict_to_text(data: Dict) -> str:
-    """Convert dictionary data to readable text format."""
-    
     if not isinstance(data, dict):
         return str(data)
     

@@ -11,13 +11,6 @@ from shared import UserDataService
 
 
 async def get_user_context(*, tool_context) -> Dict[str, Any]:
-    """
-    Fetch user context from database including academic details and college info.
-    Reads user_id from ADK session state (tool_context.state) as per ADK best practices.
-    
-    Returns:
-        Dictionary containing user data, academic details, and college information
-    """
     session_state = getattr(tool_context, 'state', None)
     if not session_state:
         return {
@@ -85,15 +78,6 @@ async def get_user_context(*, tool_context) -> Dict[str, Any]:
 
 
 def calculate_academic_year(admission_year: Optional[int]) -> str:
-    """
-    Calculate the current academic year based on admission year.
-    
-    Args:
-        admission_year: The year the student was admitted
-        
-    Returns:
-        String representation of current academic year
-    """
     if not admission_year:
         return "N/A"
     
@@ -110,16 +94,6 @@ def calculate_academic_year(admission_year: Optional[int]) -> str:
 
 
 def get_program_name(department_name: Optional[str], branch_name: Optional[str]) -> str:
-    """
-    Create a formatted program name from department and branch.
-    
-    Args:
-        department_name: Name of the department
-        branch_name: Name of the branch/specialization
-        
-    Returns:
-        Formatted program name string
-    """
     if department_name and branch_name:
         return f"{branch_name} in {department_name}"
     elif branch_name:

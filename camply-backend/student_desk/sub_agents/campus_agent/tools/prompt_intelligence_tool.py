@@ -6,7 +6,6 @@ from google.adk.tools import FunctionTool
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))))
 
-from student_desk.tools.user_context_tool import get_user_context as root_get_user_context
 from shared import UserDataService
 
 CONTENT_TYPE_MAPPING = {
@@ -22,41 +21,36 @@ CONTENT_TYPE_MAPPING = {
 }
 
 @FunctionTool
-async def analyze_prompt_based_intelligence(prompt_id: str, user_id: str = "", custom_prompt: str = "", *, tool_context) -> Dict[str, Any]:
-    """
-    Analyze campus intelligence using predefined prompts with data from campus_ai_content table.
-    Uses cached content when available, provides guidance when no data exists.
-    
-    Args:
-        prompt_id: ID of predefined prompt (campus-news, placements, etc.) or "custom"
-        user_id: User ID to get college context
-        custom_prompt: Custom prompt text when prompt_id is "custom"
-        
-    Returns:
-        Comprehensive structured intelligence report from database or helpful guidance
-    """
+async def analyze_prompt_based_intelligence(prompt_id: str, custom_prompt: str = "", *, tool_context) -> Dict[str, Any]:
     try:
-        session_user_id = getattr(tool_context, 'user_id', None)
-        effective_user_id = user_id or session_user_id
+        session_state = getattr(tool_context, 'state', None)
+        if not session_state:
+            return {
+                "success": False,
+                "error": "session_unavailable",
+                "message": "Session state not available in tool context"
+            }
         
-        if not effective_user_id:
+        user_id = session_state.get('user_id') if hasattr(session_state, 'get') else getattr(session_state, 'user_id', None)
+        
+        if not user_id:
             return {
                 "success": False,
                 "error": "missing_user_id",
-                "message": "User ID is required for campus intelligence analysis"
+                "message": "User ID not found in session state"
             }
         
-        user_context_result = await root_get_user_context(tool_context=tool_context)
+        user_context = await UserDataService.get_user_context(user_id)
         
-        if not user_context_result.get("success"):
+        if not user_context:
             return {
                 "success": False,
-                "error": user_context_result.get("error", "Failed to get user context"),
+                "error": "user_context_failed",
                 "message": "Could not retrieve user context for prompt analysis"
             }
         
-        college_name = user_context_result.get("college_name")
-        college_id = user_context_result.get("college_id")
+        college_name = user_context.get('college', {}).get('name')
+        college_id = user_context.get('academic_details', {}).get('college_id')
         
         if not college_name or not college_id:
             return {
@@ -75,11 +69,11 @@ async def analyze_prompt_based_intelligence(prompt_id: str, user_id: str = "", c
         
         if prompt_id == "custom" and custom_prompt:
             analysis_result = await analyze_custom_prompt(
-                custom_prompt, college_name, user_context_result, cached_content
+                custom_prompt, college_name, user_context, cached_content
             )
         elif prompt_id in CONTENT_TYPE_MAPPING:
             analysis_result = await analyze_predefined_prompt(
-                prompt_id, college_name, user_context_result, cached_content
+                prompt_id, college_name, user_context, cached_content
             )
         else:
             return {
@@ -98,7 +92,7 @@ async def analyze_prompt_based_intelligence(prompt_id: str, user_id: str = "", c
             "data_source": "database" if cached_content else "guidance",
             "metadata": {
                 "analysis_timestamp": datetime.now().isoformat(),
-                "user_personalized": bool(user_context_result.get("branch_name")),
+                "user_personalized": bool(user_context.get('academic_details', {}).get('branch_name')),
                 "analysis_type": "prompt_based_intelligence",
                 "cache_hit": bool(cached_content),
                 "last_updated": campus_content.get('updated_at') if campus_content else None
@@ -117,10 +111,9 @@ async def analyze_prompt_based_intelligence(prompt_id: str, user_id: str = "", c
         }
 
 async def analyze_predefined_prompt(prompt_id: str, college_name: str, user_context: Dict[str, Any], cached_content: Optional[Dict] = None) -> Dict[str, Any]:
-    """Analyze predefined campus prompt using cached content or generating structured response."""
-    
-    department = user_context.get("department_name", "")
-    branch = user_context.get("branch_name", "")
+    academic_details = user_context.get('academic_details', {})
+    department = academic_details.get("department_name", "")
+    branch = academic_details.get("branch_name", "")
     current_year = user_context.get("current_year", "")
     
     if cached_content:
@@ -138,11 +131,10 @@ async def analyze_predefined_prompt(prompt_id: str, college_name: str, user_cont
 
     return generate_prompt_guidance(prompt_id, college_name, department, branch, current_year)
 
-async def analyze_custom_prompt(custom_prompt: str, college_name: str, user_context: Dict[str, Any], cached_content: Optional[Dict] = None) -> Dict[str, Any]:
-    """Analyze custom user prompt using available cached content as context."""
-    
-    department = user_context.get("department_name", "")
-    branch = user_context.get("branch_name", "")
+async def analyze_custom_prompt(custom_prompt: str, college_name: str, user_context: Dict[str, Any], cached_content: Optional[Dict] = None) -> Dict[str, Any]:  
+    academic_details = user_context.get('academic_details', {})
+    department = academic_details.get("department_name", "")
+    branch = academic_details.get("branch_name", "")
     
     relevant_content = find_relevant_cached_content(custom_prompt, cached_content) if cached_content else None
     
@@ -158,7 +150,6 @@ async def analyze_custom_prompt(custom_prompt: str, college_name: str, user_cont
     }
 
 def get_prompt_title(prompt_id: str) -> str:
-    """Get user-friendly title for prompt ID."""
     titles = {
         "campus-news": "Campus News & Updates",
         "placements": "Placement Analytics", 
@@ -173,8 +164,6 @@ def get_prompt_title(prompt_id: str) -> str:
     return titles.get(prompt_id, "Campus Information")
 
 def format_cached_content_for_prompt(cached_content: Dict, prompt_id: str, college_name: str, department: str, branch: str) -> str:
-    """Format cached content for specific prompt type with personalization."""
-    
     if not cached_content:
         return f"No specific information available for {college_name} at this time."
     
@@ -201,7 +190,6 @@ def format_cached_content_for_prompt(cached_content: Dict, prompt_id: str, colle
     return f"# {get_prompt_title(prompt_id)} - {college_name}\n\n{content_text}{personalization}"
 
 def format_dict_content(content_dict: Dict) -> str:
-    """Format dictionary content into readable text."""
     formatted_parts = []
     
     for key, value in content_dict.items():
@@ -226,7 +214,6 @@ def format_dict_content(content_dict: Dict) -> str:
     return '\n\n'.join(formatted_parts) if formatted_parts else "Content available - please contact administration for details."
 
 def extract_sections_from_content(cached_content: Dict, prompt_id: str) -> list:
-    """Extract key sections from cached content."""
     if not cached_content or not isinstance(cached_content, dict):
         return []
     
@@ -238,7 +225,6 @@ def extract_sections_from_content(cached_content: Dict, prompt_id: str) -> list:
     return sections
 
 def find_relevant_cached_content(custom_prompt: str, cached_content: Dict) -> Optional[str]:
-    """Find relevant cached content based on custom prompt keywords."""
     if not cached_content or not isinstance(cached_content, dict):
         return None
     
@@ -264,8 +250,6 @@ def find_relevant_cached_content(custom_prompt: str, cached_content: Dict) -> Op
     return None
 
 def generate_custom_response(custom_prompt: str, college_name: str, department: str, branch: str, relevant_content: Optional[str] = None) -> str:
-    """Generate response for custom prompt using available content."""
-    
     if relevant_content:
         return f"Based on available information about {college_name}:\n\n{relevant_content}\n\n**Query Context:** {custom_prompt}\n\n**Personalized for:** {department} - {branch}" if department and branch else f"Based on available information about {college_name}:\n\n{relevant_content}"
     
@@ -280,9 +264,7 @@ For {college_name}, I recommend:
 
 Would you like me to search the web for current information about this topic?"""
 
-def generate_prompt_guidance(prompt_id: str, college_name: str, department: str, branch: str, current_year: str) -> Dict[str, Any]:
-    """Generate helpful guidance when no cached content is available."""
-    
+def generate_prompt_guidance(prompt_id: str, college_name: str, department: str, branch: str, current_year: str) -> Dict[str, Any]: 
     guidance_map = {
         "campus-news": f"""For the latest campus news and updates about {college_name}, I recommend:
 

@@ -12,30 +12,35 @@ from shared import UserDataService
 
 
 @FunctionTool
-async def get_user_college_context(user_id: str, *, tool_context) -> dict:
-    """
-    Primary context fetcher - gets user's complete college information for all campus queries.
-    This is the foundational tool that should be called first for any campus-related request.
-    
-    Args:
-        user_id: UUID of the user to fetch college context for
-        
-    Returns:
-        Structured college context with comprehensive information
-    """
+async def get_user_college_context(*, tool_context) -> dict:
     try:
-        session_user_id = getattr(tool_context, 'user_id', None)
-        effective_user_id = user_id or session_user_id
+        session_state = getattr(tool_context, 'state', None)
+        if not session_state:
+            return {
+                "success": False,
+                "error": "session_unavailable",
+                "message": "Session state not available in tool context",
+                "debug_info": {
+                    "tool_context_attributes": [attr for attr in dir(tool_context) if not attr.startswith('_')],
+                    "message": "ADK session state not accessible from tool_context.state"
+                }
+            }
         
-        if not effective_user_id:
+        user_id = session_state.get('user_id') if hasattr(session_state, 'get') else getattr(session_state, 'user_id', None)
+        
+        if not user_id:
             return {
                 "success": False,
                 "error": "missing_user_id",
-                "message": "User ID is required to fetch college context",
-                "data": None
+                "message": "User ID not found in session state",
+                "debug_info": {
+                    "session_state_type": type(session_state).__name__,
+                    "session_state_attributes": [attr for attr in dir(session_state) if not attr.startswith('_')] if session_state else [],
+                    "message": "user_id must be in session state created by main.py"
+                }
             }
         
-        user_context = await UserDataService.get_user_context(effective_user_id)
+        user_context = await UserDataService.get_user_context(user_id)
         
         if not user_context or not user_context.get('academic_details'):
             return {
@@ -43,7 +48,7 @@ async def get_user_college_context(user_id: str, *, tool_context) -> dict:
                 "error": "incomplete_profile",
                 "message": "User profile not found or academic details incomplete",
                 "data": {
-                    "user_id": effective_user_id,
+                    "user_id": user_id,
                     "profile_status": "incomplete"
                 }
             }
@@ -53,7 +58,7 @@ async def get_user_college_context(user_id: str, *, tool_context) -> dict:
         
         context_data = {
             "user_profile": {
-                "user_id": effective_user_id,
+                "user_id": user_id,
                 "name": user_context.get('user', {}).get('name'),
                 "department": academic_info.get('department_name'),
                 "branch": academic_info.get('branch_name'),
@@ -98,17 +103,26 @@ async def get_user_college_context(user_id: str, *, tool_context) -> dict:
 
 
 @FunctionTool
-async def fetch_campus_content_by_user_id(user_id: str, *, tool_context) -> dict:
-    """
-    Fetch comprehensive campus AI content using user_id to get their college information.
-    
-    Args:
-        user_id: UUID of the user to fetch campus content for
-        
-    Returns:
-        Structured campus content dictionary
-    """
+async def fetch_campus_content_by_user_id(*, tool_context) -> dict:
+
     try:
+        session_state = getattr(tool_context, 'state', None)
+        if not session_state:
+            return {
+                "success": False,
+                "error": "session_unavailable",
+                "message": "Session state not available in tool context"
+            }
+        
+        user_id = session_state.get('user_id') if hasattr(session_state, 'get') else getattr(session_state, 'user_id', None)
+        
+        if not user_id:
+            return {
+                "success": False,
+                "error": "missing_user_id",
+                "message": "User ID not found in session state"
+            }
+        
         user_context = await UserDataService.get_user_context(user_id)
         
         if not user_context or not user_context.get('academic_details'):
@@ -140,13 +154,11 @@ async def fetch_campus_content_by_user_id(user_id: str, *, tool_context) -> dict
         return {
             "success": False,
             "error": "database_error",
-            "message": f"Error fetching campus content: {str(e)}",
-            "user_id": user_id
+            "message": f"Error fetching campus content: {str(e)}"
         }
 
 
 def format_campus_content_for_agent(campus_content: dict, college_name: str) -> str:
-    """Format campus content for agent consumption."""
     if not campus_content:
         return f"No specific campus content available for {college_name}."
     
