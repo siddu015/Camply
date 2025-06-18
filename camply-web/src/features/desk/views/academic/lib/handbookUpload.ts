@@ -105,41 +105,38 @@ export const createHandbookRecord = async (
 
 export const triggerBackendProcessing = async (
   handbookId: string,
-  userId: string
+  userId: string,
+  academicId: string,
+  storagePath: string,
+  originalFilename: string,
+  fileSizeBytes: number
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
-    
-    // Use the chat endpoint to trigger processing through the agent system
-    const response = await fetch(`${backendUrl}/chat`, {
+
+    const response = await fetch(`${backendUrl}/handbook/process`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        message: `[HANDBOOK PROCESSING] Please process my uploaded handbook with ID: ${handbookId}`,
         user_id: userId,
-        session_id: `handbook_processing_${userId}_${Date.now()}`,
-        context: {
-          type: 'handbook_processing',
-          handbook_id: handbookId,
-          action: 'process'
-        }
+        academic_id: academicId,
+        storage_path: storagePath,
+        original_filename: originalFilename,
+        file_size_bytes: fileSizeBytes
       }),
     });
 
     if (!response.ok) {
-      console.warn('Backend processing request failed, but file was uploaded successfully');
-      return { success: false, error: 'Backend processing failed' };
+      console.error('Handbook processing request failed:', response.status, response.statusText);
+      return { success: false, error: 'Handbook processing request failed' };
     }
 
     const data = await response.json();
-    if (!data.success) {
-      console.warn('Agent processing failed:', data.error);
-      return { success: false, error: data.error || 'Agent processing failed' };
-    }
+    console.log('Processing started:', data);
 
     return { success: true };
   } catch (err) {
-    console.warn('Backend processing failed:', err);
+    console.error('Backend processing failed:', err);
     return { 
       success: false, 
       error: err instanceof Error ? err.message : "Backend processing failed" 
@@ -175,7 +172,8 @@ export const uploadHandbook = async (
 ): Promise<{ 
   success: boolean; 
   handbook?: UserHandbook; 
-  error?: string 
+  error?: string;
+  processingStarted?: boolean;
 }> => {
   try {
     const validationError = validateHandbookFile(file);
@@ -200,11 +198,26 @@ export const uploadHandbook = async (
       return { success: false, error: dbResult.error };
     }
 
-    triggerBackendProcessing(dbResult.handbook!.handbook_id, userId);
+    console.log('Starting automatic PDF processing...');
+    const processingResult = await triggerBackendProcessing(
+      dbResult.handbook!.handbook_id,
+      userId,
+      academicId,
+      filePath,
+      file.name,
+      file.size
+    );
+
+    if (processingResult.success) {
+      console.log('PDF processing started successfully');
+    } else {
+      console.warn('Processing failed to start:', processingResult.error);
+    }
 
     return { 
       success: true, 
-      handbook: dbResult.handbook 
+      handbook: dbResult.handbook,
+      processingStarted: processingResult.success
     };
   } catch (err) {
     console.error('Upload handbook error:', err);
