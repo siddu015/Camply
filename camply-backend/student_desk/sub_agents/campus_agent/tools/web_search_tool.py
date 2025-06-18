@@ -1,5 +1,3 @@
-"""Web Search Tool for Campus Intelligence - Database-first approach with web search fallback."""
-
 import os
 import sys
 from datetime import datetime
@@ -103,7 +101,7 @@ async def search_campus_intelligence(query: str, search_type: str = "general", *
             }
         }
 
-def analyze_query_intent(query: str) -> Dict[str, Any]:
+def analyze_query_intent(query: str) -> Dict[str, Any]:    
     query_lower = query.lower()
     
     intent_keywords = {
@@ -158,8 +156,7 @@ def find_relevant_database_content(campus_content: Optional[Dict], query_analysi
     
     return relevant_content if relevant_content else None
 
-def generate_intelligent_response(query: str, query_analysis: Dict, college_name: str, 
-                                relevant_content: Optional[Dict], user_context: Dict) -> str:
+def generate_intelligent_response(query: str, query_analysis: Dict, college_name: str, relevant_content: Optional[Dict], user_context: Dict) -> str:
     department = user_context.get("department_name", "")
     branch = user_context.get("branch_name", "")
     primary_intent = query_analysis.get("primary_intent", "general")
@@ -258,7 +255,7 @@ def generate_intelligent_response(query: str, query_analysis: Dict, college_name
     
     return response
 
-def format_dict_to_text(data: Dict) -> str:
+def format_dict_to_text(data: Dict) -> str:                  
     if not isinstance(data, dict):
         return str(data)
     

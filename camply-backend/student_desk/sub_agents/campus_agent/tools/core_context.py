@@ -1,5 +1,3 @@
-"""Core Context Management Tools for Campus Agent."""
-
 import sys
 import os
 from datetime import datetime
@@ -104,7 +102,6 @@ async def get_user_college_context(*, tool_context) -> dict:
 
 @FunctionTool
 async def fetch_campus_content_by_user_id(*, tool_context) -> dict:
-
     try:
         session_state = getattr(tool_context, 'state', None)
         if not session_state:

@@ -21,7 +21,7 @@ CONTENT_TYPE_MAPPING = {
 }
 
 @FunctionTool
-async def analyze_prompt_based_intelligence(prompt_id: str, custom_prompt: str = "", *, tool_context) -> Dict[str, Any]:
+async def analyze_prompt_based_intelligence(prompt_id: str, custom_prompt: str = "", *, tool_context) -> Dict[str, Any]:    
     try:
         session_state = getattr(tool_context, 'state', None)
         if not session_state:
@@ -110,7 +110,7 @@ async def analyze_prompt_based_intelligence(prompt_id: str, custom_prompt: str =
             }
         }
 
-async def analyze_predefined_prompt(prompt_id: str, college_name: str, user_context: Dict[str, Any], cached_content: Optional[Dict] = None) -> Dict[str, Any]:
+async def analyze_predefined_prompt(prompt_id: str, college_name: str, user_context: Dict[str, Any], cached_content: Optional[Dict] = None) -> Dict[str, Any]: 
     academic_details = user_context.get('academic_details', {})
     department = academic_details.get("department_name", "")
     branch = academic_details.get("branch_name", "")
@@ -131,7 +131,7 @@ async def analyze_predefined_prompt(prompt_id: str, college_name: str, user_cont
 
     return generate_prompt_guidance(prompt_id, college_name, department, branch, current_year)
 
-async def analyze_custom_prompt(custom_prompt: str, college_name: str, user_context: Dict[str, Any], cached_content: Optional[Dict] = None) -> Dict[str, Any]:  
+async def analyze_custom_prompt(custom_prompt: str, college_name: str, user_context: Dict[str, Any], cached_content: Optional[Dict] = None) -> Dict[str, Any]: 
     academic_details = user_context.get('academic_details', {})
     department = academic_details.get("department_name", "")
     branch = academic_details.get("branch_name", "")
@@ -163,7 +163,7 @@ def get_prompt_title(prompt_id: str) -> str:
     }
     return titles.get(prompt_id, "Campus Information")
 
-def format_cached_content_for_prompt(cached_content: Dict, prompt_id: str, college_name: str, department: str, branch: str) -> str:
+def format_cached_content_for_prompt(cached_content: Dict, prompt_id: str, college_name: str, department: str, branch: str) -> str:    
     if not cached_content:
         return f"No specific information available for {college_name} at this time."
     
@@ -249,7 +249,7 @@ def find_relevant_cached_content(custom_prompt: str, cached_content: Dict) -> Op
     
     return None
 
-def generate_custom_response(custom_prompt: str, college_name: str, department: str, branch: str, relevant_content: Optional[str] = None) -> str:
+def generate_custom_response(custom_prompt: str, college_name: str, department: str, branch: str, relevant_content: Optional[str] = None) -> str:    
     if relevant_content:
         return f"Based on available information about {college_name}:\n\n{relevant_content}\n\n**Query Context:** {custom_prompt}\n\n**Personalized for:** {department} - {branch}" if department and branch else f"Based on available information about {college_name}:\n\n{relevant_content}"
     
@@ -264,7 +264,7 @@ For {college_name}, I recommend:
 
 Would you like me to search the web for current information about this topic?"""
 
-def generate_prompt_guidance(prompt_id: str, college_name: str, department: str, branch: str, current_year: str) -> Dict[str, Any]: 
+def generate_prompt_guidance(prompt_id: str, college_name: str, department: str, branch: str, current_year: str) -> Dict[str, Any]:         
     guidance_map = {
         "campus-news": f"""For the latest campus news and updates about {college_name}, I recommend:
 
