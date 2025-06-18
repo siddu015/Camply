@@ -6,7 +6,7 @@ import { cn } from '../../components/sidebar/lib/utils';
 import { CamplyBotService, type ChatMessage, type ChatRequest } from './camply-bot';
 import { supabase } from '../../lib/supabase';
 import { useCampusData } from '../desk/views/campus/hooks/useCampusData';
-import { MarkdownRenderer } from '../../components/MarkdownRenderer';
+import { AIResponse } from '../../components/ui/ai-response';
 import { PlaceholdersAndVanishInput } from '../../components/ui/placeholders-and-vanish-input';
 
 interface CamplyBotProps {
@@ -345,7 +345,7 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
                           </div>
                         ) : (
                           <div className="text-sm sm:text-base leading-relaxed">
-                            <MarkdownRenderer content={message.text} />
+                            <AIResponse>{message.text}</AIResponse>
                           </div>
                         )}
                       </div>

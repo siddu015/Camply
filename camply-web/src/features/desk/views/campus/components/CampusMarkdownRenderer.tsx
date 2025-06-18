@@ -2,20 +2,11 @@ import React from 'react';
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/components/sidebar/lib/utils';
 import { 
-  Bot, 
   AlertCircle, 
   Info, 
   Star, 
   Lightbulb, 
   CheckCircle, 
-  BookOpen, 
-  MapPin, 
-  Calendar,
-  TrendingUp,
-  Building,
-  Trophy,
-  GraduationCap,
-  Users
 } from 'lucide-react';
 
 interface CampusMarkdownRendererProps {
@@ -27,64 +18,49 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
   const { theme } = useTheme();
   const isLight = theme === 'light';
 
-  const parseContent = (text: string) => {
+      const parseContent = (text: string) => {
     const lines = text.split('\n');
     const elements: React.ReactNode[] = [];
     let currentIndex = 0;
 
     const renderHeading = (text: string, level: number) => {
       const sizes = {
-        1: 'text-3xl md:text-4xl',
-        2: 'text-2xl md:text-3xl',
-        3: 'text-xl md:text-2xl',
+        1: 'text-xl md:text-2xl',
+        2: 'text-lg md:text-xl', 
+        3: 'text-base md:text-lg',
+        4: 'text-sm md:text-base',
+        5: 'text-sm',
+        6: 'text-xs',
       };
 
-      const icons = {
-        OVERVIEW: BookOpen,
-        PLACEMENTS: TrendingUp,
-        FACILITIES: Building,
-        ACHIEVEMENTS: Trophy,
-        EVENTS: Calendar,
-        CAMPUS: MapPin,
-        ACADEMICS: GraduationCap,
-        ADMISSIONS: Users,
-      };
+      const validLevel = Math.min(Math.max(level, 1), 6);
+      const HeadingComponent = validLevel === 1 ? 'h1' : 
+                              validLevel === 2 ? 'h2' :
+                              validLevel === 3 ? 'h3' :
+                              validLevel === 4 ? 'h4' :
+                              validLevel === 5 ? 'h5' : 'h6';
 
-      // Find matching icon based on text content
-      const iconKey = Object.keys(icons).find(key => text.toUpperCase().includes(key));
-      const IconComponent = iconKey ? icons[iconKey as keyof typeof icons] : null;
-
-      return (
-        <h1 
-          key={currentIndex++} 
-          className={cn(
-            sizes[level as keyof typeof sizes],
-            "font-bold mt-12 mb-6 pb-4 border-b flex items-center gap-3",
+      return React.createElement(
+        HeadingComponent,
+        {
+          key: currentIndex++,
+          className: cn(
+            sizes[validLevel as keyof typeof sizes] || sizes[6],
+            validLevel <= 2 ? "font-bold mt-8 mb-4 pb-2 border-b" : "font-semibold mt-6 mb-3",
             isLight 
               ? "text-gray-900 border-gray-200" 
-              : "text-gray-50 border-gray-800",
-            "group"
-          )}
-        >
-          {IconComponent ? (
-            <IconComponent className={cn(
-              "h-6 w-6 text-primary group-hover:scale-125 transition-transform",
-            )} />
-          ) : (
-            <span className={cn(
-              "w-2 h-2 rounded-full group-hover:scale-150 transition-transform",
-              "bg-primary"
-            )} />
-          )}
-          {text}
-        </h1>
+              : "text-gray-50 border-gray-800"
+          )
+        },
+        text
       );
     };
 
     const renderList = (text: string, ordered: boolean = false) => {
-      const content = text.replace(/^[•\-*\d+\.]\s*/, '');
+      let content = text;
       
       if (ordered) {
+        content = text.replace(/^\d+\.\s*/, '');
         const number = text.match(/^(\d+)\./)?.[1];
         return (
           <div key={currentIndex++} className="flex items-start gap-4 mb-4 ml-6 group">
@@ -105,6 +81,8 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
           </div>
         );
       }
+
+      content = text.replace(/^[-*+•]\s*/, '');
 
       return (
         <div key={currentIndex++} className="flex items-start gap-4 mb-4 ml-6 group">
@@ -179,7 +157,6 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
     };
 
     const processInlineFormatting = (text: string) => {
-      // Process bold text (**text**)
       let parts = text.split(/(\*\*[^*]+\*\*)/g);
       
       return parts.map((part, index) => {
@@ -194,62 +171,69 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
           );
         }
         
-        // Process italic text (*text*)
-        const italicParts = part.split(/(\*[^*]+\*)/g);
+        const italicParts = part.split(/(?<!\*)\*([^*]+)\*(?!\*)/g);
         if (italicParts.length > 1) {
           return italicParts.map((italicPart, italicIndex) => {
-            if (italicPart.startsWith('*') && italicPart.endsWith('*') && !italicPart.startsWith('**')) {
+            if (italicIndex % 2 === 1) {
               return (
                 <em key={`italic-${index}-${italicIndex}`} className="italic">
-                  {italicPart.slice(1, -1)}
+                  {italicPart}
                 </em>
               );
             }
             
-            // Process numbers and percentages
-            const numberRegex = /(\d+(?:,\d{3})*(?:\.\d+)?%?|\d+\+?)/g;
-            const textParts = italicPart.split(numberRegex);
-            
-            return textParts.map((textPart, textIndex) => {
-              if (numberRegex.test(textPart)) {
-                return (
-                  <span key={`number-${index}-${italicIndex}-${textIndex}`} className={cn(
-                    "font-semibold",
-                    isLight ? "text-primary" : "text-primary"
-                  )}>
-                    {textPart}
-                  </span>
-                );
-              }
-              return textPart;
-            });
+            return processCodeAndNumbers(italicPart, `${index}-${italicIndex}`);
           });
         }
         
-        // Process numbers and percentages for parts without italic
-        const numberRegex = /(\d+(?:,\d{3})*(?:\.\d+)?%?|\d+\+?)/g;
-        const textParts = part.split(numberRegex);
-        
-        return textParts.map((textPart, textIndex) => {
-          if (numberRegex.test(textPart)) {
-            return (
-              <span key={`number-${index}-${textIndex}`} className={cn(
-                "font-semibold",
-                isLight ? "text-primary" : "text-primary"
-              )}>
-                {textPart}
-              </span>
-            );
-          }
-          return textPart;
-        });
+        return processCodeAndNumbers(part, index.toString());
       });
     };
 
-    // Detect tables and render them
+    const processCodeAndNumbers = (text: string, keyPrefix: string) => {
+      const codeParts = text.split(/(`[^`]+`)/g);
+      if (codeParts.length > 1) {
+        return codeParts.map((codePart, codeIndex) => {
+          if (codePart.startsWith('`') && codePart.endsWith('`')) {
+            return (
+              <code key={`code-${keyPrefix}-${codeIndex}`} className={cn(
+                "px-1.5 py-0.5 rounded text-sm font-mono",
+                isLight ? "bg-gray-100 text-gray-800" : "bg-gray-800 text-gray-200"
+              )}>
+                {codePart.slice(1, -1)}
+              </code>
+            );
+          }
+          
+          return processNumbers(codePart, `${keyPrefix}-${codeIndex}`);
+        });
+      }
+      
+      return processNumbers(text, keyPrefix);
+    };
+
+    const processNumbers = (text: string, keyPrefix: string) => {               
+      const numberRegex = /(\d+(?:,\d{3})*(?:\.\d+)?[%₹$]?|\d+\+?)/g;
+      const textParts = text.split(numberRegex);
+      
+      return textParts.map((textPart, textIndex) => {
+        if (numberRegex.test(textPart)) {
+          return (
+            <span key={`number-${keyPrefix}-${textIndex}`} className={cn(
+              "font-semibold",
+              isLight ? "text-primary" : "text-primary"
+            )}>
+              {textPart}
+            </span>
+          );
+        }
+        return textPart;
+      });
+    };
+
     const renderTable = (tableRows: string[]) => {
       const headerRow = tableRows[0].trim().split('|').filter(cell => cell.trim() !== '');
-      const bodyRows = tableRows.slice(2); // Skip the separator row
+      const bodyRows = tableRows.slice(2);
       
       return (
         <div key={currentIndex++} className="my-8 overflow-x-auto">
@@ -291,7 +275,6 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
       );
     };
 
-    // Process the content line by line
     let i = 0;
     while (i < lines.length) {
       const line = lines[i];
@@ -302,53 +285,61 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
         continue;
       }
 
-      // Detect tables
       if (trimmedLine.startsWith('|') && trimmedLine.endsWith('|')) {
         const tableRows = [];
         let j = i;
-        
-        // Collect all table rows
+
         while (j < lines.length && lines[j].trim().startsWith('|')) {
           tableRows.push(lines[j]);
           j++;
         }
         
-        if (tableRows.length >= 3) { // Valid table needs header, separator and at least one row
+        if (tableRows.length >= 3) {
           elements.push(renderTable(tableRows));
           i = j;
           continue;
         }
       }
 
-      // Headings
+      const headingMatch = trimmedLine.match(/^(#{1,6})\s+(.+)$/);
+      if (headingMatch) {
+        const level = headingMatch[1].length;
+        const text = headingMatch[2].trim();
+        elements.push(renderHeading(text, level));
+        i++;
+        continue;
+      }
+
       if (trimmedLine.match(/^[A-Z][A-Z\s&-]+:?$/)) {
         elements.push(renderHeading(trimmedLine.replace(/:$/, ''), 1));
         i++;
         continue;
       }
 
-      // Subheadings
       if (trimmedLine.match(/^[A-Z][a-zA-Z\s&-]+:$/)) {
         elements.push(renderHeading(trimmedLine.replace(/:$/, ''), 2));
         i++;
         continue;
       }
 
-      // Lists
-      if (trimmedLine.startsWith('•') || trimmedLine.startsWith('-') || trimmedLine.startsWith('*')) {
+      if (trimmedLine.match(/^[-*+]\s+/)) {
         elements.push(renderList(trimmedLine));
         i++;
         continue;
       }
 
-      // Numbered lists
+      if (trimmedLine.startsWith('•')) {
+        elements.push(renderList(trimmedLine));
+        i++;
+        continue;
+      }
+
       if (trimmedLine.match(/^\d+\.\s/)) {
         elements.push(renderList(trimmedLine, true));
         i++;
         continue;
       }
 
-      // Callouts
       if (trimmedLine.includes('NOTE:') || trimmedLine.includes('IMPORTANT:')) {
         elements.push(renderCallout(trimmedLine.replace(/^(NOTE|IMPORTANT):\s*/, ''), 'info'));
         i++;
@@ -373,7 +364,6 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
         continue;
       }
 
-      // Horizontal rule
       if (trimmedLine.match(/^---+$/) || trimmedLine.match(/^===+$/)) {
         elements.push(
           <hr key={currentIndex++} className={cn(
@@ -384,8 +374,7 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
         i++;
         continue;
       }
-
-      // Regular paragraphs
+      
       elements.push(
         <p key={currentIndex++} className={cn(
           "text-lg leading-relaxed mb-6",

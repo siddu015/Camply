@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "motion/react";
 import { useHandbook } from '../hooks/useHandbook';
 import { HandbookUpload } from './HandbookUpload';
+import { AIResponse } from '@/components/ui/ai-response';
 import { 
   processHandbookQuery, 
   getSuggestedQuestions 
@@ -271,9 +272,7 @@ export function HandbookQuery({
                       "p-3 rounded-2xl rounded-tl-md",
                       isDark ? "bg-muted/40" : "bg-muted/30"
                     )}>
-                      <p className="text-sm text-foreground whitespace-pre-wrap">
-                        {response.answer}
-                      </p>
+                      <AIResponse>{response.answer}</AIResponse>
                       <p className="text-xs text-muted-foreground mt-2">
                         {new Date(response.timestamp).toLocaleTimeString()}
                       </p>
