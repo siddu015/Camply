@@ -44,12 +44,19 @@ export const queryHandbookBackend = async (
 ): Promise<string> => {
   try {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
-    const response = await fetch(`${backendUrl}/query-handbook`, {
+    
+    // Use the chat endpoint which routes through the student_desk agent
+    const response = await fetch(`${backendUrl}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        question: question.trim(),
+        message: `[HANDBOOK QUERY] ${question.trim()}`,
         user_id: userId,
+        session_id: `handbook_session_${userId}_${Date.now()}`,
+        context: {
+          type: 'handbook_query',
+          question: question.trim()
+        }
       }),
     });
 
@@ -58,7 +65,12 @@ export const queryHandbookBackend = async (
     }
 
     const data = await response.json();
-    return data.answer || "Sorry, I could not find information about that in your handbook.";
+    
+    if (!data.success) {
+      throw new Error(data.error || "Failed to process handbook query");
+    }
+    
+    return data.response || "Sorry, I could not find information about that in your handbook.";
   } catch (err) {
     console.error('Error querying handbook:', err);
     throw new Error("Sorry, there was an error processing your question. Please try again.");

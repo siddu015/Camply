@@ -6,7 +6,6 @@ from .config import Config
 import asyncpg
 import os
 
-# Initialize Supabase client with service role key for backend operations
 supabase: Client = create_client(Config.SUPABASE_URL, Config.get_supabase_backend_key())
 
 _connection_pool: Optional[asyncpg.Pool] = None
@@ -51,7 +50,6 @@ class UserDataService:
             Dictionary containing user context or None if not found
         """
         try:
-            # Fetch user basic info
             user_response = supabase.table("users").select("*").eq("user_id", user_id).execute()
             
             if not user_response.data:
@@ -60,7 +58,6 @@ class UserDataService:
             
             user_data = user_response.data[0]
             
-            # If user has academic_id, fetch academic details
             if user_data.get("academic_id"):
                 academic_response = supabase.table("user_academic_details").select(
                     "*, colleges(*)"
@@ -97,7 +94,6 @@ class UserDataService:
                         } if college_data else None
                     }
             
-            # Return basic user data if no academic details
             return {
                 "user": {
                     "user_id": user_data["user_id"],
@@ -126,7 +122,6 @@ class UserDataService:
             Dictionary containing campus AI content or None if not found
         """
         try:
-            # Fetch active campus AI content for the college
             response = supabase.table("campus_ai_content").select("*").eq("college_id", college_id).eq("is_active", True).order("updated_at", desc=True).limit(1).execute()
             
             if not response.data:
@@ -167,7 +162,6 @@ class UserDataService:
         
         context_parts = []
         
-        # User basic info
         user = user_context.get("user", {})
         if user:
             context_parts.append(f"Student Name: {user.get('name', 'N/A')}")
@@ -175,7 +169,6 @@ class UserDataService:
             if user.get('phone_number'):
                 context_parts.append(f"Phone: {user.get('phone_number')}")
         
-        # Academic details
         academic = user_context.get("academic_details")
         if academic:
             context_parts.append(f"Department: {academic.get('department_name', 'N/A')}")
@@ -183,14 +176,12 @@ class UserDataService:
             context_parts.append(f"Roll Number: {academic.get('roll_number', 'N/A')}")
             context_parts.append(f"Academic Timeline: {academic.get('admission_year', 'N/A')} - {academic.get('graduation_year', 'N/A')}")
             
-            # Calculate current academic year
             import datetime
             current_year = datetime.datetime.now().year
             if academic.get('admission_year'):
                 academic_year = current_year - academic['admission_year'] + 1
                 context_parts.append(f"Current Academic Year: {academic_year}")
             
-            # Create program description
             dept = academic.get('department_name')
             branch = academic.get('branch_name')
             if dept and branch:
@@ -200,7 +191,6 @@ class UserDataService:
             elif dept:
                 context_parts.append(f"Program: {dept}")
         
-        # College info
         college = user_context.get("college")
         if college:
             context_parts.append(f"College: {college.get('name', 'N/A')}")
@@ -228,7 +218,6 @@ class UserDataService:
         content_parts = []
         content_parts.append("=== CAMPUS AI CONTENT ===")
         
-        # College Overview
         if campus_content.get("college_overview_content"):
             content_parts.append("\n--- COLLEGE OVERVIEW ---")
             overview = campus_content["college_overview_content"]
@@ -238,7 +227,6 @@ class UserDataService:
             else:
                 content_parts.append(str(overview))
         
-        # Facilities
         if campus_content.get("facilities_content"):
             content_parts.append("\n--- FACILITIES ---")
             facilities = campus_content["facilities_content"]
@@ -248,7 +236,6 @@ class UserDataService:
             else:
                 content_parts.append(str(facilities))
         
-        # Placements
         if campus_content.get("placements_content"):
             content_parts.append("\n--- PLACEMENTS ---")
             placements = campus_content["placements_content"]
@@ -258,7 +245,6 @@ class UserDataService:
             else:
                 content_parts.append(str(placements))
         
-        # Departments
         if campus_content.get("departments_content"):
             content_parts.append("\n--- DEPARTMENTS ---")
             departments = campus_content["departments_content"]
@@ -268,7 +254,6 @@ class UserDataService:
             else:
                 content_parts.append(str(departments))
         
-        # Admissions
         if campus_content.get("admissions_content"):
             content_parts.append("\n--- ADMISSIONS ---")
             admissions = campus_content["admissions_content"]

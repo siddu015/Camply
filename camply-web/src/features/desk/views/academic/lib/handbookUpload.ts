@@ -109,18 +109,32 @@ export const triggerBackendProcessing = async (
 ): Promise<{ success: boolean; error?: string }> => {
   try {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
-    const response = await fetch(`${backendUrl}/process-handbook`, {
+    
+    // Use the chat endpoint to trigger processing through the agent system
+    const response = await fetch(`${backendUrl}/chat`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        handbook_id: handbookId,
+        message: `[HANDBOOK PROCESSING] Please process my uploaded handbook with ID: ${handbookId}`,
         user_id: userId,
+        session_id: `handbook_processing_${userId}_${Date.now()}`,
+        context: {
+          type: 'handbook_processing',
+          handbook_id: handbookId,
+          action: 'process'
+        }
       }),
     });
 
     if (!response.ok) {
       console.warn('Backend processing request failed, but file was uploaded successfully');
       return { success: false, error: 'Backend processing failed' };
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      console.warn('Agent processing failed:', data.error);
+      return { success: false, error: data.error || 'Agent processing failed' };
     }
 
     return { success: true };

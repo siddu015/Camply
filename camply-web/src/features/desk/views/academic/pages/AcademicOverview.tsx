@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { AcademicDetails } from '../components/AcademicDetails';
 import { AcademicTimeline } from '../components/AcademicTimeline';
 import { HandbookQuery } from '../components/HandbookQuery';
+import { HandbookTestButton } from '../components/HandbookTestButton';
 import { useAcademicData } from '../hooks/useAcademicData';
 import { GraduationCap } from 'lucide-react';
 import SimpleLoader from '@/components/SimpleLoader';
@@ -89,6 +90,8 @@ export function AcademicOverview() {
           graduationYear={academicDetails.graduation_year}
           currentYear={currentYear}
         />
+
+        <HandbookTestButton />
 
         <div className="bg-card border border-border rounded-xl p-6">
           <h2 className="text-xl font-semibold text-foreground mb-6">Department Handbook</h2>

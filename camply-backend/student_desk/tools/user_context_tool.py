@@ -1,5 +1,3 @@
-"""ADK Tool for managing user context data."""
-
 import sys
 import os
 import asyncio

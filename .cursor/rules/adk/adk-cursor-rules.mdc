@@ -3,7 +3,28 @@ description:
 globs: 
 alwaysApply: false
 ---
-# ADK Cursor Development Rules - Comprehensive Guide
+# ADK Cursor Rules - Camply Student Desk Agent System
+
+## User Context Management for Sub-Agents
+
+### Architecture Overview
+
+```
+Main.py (ADK Entry)
+    ↓ (session_state.user_id)
+Root Agent (student_desk/agent.py)
+    ↓ (tools/user_context_tool.py)
+Sub-Agents (campus_agent, handbook_agent, etc.)
+    ↓ (import root user_context_tool)
+Specialized Tools
+```
+
+### Core Principles
+
+1. **Single Source of Truth**: Only the root agent's `tools/user_context_tool.py` handles user_id extraction from ADK session state
+2. **Import Pattern**: All sub-agents import and use the root agent's user context tool
+3. **No Duplication**: Sub-agents NEVER implement their own user_id extraction logic
+4. **Consistent Flow**: user_id → college_id → database operations for all agents
 
 ## 1. Universal ADK Development Principles
 
@@ -16,6 +37,115 @@ ADK (Agent Development Kit) is Google's framework for building sophisticated AI 
 - **Session-based context management** with automatic user_id handling
 - **Memory services** for persistent state management
 - **Callback systems** for pre/post-processing logic
+
+### Implementation Standards
+
+#### Root Agent Tools (`student_desk/tools/user_context_tool.py`)
+
+```python
+# REQUIRED: Master user context tool that all sub-agents must use
+from google.adk.tools import FunctionTool
+
+@FunctionTool
+async def get_user_context(*, tool_context) -> dict:
+    """
+    Master user context function used by ALL agents.
+    Extracts user_id from ADK session state and fetches complete user profile.
+    """
+    # Implementation handles:
+    # 1. user_id extraction from tool_context.state
+    # 2. Database queries for user profile
+    # 3. Structured return with college_id, college_name, academic_details
+    # 4. Error handling and debugging information
+```
+
+#### Sub-Agent User Context Tools
+
+```python
+# PATTERN: All sub-agents follow this exact pattern
+import sys
+import os
+from google.adk.tools import FunctionTool
+
+# Import root agent's working user context tool
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+from student_desk.tools.user_context_tool import get_user_context as root_get_user_context
+
+@FunctionTool
+async def get_user_college_context(*, tool_context) -> dict:
+    """
+    Sub-agent wrapper that uses root agent's user context.
+    Returns college-specific context for the sub-agent.
+    """
+    try:
+        # Use root agent's working user context function
+        user_context_result = await root_get_user_context(tool_context=tool_context)
+
+        if not user_context_result.get("success"):
+            return {
+                "success": False,
+                "error": user_context_result.get("error"),
+                "message": "Could not retrieve user context from root agent tools",
+                "debug_info": user_context_result
+            }
+
+        # Extract college_id for sub-agent operations
+        college_id = user_context_result.get("college_id")
+        if not college_id:
+            return {
+                "success": False,
+                "error": "missing_college_id",
+                "message": "College ID not found in user profile"
+            }
+
+        # Return structured data for sub-agent
+        return {
+            "success": True,
+            "college_id": college_id,
+            "college_name": user_context_result.get("college_name"),
+            "user_id": user_context_result.get("user_id"),
+            # ... other relevant data
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "error": "system_error",
+            "message": f"Failed to retrieve context via root tools: {str(e)}"
+        }
+```
+
+#### Specialized Sub-Agent Tools
+
+```python
+# PATTERN: All specialized tools use root context
+from student_desk.tools.user_context_tool import get_user_context as root_get_user_context
+
+@FunctionTool
+async def specialized_analysis_tool(*, tool_context) -> dict:
+    """
+    Specialized tool that needs user context for operations.
+    """
+    try:
+        # Get user context from root agent tools
+        user_context_result = await root_get_user_context(tool_context=tool_context)
+
+        if not user_context_result.get("success"):
+            return {
+                "success": False,
+                "error": "context_required",
+                "message": "User context required for this operation"
+            }
+
+        college_name = user_context_result.get("college_name")
+        college_id = user_context_result.get("college_id")
+
+        # Perform specialized analysis using college context
+        # ... tool implementation
+
+    except Exception as e:
+        return {"success": False, "error": "tool_failed", "message": str(e)}
+```
 
 ## 2. Critical Import Rules
 
@@ -785,7 +915,141 @@ async def blocking_tool():
 from google.adk.core import Tool  # Doesn't exist!
 ```
 
-## 16. Future Development Preparation
+## 16. Camply Sub-Agent Tool Organization Standards
+
+### Sub-Agent Directory Structure
+
+```
+sub_agents/
+├── agent_name/
+│   ├── __init__.py
+│   ├── agent.py                 # Agent definition with tool imports
+│   ├── prompt.py               # Professional prompts without emojis
+│   └── tools/                  # Tool organization
+│       ├── __init__.py         # Export all tools
+│       ├── user_context_tool.py # Wrapper for root context
+│       ├── core_tool.py        # Primary operations
+│       ├── specialized_tool.py # Domain-specific analysis
+│       └── master_tool.py      # Comprehensive analysis router
+```
+
+### Tool Import Pattern in Agent
+
+```python
+# REQUIRED: Import all tools for comprehensive capability
+from .tools import (
+    get_user_college_context,      # Core context
+    fetch_domain_content,          # Primary operations
+    analyze_specialized_data,      # Domain-specific
+    comprehensive_intelligence     # Master router
+)
+
+tools=[
+    # Core Context Tools
+    get_user_college_context,
+    fetch_domain_content,
+
+    # Specialized Analysis Tools
+    analyze_specialized_data,
+
+    # Master Intelligence Tool
+    comprehensive_intelligence
+]
+```
+
+### Session State Management
+
+#### Main.py Requirements
+
+```python
+# REQUIRED: Pass user_id in session state for ADK
+from google.adk import run
+
+async def handle_request(request):
+    # Extract user_id from request authentication
+    user_id = extract_user_id(request)
+
+    # Create session state with user_id
+    session_state = {"user_id": user_id}
+
+    # Pass to ADK run with session state
+    result = await run(
+        agent_name="student_desk",
+        input_data=request_data,
+        session_state=session_state  # CRITICAL: Include user_id
+    )
+
+    return result
+```
+
+### Database Operation Patterns
+
+#### User Context Flow
+
+```python
+# REQUIRED: Standard database flow for all sub-agents
+user_id → users table
+    ↓
+users.academic_id → user_academic_details table
+    ↓
+user_academic_details.college_id → colleges table
+    ↓
+colleges.college_id → domain_specific_content table (campus_ai_content, etc.)
+```
+
+### Quality Standards
+
+#### Professional Communication
+
+- NO emojis in prompts or responses
+- Professional institutional language
+- Structured, analytical responses
+- Clear headings and organization
+- Actionable insights and recommendations
+
+#### Response Structure
+
+```python
+# REQUIRED: Standard response structure
+{
+    "success": bool,
+    "data": {
+        "analysis_profile": {...},
+        "executive_summary": [...],
+        "detailed_analysis": {...},
+        "actionable_insights": [...],
+        "analysis_metadata": {...}
+    },
+    "recommendations": [...],
+    "metadata": {
+        "processing_timestamp": "ISO_datetime",
+        "analysis_version": "version_info"
+    }
+}
+```
+
+### Future Sub-Agent Creation Checklist
+
+1. ✅ Create tools/ directory with proper structure
+2. ✅ Implement user_context_tool.py using root import pattern
+3. ✅ Create specialized tools that use root context
+4. ✅ Write professional prompt without emojis
+5. ✅ Import all tools in agent.py for comprehensive capability
+6. ✅ Test user_id flow from main.py → root → sub-agent
+7. ✅ Validate error handling and debugging information
+8. ✅ Ensure professional response formatting
+
+### Anti-Patterns to Avoid
+
+- ❌ Implementing custom user_id extraction in sub-agents
+- ❌ Hardcoding user_id or college_id values
+- ❌ Using emojis or casual language in prompts
+- ❌ Skipping user context validation
+- ❌ Missing error handling and debugging info
+- ❌ Incomplete tool coverage in agent definition
+- ❌ Direct database access without user context flow
+
+## 17. Future Development Preparation
 
 The ADK framework is designed for scalability and advanced features. This foundation supports:
 
