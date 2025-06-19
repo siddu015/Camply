@@ -46,16 +46,19 @@ create table public.semesters (
   status varchar default 'planned' check (status in ('planned', 'ongoing', 'completed')),
   start_date date,
   end_date date,
-  ia_dates jsonb,
-  sem_end_dates jsonb,
+  ia1_date date,
+  ia2_date date,
+  sem_exam_date date,
   marksheet_storage_path text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 comment on column public.semesters.status is 'Status of the semester (e.g., planned, ongoing, completed)';
-comment on column public.semesters.ia_dates is 'JSON array of IA schedules, e.g., [{"name": "IA-1", "start": "...", "end": "..."}]';
-comment on column public.semesters.sem_end_dates is 'JSON object with semester end exam dates';
+comment on column public.semesters.ia1_date is 'Date for IA-1 examination';
+comment on column public.semesters.ia2_date is 'Date for IA-2 examination';
+comment on column public.semesters.sem_exam_date is 'Start date for semester end examination';
+comment on column public.semesters.end_date is 'End date of the semester (when semester end exams end)';
 
 -- Courses table
 create table public.courses (
