@@ -1,8 +1,9 @@
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { Calendar, Clock, FileText, GraduationCap, CheckCircle, AlertCircle } from 'lucide-react';
-import { AcademicTimeline } from './AcademicTimeline';
+import { SemesterTimeline } from './SemesterTimeline';
 import { SemesterCourses } from './SemesterCourses';
+import { PerformanceAnalytics } from './PerformanceAnalytics';
 import type { Semester } from '../types';
 import type { Course } from '../hooks/useCourses';
 
@@ -133,7 +134,7 @@ export const SemesterDetails = ({ semester, onCourseClick }: SemesterDetailsProp
       </div>
 
       {/* Academic Timeline */}
-      <AcademicTimeline semester={semester} />
+      <SemesterTimeline semester={semester} />
 
       {/* Semester Courses */}
       <SemesterCourses 

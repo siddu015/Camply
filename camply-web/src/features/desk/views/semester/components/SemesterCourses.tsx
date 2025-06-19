@@ -79,7 +79,6 @@ const CoursesStats = ({ courses }: { courses: Course[] }) => {
   return (
     <div className="flex gap-6 text-sm text-muted-foreground">
       <div className="flex items-center gap-2">
-        <BookOpen className="h-4 w-4" />
         <span>{courses.length} {courses.length === 1 ? 'Course' : 'Courses'}</span>
       </div>
       {totalCredits > 0 && (
