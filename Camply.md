@@ -76,7 +76,7 @@
 
 **Semester/Overview Enhancements**
 
-- Display comprehensive semester details including timeline
+<!-- - Display comprehensive semester details including timeline -->
 - Show all courses with routing to semester/courses for detailed views
 - Individual course pages accessible through semester/courses
 - Implement score tracking systems

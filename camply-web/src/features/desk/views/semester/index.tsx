@@ -9,6 +9,7 @@ import { SemesterRegistrationForm } from './components/SemesterRegistrationForm'
 import { SemesterDetails } from './components/SemesterDetails';
 import SimpleLoader from '@/components/SimpleLoader';
 import type { SemesterFormData } from './types';
+import type { Course } from './hooks/useCourses';
 
 export function CurrentSemester() {
   const [session, setSession] = useState<any>(null);
@@ -51,6 +52,18 @@ export function CurrentSemester() {
     }
   };
 
+  const handleCourseClick = (course: Course) => {
+    // For now, we'll navigate to the Courses section with the course ID
+    // Later this can be enhanced to navigate to individual course pages
+    console.log('Navigate to course:', course);
+    
+    // Option 1: Navigate to courses section (placeholder for now)
+    // window.location.hash = `#/desk/courses/${course.course_id}`;
+    
+    // Option 2: Show course details in a modal or expand inline
+    alert(`Course clicked: ${course.course_name}\nThis will navigate to course details in the future.`);
+  };
+
   if (loading || !session) {
     return <SimpleLoader />;
   }
@@ -79,7 +92,10 @@ export function CurrentSemester() {
     <>
       <div className="w-full animate-in fade-in-50 duration-300 slide-in-from-bottom-2">
         {hasSemester && currentSemester ? (
-          <SemesterDetails semester={currentSemester} />
+          <SemesterDetails 
+            semester={currentSemester} 
+            onCourseClick={handleCourseClick}
+          />
         ) : (
           <motion.div
             initial={{ opacity: 0, y: 20 }}

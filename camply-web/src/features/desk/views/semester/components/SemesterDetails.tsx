@@ -1,7 +1,10 @@
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { Calendar, Clock, FileText, GraduationCap, CheckCircle, AlertCircle } from 'lucide-react';
+import { AcademicTimeline } from './AcademicTimeline';
+import { SemesterCourses } from './SemesterCourses';
 import type { Semester } from '../types';
+import type { Course } from '../hooks/useCourses';
 
 interface SemesterDetailCardProps {
   label: string;
@@ -12,6 +15,7 @@ interface SemesterDetailCardProps {
 
 interface SemesterDetailsProps {
   semester: Semester;
+  onCourseClick?: (course: Course) => void;
 }
 
 const SemesterDetailCard = ({ label, value, icon, status }: SemesterDetailCardProps) => {
@@ -36,9 +40,9 @@ const SemesterDetailCard = ({ label, value, icon, status }: SemesterDetailCardPr
           {status && (
             <span className={cn(
               "px-2 py-1 text-xs rounded-full font-medium",
-              status === 'current' && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-              status === 'upcoming' && "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-              status === 'completed' && "bg-gray-100 text-gray-700 dark:bg-gray-900/30 dark:text-gray-400"
+              status === 'current' && "bg-green-500/10 text-green-500",
+              status === 'upcoming' && "bg-blue-500/10 text-blue-500",
+              status === 'completed' && "bg-muted text-muted-foreground"
             )}>
               {status === 'current' && 'Current'}
               {status === 'upcoming' && 'Upcoming'}
@@ -53,7 +57,7 @@ const SemesterDetailCard = ({ label, value, icon, status }: SemesterDetailCardPr
 
 
 
-export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
+export const SemesterDetails = ({ semester, onCourseClick }: SemesterDetailsProps) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
@@ -69,11 +73,11 @@ export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
   const getStatusInfo = (status: string) => {
     switch (status) {
       case 'ongoing':
-        return { text: 'Current Semester', color: 'text-green-600 dark:text-green-400' };
+        return { text: 'Current Semester', color: 'text-green-500' };
       case 'planned':
-        return { text: 'Planned', color: 'text-blue-600 dark:text-blue-400' };
+        return { text: 'Planned', color: 'text-blue-500' };
       case 'completed':
-        return { text: 'Completed', color: 'text-gray-600 dark:text-gray-400' };
+        return { text: 'Completed', color: 'text-muted-foreground' };
       default:
         return { text: status, color: 'text-foreground' };
     }
@@ -81,13 +85,8 @@ export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
 
   const statusInfo = getStatusInfo(semester.status);
 
-  // Check if IA dates have passed (simplified - you might want more sophisticated logic)
-  const now = new Date();
-
-  const isExamCompleted = semester.sem_exam_date ? new Date(semester.sem_exam_date) < now : false;
-
   return (
-    <div className="space-y-6">
+    <div className="space-y-2">
       {/* Header */}
       <div className={cn(
         "p-6 rounded-xl border",
@@ -133,133 +132,14 @@ export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
         </div>
       </div>
 
-      {/* IA Dates */}
-      {(semester.ia1_date || semester.ia2_date) && (
-        <div className="bg-background border border-border rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-3">
-            <Clock className="h-5 w-5 text-primary" />
-            Internal Assessments
-          </h2>
-          
-          <div className="space-y-3">
-            {semester.ia1_date && (
-              <div className={cn(
-                "p-3 rounded-lg border flex items-center gap-3",
-                "bg-muted/30 border-border"
-              )}>
-                <div className={cn(
-                  "p-1.5 rounded-lg",
-                  new Date(semester.ia1_date) < now
-                    ? "bg-green-100 dark:bg-green-900/30" 
-                    : "bg-blue-100 dark:bg-blue-900/30"
-                )}>
-                  {new Date(semester.ia1_date) < now ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  ) : (
-                    <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-foreground">Internal Assignment - 1</span>
-                    <span className={cn(
-                      "text-xs px-2 py-1 rounded-full",
-                      new Date(semester.ia1_date) < now
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                    )}>
-                      {new Date(semester.ia1_date) < now ? 'Completed' : 'Upcoming'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(semester.ia1_date).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            )}
-            
-            {semester.ia2_date && (
-              <div className={cn(
-                "p-3 rounded-lg border flex items-center gap-3",
-                "bg-muted/30 border-border"
-              )}>
-                <div className={cn(
-                  "p-1.5 rounded-lg",
-                  new Date(semester.ia2_date) < now
-                    ? "bg-green-100 dark:bg-green-900/30" 
-                    : "bg-blue-100 dark:bg-blue-900/30"
-                )}>
-                  {new Date(semester.ia2_date) < now ? (
-                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-                  ) : (
-                    <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                  )}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium text-foreground">Internal Assignment - 2</span>
-                    <span className={cn(
-                      "text-xs px-2 py-1 rounded-full",
-                      new Date(semester.ia2_date) < now
-                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-                    )}>
-                      {new Date(semester.ia2_date) < now ? 'Completed' : 'Upcoming'}
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    {new Date(semester.ia2_date).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
+      {/* Academic Timeline */}
+      <AcademicTimeline semester={semester} />
 
-      {/* Semester End Exam */}
-      {semester.sem_exam_date && (
-        <div className="bg-background border border-border rounded-xl p-6">
-          <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-3">
-            <FileText className="h-5 w-5 text-primary" />
-            Semester End Examination
-          </h2>
-          
-          <div className={cn(
-            "p-4 rounded-lg border flex items-center gap-4",
-            "bg-muted/30 border-border"
-          )}>
-            <div className={cn(
-              "p-2 rounded-lg",
-              isExamCompleted 
-                ? "bg-green-100 dark:bg-green-900/30" 
-                : "bg-orange-100 dark:bg-orange-900/30"
-            )}>
-              {isExamCompleted ? (
-                <CheckCircle className="h-5 w-5 text-green-600 dark:text-green-400" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              )}
-            </div>
-            <div className="flex-1">
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-foreground">Semester End Exam</span>
-                <span className={cn(
-                  "text-xs px-2 py-1 rounded-full",
-                  isExamCompleted 
-                    ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                    : "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
-                )}>
-                  {isExamCompleted ? 'Completed' : 'Upcoming'}
-                </span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                {new Date(semester.sem_exam_date).toLocaleDateString()}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Semester Courses */}
+      <SemesterCourses 
+        semesterId={semester.semester_id} 
+        onCourseClick={onCourseClick}
+      />
     </div>
   );
 }; 
