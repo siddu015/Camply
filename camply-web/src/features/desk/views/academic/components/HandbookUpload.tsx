@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Loader2, AlertCircle, CheckCircle, Book } from "lucide-react";
+import { CheckCircle, Book } from "lucide-react";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import type { UserHandbook } from "@/types/database";
 import { FileUpload } from "@/components/ui/file-upload";
+import SimpleLoader from "@/components/SimpleLoader";
 import { uploadHandbook } from '../lib/handbookUpload';
 
 interface HandbookUploadProps {
@@ -49,6 +50,18 @@ export function HandbookUpload({
     }
   };
 
+  if (uploading || error) {
+    return (
+      <div className="bg-background border border-border rounded-xl p-6 min-h-[400px]">
+        <SimpleLoader 
+          size="md"
+          text={uploading ? "Uploading handbook..." : "Processing your request..."}
+          fullScreen={false}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="bg-background border border-border rounded-xl p-6">
       <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-3">
@@ -64,19 +77,9 @@ export function HandbookUpload({
       <div className="space-y-4">
         <div className={cn(
           "border-2 border-dashed rounded-xl transition-colors",
-          uploading ? "border-primary/50 bg-primary/5" : "border-border hover:border-primary/50"
+          "border-border hover:border-primary/50"
         )}>
-          {uploading ? (
-            <div className="p-10 flex flex-col items-center justify-center">
-              <Loader2 className="h-12 w-12 text-primary animate-spin mb-4" />
-              <p className="text-foreground font-medium">Uploading handbook...</p>
-              <p className="text-muted-foreground text-sm mt-1">
-                This may take a few moments
-              </p>
-            </div>
-          ) : (
-            <FileUpload onChange={handleFileUpload} />
-          )}
+          <FileUpload onChange={handleFileUpload} />
         </div>
 
         <div className={cn(
@@ -98,13 +101,6 @@ export function HandbookUpload({
           <div className="flex items-center space-x-3 text-green-600 bg-green-50 dark:bg-green-950/30 p-4 rounded-lg border border-green-200 dark:border-green-900">
             <CheckCircle className="h-5 w-5 flex-shrink-0" />
             <span className="text-sm font-medium">{success}</span>
-          </div>
-        )}
-
-        {error && (
-          <div className="flex items-center space-x-3 text-red-600 bg-red-50 dark:bg-red-950/30 p-4 rounded-lg border border-red-200 dark:border-red-900">
-            <AlertCircle className="h-5 w-5 flex-shrink-0" />
-            <span className="text-sm font-medium">{error}</span>
           </div>
         )}
       </div>
