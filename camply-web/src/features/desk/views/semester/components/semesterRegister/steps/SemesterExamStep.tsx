@@ -113,14 +113,14 @@ export function SemesterExamStep({
             className={cn(
               "w-full px-4 py-3 rounded-xl transition-all duration-300",
               "focus:outline-none focus:ring-2 focus:ring-offset-0",
-              "shadow-lg backdrop-blur-lg border",
+              "shadow-lg",
               validationErrors.sem_end_start
                 ? isDark
-                  ? "bg-white/8 border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
-                  : "bg-background border-red-500/60 text-foreground focus:border-red-500 focus:ring-red-500/30"
+                  ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
+                  : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
                 : isDark
-                  ? "bg-white/8 border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
-                  : "bg-background border-border text-foreground focus:border-ring focus:ring-ring/20 hover:bg-muted/50"
+                  ? "backdrop-blur-lg bg-white/8 border border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
+                  : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
             )}
           />
           {validationErrors.sem_end_start && (
@@ -151,14 +151,14 @@ export function SemesterExamStep({
             className={cn(
               "w-full px-4 py-3 rounded-xl transition-all duration-300",
               "focus:outline-none focus:ring-2 focus:ring-offset-0",
-              "shadow-lg backdrop-blur-lg border",
+              "shadow-lg",
               validationErrors.sem_end_end
                 ? isDark
-                  ? "bg-white/8 border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
-                  : "bg-background border-red-500/60 text-foreground focus:border-red-500 focus:ring-red-500/30"
+                  ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
+                  : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
                 : isDark
-                  ? "bg-white/8 border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
-                  : "bg-background border-border text-foreground focus:border-ring focus:ring-ring/20 hover:bg-muted/50"
+                  ? "backdrop-blur-lg bg-white/8 border border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
+                  : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
             )}
           />
           {validationErrors.sem_end_end && (
