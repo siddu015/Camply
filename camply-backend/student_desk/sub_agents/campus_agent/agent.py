@@ -1,20 +1,12 @@
-"""Campus Agent: Provides comprehensive information about the university campus with advanced real-time capabilities."""
+"""Campus Agent: Consolidated campus intelligence system with 2 comprehensive tools."""
 
 from google.adk.agents import LlmAgent
 from . import prompt
 from .tools import (
-    # Enhanced ADK-based tools
+    get_user_college_context,
     fetch_campus_content_by_user_id,
-    analyze_comprehensive_campus_intelligence,
-    
-    # Enhanced specialized tools  
-    fetch_comprehensive_campus_news,
-    analyze_placement_intelligence,
-    generate_campus_facilities_report,
-    
-    # Original tools
-    web_scrape_college_news,
-    fetch_campus_content_by_id_tool  # Legacy support
+    analyze_prompt_based_intelligence,  
+    search_campus_intelligence,
 )
 
 MODEL = "gemini-2.0-flash"
@@ -23,31 +15,23 @@ campus_agent = LlmAgent(
     name="campus_agent",
     model=MODEL,
     description=(
-        "Advanced Campus Intelligence System providing comprehensive, real-time information about colleges and universities. "
-        "Specializes in: professional campus analysis, dynamic content aggregation, placement intelligence, "
-        "facility assessments, news and achievements monitoring, statistical analysis, and event tracking. "
-        "Uses state-of-the-art ADK tools with enhanced web scraping, structured data processing, and professional formatting. "
-        "Delivers executive-level campus intelligence reports with actionable insights and comprehensive analysis."
+        "Consolidated Campus Intelligence System with streamlined architecture. "
+        "Handles both predefined frontend prompts (news, placements, achievements, stats, events, tours) "
+        "and custom user queries through web search capabilities. Uses 2 comprehensive tools: "
+        "1) Prompt-based intelligence for structured campus insights "
+        "2) Web search intelligence for real-time information gathering. "
+        "Maintains proper user context management following database schema: user_id -> college_id. "
+        "Optimized for both CamplyBot chat queries and frontend button interactions."
     ),
     instruction=prompt.SYSTEM_PROMPT,
     output_key="campus_response",
     tools=[
-        # Enhanced comprehensive tools first
+        get_user_college_context,
         fetch_campus_content_by_user_id,
-        analyze_comprehensive_campus_intelligence,
         
-        # Enhanced specialized tools for deep analysis
-        fetch_comprehensive_campus_news,
-        analyze_placement_intelligence, 
-        generate_campus_facilities_report,
-        
-        # Original tools for compatibility
-        web_scrape_college_news,
-        
-        # Legacy support
-        fetch_campus_content_by_id_tool
+        analyze_prompt_based_intelligence,
+        search_campus_intelligence,
     ],
 )
 
-# Export the agent instance
 root_agent = campus_agent 

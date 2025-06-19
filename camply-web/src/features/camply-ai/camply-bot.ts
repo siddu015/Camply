@@ -29,6 +29,9 @@ export interface ChatResponse {
     processing_time?: number;
     confidence_score?: number;
     source?: string;
+    http_status?: number;
+    http_status_text?: string;
+    error_type?: string;
   };
 }
 
@@ -86,53 +89,89 @@ export class CamplyBotService {
         body: JSON.stringify(enrichedRequest),
       });
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      
-      const data: ChatResponse = await response.json();
       const processingTime = Date.now() - startTime;
       
+      let data: any;
+      try {
+        data = await response.json();
+      } catch (parseError) {
+        data = {
+          response: `Backend response received (HTTP ${response.status}) but could not be parsed as JSON. Raw response available.`,
+          success: false,
+          error: `Response parsing failed: ${parseError}`,
+          agent_used: "response_parser"
+        };
+      }
+      
+      console.log('Raw backend response in CamplyBot:', JSON.stringify(data, null, 2));
+      
+      let responseText = '';
+      
+      if (data.response) {
+        responseText = data.response;
+      }
+      else if (data.candidates && Array.isArray(data.candidates) && data.candidates.length > 0) {
+        const candidate = data.candidates[0];
+        if (candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
+          const textPart = candidate.content.parts.find((part: any) => part.text);
+          if (textPart && textPart.text) {
+            responseText = textPart.text;
+          }
+        }
+      }
+      else if (typeof data === 'string') {
+        responseText = data;
+      }
+      else if (data.error) {
+        responseText = `Backend error: ${data.error}`;
+      }
+      else if (data.message) {
+        responseText = data.message;
+      }         
+      else {
+        responseText = `Backend responded with HTTP ${response.status} but no readable content found. Raw: ${JSON.stringify(data)}`.substring(0, 500);
+      }
+      
       return {
-        ...data,
+        response: responseText,
+        agent_used: data.agent_used || "backend_response",
+        success: data.success !== undefined ? data.success : response.ok,
+        error: data.error,
         metadata: {
           ...data.metadata,
           processing_time: processingTime,
+          http_status: response.status,
+          http_status_text: response.statusText,
         },
       };
     } catch (error) {
       console.error('Error sending message to Camply bot:', error);
       
       return {
-        response: this.getErrorMessage(error),
-        agent_used: "error_handler",
+        response: this.getConnectionErrorMessage(error),
+        agent_used: "connection_error_handler",
         success: false,
-        error: error instanceof Error ? error.message : 'Unknown error',
+        error: error instanceof Error ? error.message : 'Connection error',
         metadata: {
           processing_time: Date.now() - startTime,
+          error_type: 'connection_error',
         },
       };
     }
   }
 
-  private getErrorMessage(error: unknown): string {
+  private getConnectionErrorMessage(error: unknown): string {
     if (error instanceof TypeError && error.message.includes('fetch')) {
-      return "I'm having trouble connecting to the server. Please check your internet connection and try again.";
+      return "Unable to connect to the backend server. Please check your internet connection and ensure the backend is running.";
     }
     
     if (error instanceof Error) {
-      if (error.message.includes('500')) {
-        return "The server is experiencing some issues. Please try again in a moment.";
-      }
-      if (error.message.includes('404')) {
-        return "The service is temporarily unavailable. Please try again later.";
-      }
-      if (error.message.includes('timeout')) {
-        return "The request timed out. Please try again with a shorter message.";
+      if (error.message.includes('NetworkError') || error.message.includes('ECONNREFUSED')) {
+        return "Cannot reach the backend server. Please ensure the server is running and accessible.";
       }
     }
     
-    return "I'm experiencing technical difficulties right now. Please try again in a moment.";
+    return `Connection error: ${error instanceof Error ? error.message : 'Unknown connection issue'}`;
   }
   
   async checkHealth(): Promise<boolean> {

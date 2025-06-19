@@ -1,5 +1,3 @@
-"""ADK Tool for managing user context data."""
-
 import sys
 import os
 import asyncio
@@ -7,81 +5,79 @@ from typing import Optional, Dict, Any
 
 from google.adk.tools import FunctionTool
 
-# Add parent directory to path to access shared modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 from shared import UserDataService
 
 
-async def get_user_context() -> Dict[str, Any]:
-    """
-    Fetch user context from database including academic details and college info.
-    Uses the user_id from the current ADK session context.
+async def get_user_context(*, tool_context) -> Dict[str, Any]:
+    session_state = getattr(tool_context, 'state', None)
+    if not session_state:
+        return {
+            "error": "Session state not available in tool context",
+            "success": False,
+            "debug_info": {
+                "tool_context_attributes": [attr for attr in dir(tool_context) if not attr.startswith('_')],
+                "message": "ADK session state not accessible from tool_context.state"
+            }
+        }
     
-    Returns:
-        Dictionary containing user data, academic details, and college information
-    """
-    # In ADK, the user_id should be available from the session context
-    # For now, let's try to get it from the session or use a hardcoded test user
+    user_id = session_state.get('user_id') if hasattr(session_state, 'get') else getattr(session_state, 'user_id', None)
     
-    # Try actual users from the database first
-    test_user_ids = [
-        "b4f908e0-3262-4dd8-b63f-14115c724e7f",  # Vennapusa Srinath Reddy
-        "541b4169-676b-45f3-835a-9c2f85d38266"   # Bavitha
-    ]
+    if not user_id:
+        return {
+            "error": "User ID not found in session state - ensure session is created with user_id in initial state",
+            "success": False,
+            "debug_info": {
+                "session_state_type": type(session_state).__name__,
+                "session_state_attributes": [attr for attr in dir(session_state) if not attr.startswith('_')] if session_state else [],
+                "session_state_dict": dict(session_state) if hasattr(session_state, 'get') else str(session_state),
+                "message": "user_id must be in session state created by main.py"
+            }
+        }
     
-    for user_id in test_user_ids:
-        try:
-            # Fetch user context using the UserDataService
-            user_context = await UserDataService.get_user_context(user_id)
+    try:
+        user_context = await UserDataService.get_user_context(user_id)
+        
+        if user_context:
+            formatted_context = UserDataService.format_user_context_for_agent(user_context)
             
-            if user_context:
-                # Format the context for the agent
-                formatted_context = UserDataService.format_user_context_for_agent(user_context)
-                
-                # Calculate current academic year
-                admission_year = user_context.get("academic_details", {}).get("admission_year")
-                current_year_str = calculate_academic_year(admission_year)
+            admission_year = user_context.get("academic_details", {}).get("admission_year")
+            current_year_str = calculate_academic_year(admission_year)
 
-                return {
-                    "success": True,
-                    "user_id": user_id,
-                    "user": user_context.get("user", {}),
-                    "academic_details": user_context.get("academic_details", {}),
-                    "college": user_context.get("college", {}),
-                    "formatted_context": formatted_context,
-                    "student_name": user_context["user"]["name"] if user_context.get("user") else "Student",
-                    "college_name": user_context["college"]["name"] if user_context.get("college") else "Your College",
-                    "college_id": user_context["academic_details"]["college_id"] if user_context.get("academic_details") else None,
-                    "department_name": user_context["academic_details"]["department_name"] if user_context.get("academic_details") else None,
-                    "branch_name": user_context["academic_details"]["branch_name"] if user_context.get("academic_details") else None,
-                    "roll_number": user_context["academic_details"]["roll_number"] if user_context.get("academic_details") else None,
-                    "admission_year": user_context["academic_details"]["admission_year"] if user_context.get("academic_details") else None,
-                    "graduation_year": user_context["academic_details"]["graduation_year"] if user_context.get("academic_details") else None,
-                    "current_year": current_year_str,
-                }
-        except Exception as e:
-            print(f"Error fetching user context for {user_id}: {e}")
-            continue
-    
-    # If no users found, return error
-    return {
-        "error": "User not found or incomplete profile. Please complete your profile setup.",
-        "user_id": "unknown",
-        "success": False
-    }
+            return {
+                "success": True,
+                "user_id": user_id,
+                "user": user_context.get("user", {}),
+                "academic_details": user_context.get("academic_details", {}),
+                "college": user_context.get("college", {}),
+                "formatted_context": formatted_context,
+                "student_name": user_context["user"]["name"] if user_context.get("user") else "Student",
+                "college_name": user_context["college"]["name"] if user_context.get("college") else "Your College",
+                "college_id": user_context["academic_details"]["college_id"] if user_context.get("academic_details") else None,
+                "department_name": user_context["academic_details"]["department_name"] if user_context.get("academic_details") else None,
+                "branch_name": user_context["academic_details"]["branch_name"] if user_context.get("academic_details") else None,
+                "roll_number": user_context["academic_details"]["roll_number"] if user_context.get("academic_details") else None,
+                "admission_year": user_context["academic_details"]["admission_year"] if user_context.get("academic_details") else None,
+                "graduation_year": user_context["academic_details"]["graduation_year"] if user_context.get("academic_details") else None,
+                "current_year": current_year_str,
+            }
+        else:
+            return {
+                "error": f"User profile not found for user_id: {user_id}. Please complete your profile setup.",
+                "user_id": user_id,
+                "success": False
+            }
+            
+    except Exception as e:
+        return {
+            "error": f"Error fetching user context for {user_id}: {str(e)}",
+            "user_id": user_id,
+            "success": False
+        }
 
 
 def calculate_academic_year(admission_year: Optional[int]) -> str:
-    """
-    Calculate the current academic year based on admission year.
-    
-    Args:
-        admission_year: The year the student was admitted
-        
-    Returns:
-        String representation of current academic year
-    """
     if not admission_year:
         return "N/A"
     
@@ -91,23 +87,13 @@ def calculate_academic_year(admission_year: Optional[int]) -> str:
     
     if academic_year <= 0:
         return "Pre-admission"
-    elif academic_year > 6:  # Assuming max 6 years for any program
+    elif academic_year > 6: 
         return "Graduated"
     else:
         return str(academic_year)
 
 
 def get_program_name(department_name: Optional[str], branch_name: Optional[str]) -> str:
-    """
-    Create a formatted program name from department and branch.
-    
-    Args:
-        department_name: Name of the department
-        branch_name: Name of the branch/specialization
-        
-    Returns:
-        Formatted program name string
-    """
     if department_name and branch_name:
         return f"{branch_name} in {department_name}"
     elif branch_name:
@@ -118,7 +104,6 @@ def get_program_name(department_name: Optional[str], branch_name: Optional[str])
         return "Your Program"
 
 
-# ADK Tool instances
 user_context_tool = FunctionTool(
     func=get_user_context
 )

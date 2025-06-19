@@ -18,6 +18,20 @@ requests
 pydantic
 fastapi
 uvicorn
+python-multipart
+
+# PDF processing - Enhanced for handbook reader
+PyMuPDF>=1.24.0
+pdfplumber>=0.10.0
+PyPDF2==3.0.1
+
+# NLP and text processing
+spacy>=3.7.0
+nltk>=3.8.0
+scikit-learn>=1.3.0
 
 # Date and time handling
-python-dateutil 
+python-dateutil
+
+# Supabase client
+supabase>=2.15.0 

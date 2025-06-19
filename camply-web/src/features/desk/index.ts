@@ -3,7 +3,7 @@ export { DeskSidebarWrapper, DeskSiteHeader } from "./components/desk-sidebar-wr
 
 export { CampusOverview, CampusFeaturePage } from "./views/campus/"
 export { Desk } from "./views/Desk"
-export { AcademicOverview } from "./views/AcademicOverview"
+export { AcademicOverview } from "./views/academic"
 export { Courses } from "./views/Courses"
 export { CurrentSemester } from "./views/CurrentSemester"
 

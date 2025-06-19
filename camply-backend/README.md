@@ -1,108 +1,172 @@
-# Camply Backend
+# Camply Backend Services
 
-Bridge service connecting Camply frontend to ADK agents.
+## Architecture Overview
+
+The Camply backend consists of **2 main servers**:
+
+1. **ADK Server** - Google Agent Development Kit server running AI agents
+2. **Main Bridge Server** (`main.py`) - FastAPI service on port 8001 that:
+   - Bridges frontend to ADK agents
+   - Provides handbook PDF processing (integrated)
+   - Handles chat requests and routing
 
 ## Quick Start
 
-1. **Install dependencies:**
+### 1. Start ADK Server
 
-   ```bash
-   pip install -r requirements.txt
-   ```
+```bash
+# Start the ADK server (Google's agent runtime)
+adk server start
+```
 
-2. **Start ADK server (Terminal 1):**
+### 2. Start Main Bridge Server
 
-   ```bash
-   adk api_server
-   ```
+```bash
+# Navigate to backend directory
+cd camply-backend
 
-   This starts the ADK server on port 8000
+# Install dependencies
+pip install -r requirements.txt
 
-3. **Start Bridge server (Terminal 2):**
+# Start the integrated bridge + handbook service
+python main.py
+```
 
-   ```bash
-   python3 main.py
-   ```
+The system will be running on:
 
-   This starts the bridge server on port 8001
+- **ADK Server**: Default ADK port (varies)
+- **Main Bridge + Handbook Service**: http://localhost:8001
 
-4. **Frontend Integration:**
-   - Frontend connects to: http://localhost:8001/chat
-   - API docs available at: http://localhost:8001/docs
-   - Health check: http://localhost:8001/health
+## Integrated Services
 
-## Project Structure
+### Chat API
+
+- `POST /chat` - Send messages to ADK agents
+- `GET /health` - Check system health
+
+### Handbook Processing API
+
+- `POST /handbook/process` - Start PDF processing
+- `GET /handbook/status/{handbook_id}` - Check processing status
+- `POST /handbook/validate` - Validate PDF before upload
+- `GET /handbook/search` - Search processed handbook content
+
+## Architecture Benefits
+
+### Simplified Deployment
+
+- Only 2 servers instead of 3
+- No inter-service HTTP calls for handbook processing
+- Shared database connections and configuration
+
+### Performance
+
+- Direct database access from handbook processing
+- No network overhead between services
+- Background processing with status tracking
+
+### Development
+
+- Single point of configuration
+- Easier debugging and logging
+- Simpler dependency management
+
+## File Structure
 
 ```
 camply-backend/
-├── main.py              # FastAPI bridge application
-├── requirements.txt     # Python dependencies
-├── shared/              # Shared services and configuration
-│   ├── config.py        # Configuration management
-│   └── database.py      # Database operations
-├── student_desk/        # ADK agent directory
-│   ├── agent.py         # Main agent definition
-│   ├── prompt.py        # Agent prompts
-│   ├── tools/           # Agent tools
-│   │   └── data_service.py  # Data access functions
-│   └── sub_agents/      # Sub-agents (campus_agent)
-└── README.md           # This file
+├── main.py                 # Integrated FastAPI bridge + handbook service
+├── requirements.txt        # All dependencies including PyMuPDF, spaCy
+├── shared/                 # Shared database and config utilities
+│   ├── config.py
+│   └── database.py
+├── student_desk/           # ADK agent system
+│   ├── agent.py           # Main student desk agent
+│   └── sub_agents/        # Specialized agents (campus, handbook, etc.)
+└── handbook_reader/        # PDF processing modules (imported by main.py)
+    ├── __init__.py        # Package exports
+    ├── config.py          # Processing configuration
+    ├── pdf_processor.py   # PyMuPDF-based PDF processing
+    ├── content_extractor.py # NLP categorization
+    ├── json_generator.py  # Structured JSON formatting
+    └── database_updater.py # Database integration
 ```
 
-## API Endpoints
+## Environment Setup
 
-### POST /chat
+### Required Environment Variables
 
-Send a message to the campus bot.
+```bash
+# Supabase Configuration
+SUPABASE_URL=your_supabase_url
+SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
-**Request:**
-
-```json
-{
-  "message": "What is my campus great for?",
-  "user_id": "optional-user-id",
-  "context": {
-    "college_name": "REVA University",
-    "department": "Computer Science",
-    "branch": "AI & DS"
-  }
-}
+# ADK Configuration
+ADK_SERVER_URL=http://localhost:your_adk_port
+ADK_APP_NAME=camply_student_desk
 ```
 
-**Response:**
+### Python Dependencies
 
-```json
-{
-  "response": "REVA University is great for...",
-  "agent_used": "student_desk",
-  "success": true
-}
-```
+The system requires advanced NLP and PDF processing libraries:
 
-### GET /health
+- PyMuPDF (fitz) - Fast PDF processing
+- spaCy - NLP for content categorization
+- scikit-learn - Text analysis and classification
+- pdfplumber - Additional PDF parsing
+- FastAPI - Web service framework
+- And more (see requirements.txt)
 
-Check if the bridge service and ADK server are connected.
+## Database Integration
 
-## How It Works
+The handbook processing system directly integrates with the existing Supabase database:
 
-1. **ADK Server** (port 8000): Runs the student_desk agent using Google ADK
-2. **Bridge Server** (port 8001): FastAPI service that:
-   - Receives requests from frontend
-   - Creates sessions with ADK server
-   - Forwards messages to student_desk agent
-   - Extracts and returns agent responses
-   - Handles errors gracefully
+- **user_handbooks** table - Stores processed handbook data in 12 JSON columns
+- **Direct database access** - No additional APIs or services required
+- **Real-time status tracking** - Processing status updates in database
 
-## Development
+## Production Deployment
 
-- Bridge server runs with auto-reload enabled
-- Changes to agent code require ADK server restart
-- Changes to bridge code auto-restart the bridge server
+### Single Service Deployment
 
-## Troubleshooting
+1. Deploy the integrated main.py service
+2. Set up ADK server separately
+3. Configure environment variables
+4. Monitor both services
 
-1. **ADK Server issues:** Ensure `adk api_server` works independently
-2. **Bridge connection errors:** Verify ADK server is running on port 8000
-3. **CORS errors:** Frontend URLs are configured in `main.py`
-4. **Port conflicts:** Modify port in `main.py` if needed
-5. **Agent errors:** Check agent configuration in `student_desk/agent.py`
+### Scaling Considerations
+
+- Handbook processing runs in background tasks
+- Database connection pooling for concurrent requests
+- Horizontal scaling possible for main.py service
+- ADK server scales independently
+
+## Development Workflow
+
+1. **Start Development Servers**:
+
+   ```bash
+   # Terminal 1: Start ADK
+   adk server start
+
+   # Terminal 2: Start integrated bridge
+   python main.py
+   ```
+
+2. **Test Handbook Processing**:
+
+   ```bash
+   # Upload and process a PDF
+   curl -X POST "http://localhost:8001/handbook/process" \
+     -H "Content-Type: application/json" \
+     -d '{"user_id": "...", "academic_id": "...", "storage_path": "...", "original_filename": "...", "file_size_bytes": 1024}'
+   ```
+
+3. **Monitor Processing**:
+   ```bash
+   # Check status
+   curl "http://localhost:8001/handbook/status/{handbook_id}"
+   ```
+
+This integrated architecture provides a robust, scalable, and maintainable solution for the Camply handbook processing system.
