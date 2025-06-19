@@ -1,0 +1,158 @@
+import { motion } from 'framer-motion';
+import { useEffect, useRef } from 'react';
+import { useTheme } from '@/lib/theme-provider';
+import { cn } from '@/lib/utils';
+import type { SemesterFormData } from '../../../types';
+
+interface SemesterDatesStepProps {
+  formData: SemesterFormData;
+  validationErrors: Record<string, string>;
+  onFieldChange: (name: string, value: any) => void;
+  autoFocus?: boolean;
+  direction?: 'next' | 'prev' | null;
+}
+
+export function SemesterDatesStep({ 
+  formData, 
+  validationErrors, 
+  onFieldChange, 
+  autoFocus = false, 
+  direction 
+}: SemesterDatesStepProps) {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (autoFocus && firstInputRef.current) {
+      const timer = setTimeout(() => {
+        firstInputRef.current?.focus();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [autoFocus]);
+
+  const stepVariants = {
+    initial: { 
+      opacity: 0, 
+      x: direction === 'next' ? 30 : direction === 'prev' ? -30 : 0,
+      y: 10
+    },
+    animate: { 
+      opacity: 1, 
+      x: 0, 
+      y: 0
+    },
+    exit: { 
+      opacity: 0, 
+      x: direction === 'next' ? -30 : direction === 'prev' ? 30 : 0,
+      y: -10
+    }
+  };
+
+  // Get minimum end date (start date + 1 day)
+  const getMinEndDate = () => {
+    if (!formData.start_date) return '';
+    const startDate = new Date(formData.start_date);
+    startDate.setDate(startDate.getDate() + 1);
+    return startDate.toISOString().split('T')[0];
+  };
+
+  return (
+    <motion.div 
+      variants={stepVariants}
+      initial="initial"
+      animate="animate"
+      exit="exit"
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="space-y-6"
+    >
+      <div className="flex items-start gap-6 mb-8">
+        <div>
+          <h3 className={cn(
+            "text-1xl font-semibold",
+            isDark ? "text-white" : "text-gray-900"
+          )}>
+            When does your semester start and end?
+          </h3>
+        </div>
+      </div>
+
+      <div className="space-y-6 max-w-md mx-auto">
+        {/* Semester Start Date */}
+        <div className="space-y-3">
+          <label className={cn(
+            "block text-sm font-medium",
+            isDark ? "text-white/90" : "text-muted-foreground"
+          )}>
+            Semester Start Date *
+          </label>
+          <input
+            ref={firstInputRef}
+            type="date"
+            value={formData.start_date || ''}
+            onChange={(e) => onFieldChange('start_date', e.target.value)}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl transition-all duration-300",
+              "focus:outline-none focus:ring-2 focus:ring-offset-0",
+              "shadow-lg backdrop-blur-lg border",
+              validationErrors.start_date
+                ? isDark
+                  ? "bg-white/8 border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
+                  : "bg-background border-red-500/60 text-foreground focus:border-red-500 focus:ring-red-500/30"
+                : isDark
+                  ? "bg-white/8 border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
+                  : "bg-background border-border text-foreground focus:border-ring focus:ring-ring/20 hover:bg-muted/50"
+            )}
+          />
+          {validationErrors.start_date && (
+            <motion.p 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-destructive font-medium"
+            >
+              {validationErrors.start_date}
+            </motion.p>
+          )}
+        </div>
+
+        {/* Semester End Date */}
+        <div className="space-y-3">
+          <label className={cn(
+            "block text-sm font-medium",
+            isDark ? "text-white/90" : "text-muted-foreground"
+          )}>
+            Semester End Date *
+          </label>
+          <input
+            type="date"
+            value={formData.end_date || ''}
+            onChange={(e) => onFieldChange('end_date', e.target.value)}
+            min={getMinEndDate()}
+            className={cn(
+              "w-full px-4 py-3 rounded-xl transition-all duration-300",
+              "focus:outline-none focus:ring-2 focus:ring-offset-0",
+              "shadow-lg backdrop-blur-lg border",
+              validationErrors.end_date
+                ? isDark
+                  ? "bg-white/8 border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
+                  : "bg-background border-red-500/60 text-foreground focus:border-red-500 focus:ring-red-500/30"
+                : isDark
+                  ? "bg-white/8 border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
+                  : "bg-background border-border text-foreground focus:border-ring focus:ring-ring/20 hover:bg-muted/50"
+            )}
+          />
+          {validationErrors.end_date && (
+            <motion.p 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-sm text-destructive font-medium"
+            >
+              {validationErrors.end_date}
+            </motion.p>
+          )}
+        </div>
+      </div>
+    </motion.div>
+  );
+} 

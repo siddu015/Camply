@@ -34,6 +34,23 @@
 - Pages should professionally render markdown responses for optimal readability
 - Generated responses should be saved and not updated on every click;cached for one day
 
+**Academic Component Development**
+
+- Display comprehensive user academic data
+- Show academic timeline for each semester
+- Implement department/branch handbook collection system:
+  - Store handbooks in Supabase
+  - Create 10-20 columns to store JSON data extracted from handbooks
+  - Each column should contain specific departmental data (basics, exams, evaluations, semesters, attendance, etc.)
+  - Develop agent or backend functionality to analyze/parse handbooks using Python parsing libraries
+  - Store collected handbook data in Supabase for ADK response generation
+- Enable users to ask questions about their rulebook specialized handbook query component
+
+
+
+
+---
+
 ### Next Phase (Camply-web)
 
 **Campus Component Enhancements**
@@ -44,17 +61,8 @@
   - Complete page layout requirements from top to bottom
 - Implement contextual help: when users select specific text in responses, they can click "Explain More Clearly" to display additional clarification in a dialog above or below the selected text
   etails
-  **Academic Component Development**
 
-<!-- - Display comprehensive user academic data
-- Show academic timeline for each semester
-- Implement department/branch handbook collection system:
-  - Store handbooks in Supabase
-  - Create 10-20 columns to store JSON data extracted from handbooks
-  - Each column should contain specific departmental data (basics, exams, evaluations, semesters, attendance, etc.)
-  - Develop agent or backend functionality to analyze/parse handbooks using Python parsing libraries
-  - Store collected handbook data in Supabase for ADK response generation
-- Enable users to ask questions about their rulebook through Camply AI and a specialized component -->
+**Academic Component Development**
 
 - Create analytical actions for student insights:
   - Performance metrics tracking

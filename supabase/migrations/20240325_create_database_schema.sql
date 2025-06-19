@@ -43,23 +43,46 @@ create table public.semesters (
   semester_id uuid primary key default uuid_generate_v4(),
   academic_id uuid references public.user_academic_details not null,
   semester_number integer not null,
-  time_table_url text,
-  number_of_ias integer,
-  sem_end_marksheet_url text,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  status varchar default 'planned' check (status in ('planned', 'ongoing', 'completed')),
+  start_date date,
+  end_date date,
+  ia_dates jsonb,
+  sem_end_dates jsonb,
+  marksheet_storage_path text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+comment on column public.semesters.status is 'Status of the semester (e.g., planned, ongoing, completed)';
+comment on column public.semesters.ia_dates is 'JSON array of IA schedules, e.g., [{"name": "IA-1", "start": "...", "end": "..."}]';
+comment on column public.semesters.sem_end_dates is 'JSON object with semester end exam dates';
 
 -- Courses table
 create table public.courses (
   course_id uuid primary key default uuid_generate_v4(),
   semester_id uuid references public.semesters not null,
   course_name varchar not null,
-  syllabus_url text,
+  course_code varchar,
+  syllabus_storage_path text,
   credits integer,
-  unit_notes jsonb,
-  important_question_papers jsonb,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- Assessments table
+create table public.assessments (
+  assessment_id uuid primary key default uuid_generate_v4(),
+  course_id uuid references public.courses(course_id) on delete cascade not null,
+  assessment_type varchar not null,
+  max_marks numeric(5, 2),
+  marks_obtained numeric(5, 2),
+  assessment_date date,
+  weightage numeric(5, 2),
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+comment on column public.assessments.assessment_type is 'Type of assessment (e.g., IA-1, IA-2, Quiz, Assignment, Semester End Exam)';
 
 -- Campus AI Content table
 create table public.campus_ai_content (
@@ -112,6 +135,7 @@ create table public.user_handbooks (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Create storage buckets
 -- Create handbooks storage bucket (for handbook file storage)
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) 
 values (
@@ -122,11 +146,22 @@ values (
   array['application/pdf']
 );
 
+-- Create marksheets storage bucket
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('marksheets', 'marksheets', false, 10485760) -- 10MB limit
+on conflict (id) do nothing;
+
+-- Create course_documents storage bucket
+insert into storage.buckets (id, name, public, file_size_limit)
+values ('course_documents', 'course_documents', false, 10485760) -- 10MB limit
+on conflict (id) do nothing;
+
 -- Enable RLS
 alter table public.users enable row level security;
 alter table public.user_academic_details enable row level security;
 alter table public.semesters enable row level security;
 alter table public.courses enable row level security;
+alter table public.assessments enable row level security;
 alter table public.colleges enable row level security;
 alter table public.campus_ai_content enable row level security;
 alter table public.user_handbooks enable row level security;
@@ -202,6 +237,29 @@ create policy "Users can insert own courses" on public.courses
     )
   );
 
+-- Assessment policies
+create policy "Users can view own assessments" on public.assessments
+  for select using (
+    exists (
+      select 1 from public.courses c
+      join public.semesters s on c.semester_id = s.semester_id
+      join public.user_academic_details uad on s.academic_id = uad.academic_id
+      where c.course_id = assessments.course_id
+      and uad.user_id = auth.uid()
+    )
+  );
+
+create policy "Users can manage own assessments" on public.assessments
+  for all using (
+    exists (
+      select 1 from public.courses c
+      join public.semesters s on c.semester_id = s.semester_id
+      join public.user_academic_details uad on s.academic_id = uad.academic_id
+      where c.course_id = assessments.course_id
+      and uad.user_id = auth.uid()
+    )
+  );
+
 -- Colleges can be read by all
 create policy "Anyone can view colleges" on public.colleges
   for select using (true);
@@ -247,6 +305,26 @@ create policy "Users can delete own handbooks" on storage.objects
     and (storage.foldername(name))[2] = auth.uid()::text
   );
 
+-- Policies for marksheets (assuming path is user_id/file.pdf)
+create policy "Users can manage own marksheets" on storage.objects
+  for all to authenticated using (
+    bucket_id = 'marksheets'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  ) with check (
+    bucket_id = 'marksheets'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+-- Policies for course_documents (assuming path is user_id/course_id/file.pdf)
+create policy "Users can manage own course documents" on storage.objects
+  for all to authenticated using (
+    bucket_id = 'course_documents'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  ) with check (
+    bucket_id = 'course_documents'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
 -- Add foreign key constraints after tables are created
 alter table public.users 
   add constraint fk_academic_details 
@@ -256,7 +334,8 @@ alter table public.users
 alter table public.user_academic_details
   add constraint fk_latest_semester
   foreign key (latest_semester_id)
-  references public.semesters(semester_id);
+  references public.semesters(semester_id)
+  on delete set null;
 
 -- Add index for faster AI content queries
 create index idx_campus_ai_content_college_id on public.campus_ai_content(college_id);
@@ -268,7 +347,10 @@ create index idx_user_handbooks_academic_id on public.user_handbooks(academic_id
 create index idx_user_handbooks_status on public.user_handbooks(processing_status);
 create index idx_user_handbooks_upload_date on public.user_handbooks(upload_date desc);
 
--- Add trigger to update updated_at timestamp for campus AI content
+-- Add index for assessments
+create index idx_assessments_course_id on public.assessments(course_id);
+
+-- Add trigger to update updated_at column
 create or replace function update_updated_at_column()
 returns trigger as $$
 begin
@@ -284,6 +366,21 @@ create trigger update_campus_ai_content_updated_at
 -- Add trigger for handbook updated_at timestamp
 create trigger update_user_handbooks_updated_at 
     before update on public.user_handbooks 
+    for each row execute function update_updated_at_column();
+
+-- Add trigger for semesters updated_at timestamp
+create trigger update_semesters_updated_at
+    before update on public.semesters
+    for each row execute function update_updated_at_column();
+
+-- Add trigger for courses updated_at timestamp
+create trigger update_courses_updated_at
+    before update on public.courses
+    for each row execute function update_updated_at_column();
+
+-- Add trigger for assessments updated_at timestamp
+create trigger update_assessments_updated_at
+    before update on public.assessments
     for each row execute function update_updated_at_column();
 
 -- Add comment for documentation

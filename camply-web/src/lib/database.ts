@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import type { User, UserAcademicDetails, UserFormData, UserStatus, College } from '../types/database';
+import type { Semester, SemesterFormData } from '../features/desk/views/semester/types';
 
 export const checkUserStatus = async (userId: string): Promise<UserStatus> => {
   try {
@@ -260,6 +261,148 @@ export const getUserCampusData = async (userId: string): Promise<{
     };
   } catch (error) {
     console.error('Critical error fetching user campus data:', error);
+    throw error;
+  }
+};
+
+export const registerSemester = async (
+  userId: string,
+  semesterData: SemesterFormData
+): Promise<Semester> => {
+  try {
+    // Get user's academic details first
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('academic_id')
+      .eq('user_id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+      throw new Error('Unable to fetch user information');
+    }
+
+    if (!userData?.academic_id) {
+      throw new Error('User has no academic details. Please complete academic registration first.');
+    }
+
+    // Check if semester already exists
+    const { data: existingSemester, error: checkError } = await supabase
+      .from('semesters')
+      .select('semester_id')
+      .eq('academic_id', userData.academic_id)
+      .eq('semester_number', semesterData.semester_number)
+      .single();
+
+    if (checkError && checkError.code !== 'PGRST116') {
+      console.error('Error checking existing semester:', checkError);
+      throw checkError;
+    }
+
+    if (existingSemester) {
+      throw new Error(`Semester ${semesterData.semester_number} is already registered`);
+    }
+
+    // Create the semester
+    const semesterInsertData = {
+      academic_id: userData.academic_id,
+      semester_number: semesterData.semester_number,
+      status: 'planned' as const,
+      start_date: semesterData.start_date,
+      end_date: semesterData.end_date,
+      ia_dates: semesterData.ia_dates,
+      sem_end_dates: semesterData.sem_end_dates
+    };
+
+    const { data: newSemester, error: insertError } = await supabase
+      .from('semesters')
+      .insert(semesterInsertData)
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error('Error creating semester:', insertError);
+      throw insertError;
+    }
+
+    // Update user's latest semester if this is the highest numbered semester
+    const { data: allSemesters, error: semesterListError } = await supabase
+      .from('semesters')
+      .select('semester_number')
+      .eq('academic_id', userData.academic_id)
+      .order('semester_number', { ascending: false });
+
+    if (semesterListError) {
+      console.warn('Error fetching all semesters:', semesterListError);
+    } else if (allSemesters && allSemesters.length > 0) {
+      const highestSemester = allSemesters[0].semester_number;
+      
+      if (semesterData.semester_number === highestSemester) {
+        const { error: updateError } = await supabase
+          .from('user_academic_details')
+          .update({ latest_semester_id: newSemester.semester_id })
+          .eq('academic_id', userData.academic_id);
+
+        if (updateError) {
+          console.warn('Error updating latest semester:', updateError);
+        }
+      }
+    }
+
+    return newSemester;
+  } catch (error) {
+    console.error('Error registering semester:', error);
+    throw error;
+  }
+};
+
+export const getSemesterData = async (userId: string): Promise<{
+  semesters: Semester[];
+  currentSemester: Semester | null;
+}> => {
+  try {
+    // Get user's academic details
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('academic_id')
+      .eq('user_id', userId)
+      .single();
+
+    if (userError) {
+      console.error('Error fetching user data:', userError);
+      throw new Error('Unable to fetch user information');
+    }
+
+    if (!userData?.academic_id) {
+      return { semesters: [], currentSemester: null };
+    }
+
+    // Get all semesters for the user
+    const { data: semesters, error: semesterError } = await supabase
+      .from('semesters')
+      .select('*')
+      .eq('academic_id', userData.academic_id)
+      .order('semester_number', { ascending: true });
+
+    if (semesterError && semesterError.code !== 'PGRST116') {
+      console.error('Error fetching semesters:', semesterError);
+      throw semesterError;
+    }
+
+    const semesterList = semesters || [];
+    
+    // Find current semester (ongoing status, or highest planned/completed)
+    const currentSemester = semesterList.find(s => s.status === 'ongoing') ||
+                           semesterList.filter(s => s.status === 'planned')[0] ||
+                           semesterList[semesterList.length - 1] ||
+                           null;
+
+    return {
+      semesters: semesterList,
+      currentSemester
+    };
+  } catch (error) {
+    console.error('Error fetching semester data:', error);
     throw error;
   }
 };

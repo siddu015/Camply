@@ -2,8 +2,8 @@ export { Layout } from "./components/Layout"
 export { DeskSidebarWrapper, DeskSiteHeader } from "./components/desk-sidebar-wrapper"
 
 export { CampusOverview, CampusFeaturePage } from "./views/campus/"
-export { Desk } from "./views/Desk"
 export { AcademicOverview } from "./views/academic"
+export { CurrentSemester } from "./views/semester"
+export { Desk } from "./views/Desk"
 export { Courses } from "./views/Courses"
-export { CurrentSemester } from "./views/CurrentSemester"
 

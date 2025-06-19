@@ -25,11 +25,11 @@ export function PlaceholdersAndVanishInput({
   const [visible, setVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
-  let mouseX = useMotionValue(0);
-  let mouseY = useMotionValue(0);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
   const handleMouseMove = ({ currentTarget, clientX, clientY }: any) => {
-    let { left, top } = currentTarget.getBoundingClientRect();
+    const { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);
   };
@@ -89,9 +89,9 @@ export function PlaceholdersAndVanishInput({
     const newData: any[] = [];
 
     for (let t = 0; t < 800; t++) {
-      let i = 4 * t * 800;
+      const i = 4 * t * 800;
       for (let n = 0; n < 800; n++) {
-        let e = i + 4 * n;
+        const e = i + 4 * n;
         if (
           pixelData[e] !== 0 &&
           pixelData[e + 1] !== 0 &&
