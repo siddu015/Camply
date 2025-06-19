@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
+import { GlassDatePicker } from '@/components/ui';
 import type { SemesterFormData } from '../../../types';
 
 interface SemesterDatesStepProps {
@@ -50,7 +51,6 @@ export function SemesterDatesStep({
     }
   };
 
-  // Get minimum end date (start date + 1 day)
   const getMinEndDate = () => {
     if (!formData.start_date) return '';
     const startDate = new Date(formData.start_date);
@@ -79,78 +79,27 @@ export function SemesterDatesStep({
       </div>
 
       <div className="space-y-6 max-w-md mx-auto">
-        {/* Semester Start Date */}
         <div className="space-y-3">
-          <label className={cn(
-            "block text-sm font-medium",
-            isDark ? "text-white/90" : "text-muted-foreground"
-          )}>
-            Semester Start Date *
-          </label>
-          <input
-            ref={firstInputRef}
-            type="date"
+          <GlassDatePicker
+            label="Semester Start Date"
             value={formData.start_date || ''}
-            onChange={(e) => onFieldChange('start_date', e.target.value)}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl transition-all duration-300",
-              "focus:outline-none focus:ring-2 focus:ring-offset-0",
-              "shadow-lg",
-              validationErrors.start_date
-                ? isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
-                  : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
-                : isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
-                  : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
-            )}
+            onChange={(date) => onFieldChange('start_date', date)}
+            placeholder="Select start date"
+            error={validationErrors.start_date}
+            required
           />
-          {validationErrors.start_date && (
-            <motion.p 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-sm text-destructive font-medium"
-            >
-              {validationErrors.start_date}
-            </motion.p>
-          )}
         </div>
 
-        {/* Semester End Date */}
         <div className="space-y-3">
-          <label className={cn(
-            "block text-sm font-medium",
-            isDark ? "text-white/90" : "text-muted-foreground"
-          )}>
-            Semester End Date *
-          </label>
-          <input
-            type="date"
+          <GlassDatePicker
+            label="Semester End Date"
             value={formData.end_date || ''}
-            onChange={(e) => onFieldChange('end_date', e.target.value)}
+            onChange={(date) => onFieldChange('end_date', date)}
+            placeholder="Select end date"
+            error={validationErrors.end_date}
             min={getMinEndDate()}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl transition-all duration-300",
-              "focus:outline-none focus:ring-2 focus:ring-offset-0",
-              "shadow-lg",
-              validationErrors.end_date
-                ? isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
-                  : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
-                : isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
-                  : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
-            )}
+            required
           />
-          {validationErrors.end_date && (
-            <motion.p 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-sm text-destructive font-medium"
-            >
-              {validationErrors.end_date}
-            </motion.p>
-          )}
         </div>
       </div>
     </motion.div>

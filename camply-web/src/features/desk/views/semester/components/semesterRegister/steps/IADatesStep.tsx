@@ -2,7 +2,8 @@ import { motion } from 'framer-motion';
 import { useEffect, useRef } from 'react';
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
-import type { SemesterFormData, IADate } from '../../../types';
+import { GlassDatePicker } from '@/components/ui';
+import type { SemesterFormData } from '../../../types';
 
 interface IADatesStepProps {
   formData: SemesterFormData;
@@ -58,7 +59,6 @@ export function IADatesStep({
     onFieldChange('ia2_date', value);
   };
 
-  // Calculate min/max dates for validation
   const getMinDateIA1 = () => {
     return formData.start_date || '';
   };
@@ -92,81 +92,30 @@ export function IADatesStep({
       </div>
 
       <div className="space-y-6 max-w-md mx-auto">
-        {/* Internal Assignment 1 */}
         <div className="space-y-3">
-          <label className={cn(
-            "block text-sm font-medium",
-            isDark ? "text-white/90" : "text-muted-foreground"
-          )}>
-            Internal Assignment-1 *
-          </label>
-          <input
-            ref={firstInputRef}
-            type="date"
+          <GlassDatePicker
+            label="Internal Assignment-1"
             value={formData.ia1_date || ''}
-            onChange={(e) => handleIA1DateChange(e.target.value)}
+            onChange={handleIA1DateChange}
+            placeholder="Select IA-1 date"
+            error={validationErrors.ia1_date}
             min={getMinDateIA1()}
             max={getMaxDate()}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl transition-all duration-300",
-              "focus:outline-none focus:ring-2 focus:ring-offset-0",
-              "shadow-lg",
-              validationErrors.ia1_date
-                ? isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
-                  : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
-                : isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
-                  : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
-            )}
+            required
           />
-          {validationErrors.ia1_date && (
-            <motion.p 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-sm text-destructive font-medium"
-            >
-              {validationErrors.ia1_date}
-            </motion.p>
-          )}
         </div>
 
-        {/* Internal Assignment 2 */}
         <div className="space-y-3">
-          <label className={cn(
-            "block text-sm font-medium",
-            isDark ? "text-white/90" : "text-muted-foreground"
-          )}>
-            Internal Assignment-2 *
-          </label>
-          <input
-            type="date"
+          <GlassDatePicker
+            label="Internal Assignment-2"
             value={formData.ia2_date || ''}
-            onChange={(e) => handleIA2DateChange(e.target.value)}
+            onChange={handleIA2DateChange}
+            placeholder="Select IA-2 date"
+            error={validationErrors.ia2_date}
             min={getMinDateIA2()}
             max={getMaxDate()}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl transition-all duration-300",
-              "focus:outline-none focus:ring-2 focus:ring-offset-0",
-              "shadow-lg",
-              validationErrors.ia2_date
-                ? isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
-                  : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
-                : isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
-                  : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
-            )}
+            required
           />
-          {validationErrors.ia2_date && (
-            <motion.p 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-sm text-destructive font-medium"
-            >
-              {validationErrors.ia2_date}
-            </motion.p>
-          )}
         </div>
       </div>
     </motion.div>
