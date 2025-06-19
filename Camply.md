@@ -29,24 +29,24 @@
 
 - Campus component displays basic college details
 - Includes prompt buttons connected to the backend for generating responses
+- Button prompts in the campus-content section should open dedicated pages
+- These pages should display responses as clear, well-formatted markdown
+- Pages should professionally render markdown responses for optimal readability
+- Generated responses should be saved and not updated on every click;cached for one day
 
 ### Next Phase (Camply-web)
 
 **Campus Component Enhancements**
 
-<!-- - Button prompts in the campus-content section should open dedicated pages
-- These pages should display responses as clear, well-formatted markdown
-- Pages should professionally render markdown responses for optimal readability
-- Generated responses should be saved and not updated on every click;cached for one day -->
 - Create defined prompt files for each button with clear specifications including:
   - What the response should include
   - Whether images are needed
   - Complete page layout requirements from top to bottom
 - Implement contextual help: when users select specific text in responses, they can click "Explain More Clearly" to display additional clarification in a dialog above or below the selected text
-etails
-**Academic Component Development**
+  etails
+  **Academic Component Development**
 
-- Display comprehensive user academic d
+<!-- - Display comprehensive user academic data
 - Show academic timeline for each semester
 - Implement department/branch handbook collection system:
   - Store handbooks in Supabase
@@ -54,7 +54,8 @@ etails
   - Each column should contain specific departmental data (basics, exams, evaluations, semesters, attendance, etc.)
   - Develop agent or backend functionality to analyze/parse handbooks using Python parsing libraries
   - Store collected handbook data in Supabase for ADK response generation
-- Enable users to ask questions about their rulebook through Camply AI and a specialized component
+- Enable users to ask questions about their rulebook through Camply AI and a specialized component -->
+
 - Create analytical actions for student insights:
   - Performance metrics tracking
   - GPA analysis and trends

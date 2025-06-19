@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, Loader2, Bot, User } from "lucide-react";
+import { Send, MessageCircle, Loader2, Bot, User, FileText, Eye, Clock } from "lucide-react";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "motion/react";
 import { useHandbook } from '../hooks/useHandbook';
+import { useHandbookFiles } from '../hooks/useHandbookFiles';
 import { HandbookUpload } from './HandbookUpload';
 import { AIResponse } from '@/components/ui/ai-response';
 import { 
@@ -25,6 +26,7 @@ export function HandbookQuery({
   const [responses, setResponses] = useState<QueryResponse[]>([]);
   const [loading, setLoading] = useState(false);
   const [handbookStatus, setHandbookStatus] = useState<string | null>(null);
+  const [viewingHandbook, setViewingHandbook] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -34,6 +36,12 @@ export function HandbookQuery({
     loading: checkingHandbook, 
     refreshHandbook 
   } = useHandbook(userId);
+
+  const { 
+    handbooks, 
+    loading: loadingHandbooks, 
+    openHandbook 
+  } = useHandbookFiles(userId);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -128,6 +136,15 @@ export function HandbookQuery({
     setQuestion(suggestedQuestion);
   };
 
+  const handleViewHandbook = async (handbook: any) => {
+    setViewingHandbook(handbook.handbook_id);
+    try {
+      await openHandbook(handbook);
+    } finally {
+      setViewingHandbook(null);
+    }
+  };
+
   if (checkingHandbook) {
     return (
       <div className="bg-background border border-border rounded-xl h-full flex items-center justify-center">
@@ -153,14 +170,51 @@ export function HandbookQuery({
 
   return (
     <div className="bg-background border border-border rounded-xl h-full flex flex-col">
-      <div className="flex items-center space-x-3 p-6 pb-4">
-        <div className={cn(
-          "p-2 rounded-lg",
-          isDark ? "bg-primary/10" : "bg-primary/5",
-        )}>
-          <MessageCircle className="h-5 w-5 text-primary" />
+      <div className="flex items-center justify-between p-6 pb-4">
+        <div className="flex items-center space-x-3">
+          <div className={cn(
+            "p-2 rounded-lg",
+            isDark ? "bg-primary/10" : "bg-primary/5",
+          )}>
+            <MessageCircle className="h-5 w-5 text-primary" />
+          </div>
+          <h3 className="text-lg font-semibold text-foreground">Ask Your Handbook</h3>
         </div>
-        <h3 className="text-lg font-semibold text-foreground">Ask Your Handbook</h3>
+
+        {/* Handbook Files Quick Access */}
+        {handbookExists && handbooks.length > 0 && (
+          <div className="flex items-center space-x-2">
+            {handbooks.slice(0, 1).map((handbook) => (
+              <button
+                key={handbook.handbook_id}
+                onClick={() => handleViewHandbook(handbook)}
+                disabled={viewingHandbook === handbook.handbook_id}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                  "bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20",
+                  "disabled:opacity-50 disabled:cursor-not-allowed"
+                )}
+              >
+                {viewingHandbook === handbook.handbook_id ? (
+                  <>
+                    <Clock className="h-3 w-3 animate-spin" />
+                    Opening...
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-3 w-3" />
+                    View PDF
+                  </>
+                )}
+              </button>
+            ))}
+            {handbooks.length > 1 && (
+              <span className="text-xs text-muted-foreground">
+                +{handbooks.length - 1} more
+              </span>
+            )}
+          </div>
+        )}
       </div>
 
       {handbookStatus && handbookStatus !== 'completed' && (
