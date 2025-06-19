@@ -114,7 +114,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
           return enhanceTextWithNumbers(content, isLight);
         }
         if (Array.isArray(content)) {
-          return content.map((item, index) => 
+          return content.map((item, _) => 
             typeof item === 'string' ? enhanceTextWithNumbers(item, isLight) : item
           );
         }

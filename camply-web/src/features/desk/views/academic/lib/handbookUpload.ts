@@ -104,7 +104,7 @@ export const createHandbookRecord = async (
 };
 
 export const triggerBackendProcessing = async (
-  handbookId: string,
+  _handbookId: string,
   userId: string,
   academicId: string,
   storagePath: string,

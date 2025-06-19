@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { checkUserSemester, createSemester, getCurrentSemester } from '../lib';
+import { checkUserSemester, createSemester } from '../lib';
 import type { Semester, SemesterFormData, SemesterStatus } from '../types';
 
 export const useSemesterData = (userId: string | undefined) => {

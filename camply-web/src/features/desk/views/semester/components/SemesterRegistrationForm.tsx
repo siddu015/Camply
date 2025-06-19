@@ -1,8 +1,8 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { AnimatePresence, motion } from "framer-motion";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
-import { Calendar, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import type { SemesterFormData } from '../types';
 
 import { 

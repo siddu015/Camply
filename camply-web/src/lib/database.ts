@@ -310,8 +310,9 @@ export const registerSemester = async (
       status: 'planned' as const,
       start_date: semesterData.start_date,
       end_date: semesterData.end_date,
-      ia_dates: semesterData.ia_dates,
-      sem_end_dates: semesterData.sem_end_dates
+      ia1_date: semesterData.ia1_date,
+      ia2_date: semesterData.ia2_date,
+      sem_exam_date: semesterData.sem_exam_date
     };
 
     const { data: newSemester, error: insertError } = await supabase

@@ -17,7 +17,7 @@ export const useCampusData = (userId: string | undefined) => {
     currentSemester: null,
   });
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {

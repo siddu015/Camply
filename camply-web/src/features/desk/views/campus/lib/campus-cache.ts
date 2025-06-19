@@ -132,8 +132,8 @@ export class CampusCacheService {
       
       localStorage.removeItem(cacheKey);
       localStorage.removeItem(metaKey);
-    } catch (error) {
-      console.error('Error clearing cache:', error);
+    } catch (err) {
+      console.error('Error clearing cache:', err);
     }
   }
 

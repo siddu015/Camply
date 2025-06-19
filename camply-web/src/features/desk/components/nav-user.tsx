@@ -47,6 +47,7 @@ export function NavUser({
       if (error) {
         console.error('Error signing out:', error)
       } else {
+        // Successful logout
       }
     } catch (error) {
       console.error('Error during logout:', error)

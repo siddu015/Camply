@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, Loader2, Bot, User, FileText, Eye, Clock } from "lucide-react";
+import { Send, MessageCircle, Loader2, Bot, User, Eye, Clock } from "lucide-react";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "motion/react";
@@ -39,7 +39,6 @@ export function HandbookQuery({
 
   const { 
     handbooks, 
-    loading: loadingHandbooks, 
     openHandbook 
   } = useHandbookFiles(userId);
 

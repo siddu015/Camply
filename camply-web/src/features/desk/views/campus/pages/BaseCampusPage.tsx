@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import { 
   RefreshCw, 
   AlertCircle,
-  Bot,
   Loader2,
 } from 'lucide-react';
 import { useCampusData } from '../hooks/useCampusData';
@@ -23,7 +22,7 @@ interface BaseCampusPageProps {
   gradient: string;
 }
 
-export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: BaseCampusPageProps) {
+export function BaseCampusPage({ featureId, icon: IconComponent }: BaseCampusPageProps) {
   const [session, setSession] = useState<any>(null);
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);

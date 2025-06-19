@@ -19,13 +19,14 @@ export function DeskSidebarWrapper({
   campusItems, 
   semesterItems,
   variant,
-  navigationGroups: _ignoredNavGroups,
-  onLogout: _ignoredOnLogout,
-  onProfileClick: _ignoredOnProfile,
-  onSettingsClick: _ignoredOnSettings,
-  homeRoute: _ignoredHomeRoute,
-  homeIcon: _ignoredHomeIcon,
-  appName: _ignoredAppName,
+  // These props are ignored in favor of desk-specific implementations
+  navigationGroups: _,
+  onLogout: __,
+  onProfileClick: ___,
+  onSettingsClick: ____,
+  homeRoute: _____,
+  homeIcon: ______,
+  appName: _______,
   ...restProps
 }: DeskSidebarWrapperProps) {
   const navigationGroups: NavigationGroup[] = [
