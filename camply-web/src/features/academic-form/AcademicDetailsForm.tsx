@@ -3,8 +3,8 @@ import { AnimatePresence } from "framer-motion";
 import { supabase } from '../../lib/supabase';
 import { AuroraBackground } from '../../components/ui/aurora-background';
 import { useFormValidation } from './hooks/useFormValidation';
-import { ProgressIndicator } from './components/ProgressIndicator';
-import { NavigationControls } from './components/NavigationControls';
+import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { NavigationControls } from '@/components/ui/navigation-controls';
 import {
   NameStep,
   PhoneStep,

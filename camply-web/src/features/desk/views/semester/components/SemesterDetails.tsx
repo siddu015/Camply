@@ -1,7 +1,7 @@
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { Calendar, Clock, FileText, GraduationCap, CheckCircle, AlertCircle } from 'lucide-react';
-import type { Semester, IADate } from '../types';
+import type { Semester } from '../types';
 
 interface SemesterDetailCardProps {
   label: string;
@@ -51,57 +51,7 @@ const SemesterDetailCard = ({ label, value, icon, status }: SemesterDetailCardPr
   );
 };
 
-const IADateCard = ({ ia, isCompleted }: { ia: IADate; isCompleted: boolean }) => {
-  const { theme } = useTheme();
-  const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
-  const formatDateRange = (start: string, end: string) => {
-    const startDate = new Date(start);
-    const endDate = new Date(end);
-    
-    if (startDate.toDateString() === endDate.toDateString()) {
-      return startDate.toLocaleDateString();
-    }
-    
-    return `${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}`;
-  };
-
-  return (
-    <div className={cn(
-      "p-3 rounded-lg border flex items-center gap-3",
-      "bg-muted/30 border-border"
-    )}>
-      <div className={cn(
-        "p-1.5 rounded-lg",
-        isCompleted 
-          ? "bg-green-100 dark:bg-green-900/30" 
-          : "bg-blue-100 dark:bg-blue-900/30"
-      )}>
-        {isCompleted ? (
-          <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
-        ) : (
-          <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-        )}
-      </div>
-      <div className="flex-1">
-        <div className="flex items-center justify-between">
-          <span className="font-medium text-foreground">{ia.name}</span>
-          <span className={cn(
-            "text-xs px-2 py-1 rounded-full",
-            isCompleted 
-              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-              : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
-          )}>
-            {isCompleted ? 'Completed' : 'Upcoming'}
-          </span>
-        </div>
-        <p className="text-sm text-muted-foreground">
-          {formatDateRange(ia.start, ia.end)}
-        </p>
-      </div>
-    </div>
-  );
-};
 
 export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
   const { theme } = useTheme();
@@ -133,11 +83,8 @@ export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
 
   // Check if IA dates have passed (simplified - you might want more sophisticated logic)
   const now = new Date();
-  const isIACompleted = (ia: IADate) => {
-    return new Date(ia.end) < now;
-  };
 
-  const isExamCompleted = semester.sem_end_dates ? new Date(semester.sem_end_dates.end) < now : false;
+  const isExamCompleted = semester.sem_exam_date ? new Date(semester.sem_exam_date) < now : false;
 
   return (
     <div className="space-y-6">
@@ -187,7 +134,7 @@ export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
       </div>
 
       {/* IA Dates */}
-      {semester.ia_dates && semester.ia_dates.length > 0 && (
+      {(semester.ia1_date || semester.ia2_date) && (
         <div className="bg-background border border-border rounded-xl p-6">
           <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-3">
             <Clock className="h-5 w-5 text-primary" />
@@ -195,19 +142,83 @@ export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
           </h2>
           
           <div className="space-y-3">
-            {semester.ia_dates.map((ia, index) => (
-              <IADateCard 
-                key={index} 
-                ia={ia} 
-                isCompleted={isIACompleted(ia)}
-              />
-            ))}
+            {semester.ia1_date && (
+              <div className={cn(
+                "p-3 rounded-lg border flex items-center gap-3",
+                "bg-muted/30 border-border"
+              )}>
+                <div className={cn(
+                  "p-1.5 rounded-lg",
+                  new Date(semester.ia1_date) < now
+                    ? "bg-green-100 dark:bg-green-900/30" 
+                    : "bg-blue-100 dark:bg-blue-900/30"
+                )}>
+                  {new Date(semester.ia1_date) < now ? (
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-foreground">Internal Assignment - 1</span>
+                    <span className={cn(
+                      "text-xs px-2 py-1 rounded-full",
+                      new Date(semester.ia1_date) < now
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                    )}>
+                      {new Date(semester.ia1_date) < now ? 'Completed' : 'Upcoming'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(semester.ia1_date).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            )}
+            
+            {semester.ia2_date && (
+              <div className={cn(
+                "p-3 rounded-lg border flex items-center gap-3",
+                "bg-muted/30 border-border"
+              )}>
+                <div className={cn(
+                  "p-1.5 rounded-lg",
+                  new Date(semester.ia2_date) < now
+                    ? "bg-green-100 dark:bg-green-900/30" 
+                    : "bg-blue-100 dark:bg-blue-900/30"
+                )}>
+                  {new Date(semester.ia2_date) < now ? (
+                    <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  ) : (
+                    <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium text-foreground">Internal Assignment - 2</span>
+                    <span className={cn(
+                      "text-xs px-2 py-1 rounded-full",
+                      new Date(semester.ia2_date) < now
+                        ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                        : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400"
+                    )}>
+                      {new Date(semester.ia2_date) < now ? 'Completed' : 'Upcoming'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {new Date(semester.ia2_date).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
 
       {/* Semester End Exam */}
-      {semester.sem_end_dates && (
+      {semester.sem_exam_date && (
         <div className="bg-background border border-border rounded-xl p-6">
           <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center gap-3">
             <FileText className="h-5 w-5 text-primary" />
@@ -243,7 +254,7 @@ export const SemesterDetails = ({ semester }: SemesterDetailsProps) => {
                 </span>
               </div>
               <p className="text-sm text-muted-foreground">
-                {formatDateRange(semester.sem_end_dates.start, semester.sem_end_dates.end)}
+                {new Date(semester.sem_exam_date).toLocaleDateString()}
               </p>
             </div>
           </div>

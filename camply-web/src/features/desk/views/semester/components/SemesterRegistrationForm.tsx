@@ -12,9 +12,10 @@ import {
   SemesterExamStep,
   ConfirmationStep
 } from './semesterRegister/steps';
-import { SemesterProgressIndicator } from './semesterRegister/SemesterProgressIndicator';
-import { SemesterNavigationControls } from './semesterRegister/SemesterNavigationControls';
+
 import { useSemesterFormValidation } from '../hooks/useSemesterFormValidation';
+import { ProgressIndicator } from '@/components/ui/progress-indicator';
+import { NavigationControls } from '@/components/ui/navigation-controls';
 
 interface SemesterRegistrationFormProps {
   onSubmit: (data: SemesterFormData) => Promise<void>;
@@ -210,7 +211,7 @@ export function SemesterRegistrationForm({ onSubmit, onCancel, loading }: Semest
 
             {/* Progress Indicator */}
             <div className="px-6 py-4">
-              <SemesterProgressIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} />
+              <ProgressIndicator currentStep={currentStep} totalSteps={TOTAL_STEPS} variant="modern" />
             </div>
 
             {/* Content */}
@@ -240,7 +241,7 @@ export function SemesterRegistrationForm({ onSubmit, onCancel, loading }: Semest
                 : "backdrop-blur-[30px] bg-gradient-to-r from-white/12 to-white/6 border-t border-white/25",
               "shadow-[inset_0_1px_0_rgba(255,255,255,0.2)]"
             )}>
-              <SemesterNavigationControls
+              <NavigationControls
                 currentStep={currentStep}
                 totalSteps={TOTAL_STEPS}
                 canProceed={canProceedFromStep(currentStep, validationErrors)}
@@ -249,6 +250,8 @@ export function SemesterRegistrationForm({ onSubmit, onCancel, loading }: Semest
                 onNext={nextStep}
                 onPrev={prevStep}
                 onSubmit={handleFinalSubmit}
+                variant="modern"
+                submitText="Complete Registration"
               />
             </div>
           </div>
