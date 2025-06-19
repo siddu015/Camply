@@ -1,5 +1,5 @@
-import { supabase } from '../../../../../lib/supabase';
-import type { User, UserAcademicDetails, College } from '../../../../../types/database';
+import { supabase } from '@/lib/supabase';
+import type { User, UserAcademicDetails, College } from '@/types/database';
 
 export const getAcademicDetails = async (userId: string): Promise<{
   user: User | null;

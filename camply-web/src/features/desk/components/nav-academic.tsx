@@ -9,7 +9,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
-} from "../../../components/sidebar/components/ui/sidebar"
+} from "@/components/sidebar/components/ui/sidebar"
 
 export function NavAcademic({
   campusItems,

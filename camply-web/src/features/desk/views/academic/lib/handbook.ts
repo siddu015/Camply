@@ -1,5 +1,5 @@
-import { supabase } from '../../../../../lib/supabase';
-import type { UserHandbook } from '../../../../../types/database';
+import { supabase } from '@/lib/supabase';
+import type { UserHandbook } from '@/types/database';
 
 export const checkHandbookExists = async (userId: string): Promise<boolean> => {
   try {

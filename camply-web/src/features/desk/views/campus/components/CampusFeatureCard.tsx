@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react';
-import { cn } from '@/components/sidebar/lib/utils';
+import { cn } from '@/lib/utils';
 
 interface CampusFeatureCardProps {
   id: string;

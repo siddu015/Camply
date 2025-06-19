@@ -1,9 +1,7 @@
-// Export all UI components
 export { GlassDatePicker } from './glass-date-picker';
 export { NavigationControls } from './navigation-controls';
 export { ProgressIndicator } from './progress-indicator';
 
-// Re-export existing components if they exist
 
 export * from './input';
 export * from './label';

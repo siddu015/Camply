@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useMotionTemplate, useMotionValue, motion } from "framer-motion";
-import { cn } from '../../../../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface LargeInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   disabled?: boolean;

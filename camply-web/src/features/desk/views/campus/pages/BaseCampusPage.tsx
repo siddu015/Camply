@@ -13,7 +13,7 @@ import { CampusCacheService } from '../lib/campus-cache';
 import type { ChatRequest, ChatResponse } from '@/features/camply-ai/camply-bot';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/theme-provider';
-import { TracingBeam } from '@/components/ui/tracing-beam';
+import { TracingBeam } from '@/components/ui';
 import SimpleLoader from '@/components/SimpleLoader';
 
 interface BaseCampusPageProps {

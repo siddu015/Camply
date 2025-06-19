@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useHandbook } from '../hooks/useHandbook';
 import { useHandbookFiles } from '../hooks/useHandbookFiles';
 import { HandbookUpload } from './HandbookUpload';
-import { AIResponse } from '@/components/ui/ai-response';
+import { AIResponse } from '@/components/ui';
 import { 
   processHandbookQuery, 
   getSuggestedQuestions 

@@ -1,5 +1,5 @@
 "use client";
-import { SparklesCore } from "@/components/ui/sparkles";
+import { SparklesCore } from "@/components/ui";
 import { signInWithGoogle } from '@/lib/supabase';
 
 const LandingPage = () => {

@@ -1,4 +1,4 @@
-import { cn } from '../../../../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface LargeLabelProps extends React.LabelHTMLAttributes<HTMLLabelElement> {
   children: React.ReactNode;

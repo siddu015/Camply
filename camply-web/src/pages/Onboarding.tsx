@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
-import { useUserData } from '../hooks/useUserData';
-import AcademicDetailsForm from '../features/academic-form';
-import SimpleLoader from '../components/SimpleLoader';
-import type { UserFormData } from '../types/database';
+import { useUserData } from '@/hooks/useUserData';
+import AcademicDetailsForm from '@/features/academic-form';
+import { SimpleLoader } from '@/components';
+import type { UserFormData } from '@/types/database';
 
 interface OnboardingProps {
   session: Session;

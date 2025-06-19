@@ -1,4 +1,4 @@
-import type { RouteConfig } from '../components/sidebar/components/breadcrumb';
+import type { RouteConfig } from '@/components/sidebar/components/breadcrumb';
 
 export const deskRouteConfig: Record<string, RouteConfig> = {
   "/desk": { title: "Desk", parent: "Camply" },

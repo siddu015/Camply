@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '@/lib/theme-provider';
-import { cn } from '@/components/sidebar/lib/utils';
+import { cn } from '@/lib/utils';
 import { 
   AlertCircle, 
   Info, 

@@ -14,8 +14,7 @@ import {
 } from './semesterRegister/steps';
 
 import { useSemesterFormValidation } from '../hooks/useSemesterFormValidation';
-import { ProgressIndicator } from '@/components/ui/progress-indicator';
-import { NavigationControls } from '@/components/ui/navigation-controls';
+import { ProgressIndicator, NavigationControls } from '@/components/ui';
 
 interface SemesterRegistrationFormProps {
   onSubmit: (data: SemesterFormData) => Promise<void>;

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { LargeInput, LargeLabel } from '../form-inputs';
-import type { StepComponentProps } from '../../types';
+import type { StepComponentProps } from '../../types/types';
 
 export const NameStep = ({ formData, validationErrors, onFieldChange, autoFocus, direction }: StepComponentProps) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

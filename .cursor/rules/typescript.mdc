@@ -1,8 +1,3 @@
----
-description: 
-globs: 
-alwaysApply: true
----
 # TypeScript Rules for Camply Project
 
 ## Type Definitions
@@ -10,7 +5,7 @@ alwaysApply: true
 ### Database Types Location
 
 - All database-related types in `src/types/database.ts`
-- Import types consistently: `import type { TypeName } from '../types/database'`
+- Import types consistently: `import type { TypeName } from '@/types/database'`
 
 ### Required Type Exports
 
@@ -32,12 +27,76 @@ export interface DepartmentData { ... }
 - Never use number types for database IDs
 - Optional IDs use `id?: string` pattern
 
+## Import/Export Consistency Rules
+
+### Global Import Patterns
+
+```typescript
+// ✅ Always use @/ for global imports
+import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import type { User, College } from "@/types/database";
+import { Button, Input } from "@/components/ui";
+import { useUserData } from "@/hooks/useUserData";
+
+// ❌ Never use relative paths for global utilities
+import { cn } from "../../../../lib/utils"; // WRONG
+import { supabase } from "../../../lib/supabase"; // WRONG
+```
+
+### Feature-Specific Import Patterns
+
+```typescript
+// ✅ Use relative imports within same feature/view
+import { ComponentName } from "./components/ComponentName";
+import { useLocalHook } from "../hooks/useLocalHook";
+import type { LocalType } from "../types/local";
+
+// ✅ Mixed example - global + feature imports
+import { cn } from "@/lib/utils"; // Global utility
+import type { User } from "@/types/database"; // Global type
+import { LocalComponent } from "./components/LocalComponent"; // Same view
+```
+
+### Import Order Standards
+
+```typescript
+// 1. React & external library imports
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+
+// 2. Global absolute imports (@/)
+import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase";
+import type { User } from "@/types/database";
+import { Button } from "@/components/ui";
+
+// 3. Feature/view relative imports
+import { LocalComponent } from "./components/LocalComponent";
+import { useLocalHook } from "../hooks/useLocalHook";
+import type { LocalType } from "../types/local";
+```
+
+### Index File Utilization
+
+```typescript
+// ✅ Always use index files for UI components
+import { Button, Input, Card } from "@/components/ui";
+
+// ❌ Never direct import UI components
+import { Button } from "@/components/ui/button"; // WRONG
+
+// ✅ Use index files for grouped exports
+import { database, supabase } from "@/lib";
+import type { User, College } from "@/types";
+```
+
 ## Supabase Integration
 
 ### Client Usage
 
 ```typescript
-import { supabase } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
 
 // Always specify return types
 const { data, error }: { data: Type[] | null; error: any } = await supabase
@@ -157,24 +216,38 @@ try {
 }
 ```
 
-## Import/Export Patterns
+## File Organization & Exports
 
-### Type-only Imports
+### Index File Patterns
 
 ```typescript
-import type { TypeName } from "./types/database";
-import { functionName } from "./lib/database";
+// src/components/index.ts
+export { default as SimpleLoader } from "./SimpleLoader";
+export * from "./sidebar";
+export * from "./ui";
+
+// src/lib/index.ts
+export { supabase } from "./supabase";
+export { cn } from "./utils";
+export * from "./database";
+
+// src/types/index.ts
+export type * from "./database";
+export type * from "./global";
 ```
 
-### Consistent Export Pattern
+### Component Export Standards
 
 ```typescript
-// Named exports for utilities
-export const utilityFunction = () => {};
-export { anotherFunction };
+// ✅ Default export for main component
+const ComponentName = ({ props }: ComponentProps) => {
+  return <div>...</div>;
+};
 
-// Default exports for components
 export default ComponentName;
+
+// ✅ Named exports for sub-components or utilities
+export { SubComponent, helperFunction };
 ```
 
 ## Strict Type Checking Rules
@@ -296,14 +369,6 @@ interface College {
   "@typescript-eslint/prefer-nullish-coalescing": "error"
 }
 ```
-
-### Type Import Organization
-
-1. React imports
-2. Third-party library imports
-3. Type-only imports
-4. Local utility imports
-5. Relative imports
 
 ## Performance Considerations
 

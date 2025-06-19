@@ -1,9 +1,9 @@
 import * as React from "react"
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog"
 
-import { cn } from "../sidebar/lib/utils"
+import { cn } from "@/lib/utils"
 import { WavyBackground } from "./wavy-background"
-import { useTheme } from "../../lib/theme-provider"
+import { useTheme } from "@/lib/theme-provider"
 
 const LogoutDialog = AlertDialogPrimitive.Root
 

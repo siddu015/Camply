@@ -1,4 +1,4 @@
-import type { UserFormData, College, DepartmentData } from '../../types/database';
+import type { UserFormData, College, DepartmentData } from '@/types/database';
 
 export interface AcademicFormData extends UserFormData {}
 

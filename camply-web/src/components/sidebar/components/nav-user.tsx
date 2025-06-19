@@ -2,7 +2,7 @@
 
 import { LogOutIcon, MoreVerticalIcon, SettingsIcon, UserCircleIcon, Moon, Sun } from "lucide-react"
 import { useState } from "react"
-import { useTheme } from "../../../lib/theme-provider"
+import { useTheme } from "@/lib/theme-provider"
 
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar"
 import {

@@ -1,15 +1,15 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import type { Session } from '@supabase/supabase-js';
-import { supabase } from './lib/supabase';
-import { useUserData } from './hooks/useUserData';
-import { ThemeProvider } from './lib/theme-provider';
-import Onboarding from './pages/Onboarding';
-import LandingPage from './pages/LandingPage';
-import { CampusOverview, CampusFeaturePage, AcademicOverview, CurrentSemester, Layout, Desk, Courses } from './features/desk';
-import { OfflinePage } from './pages/OfflinePage';
-import SimpleLoader from './components/SimpleLoader';
-import './lib/route-config';
+import { supabase } from '@/lib/supabase';
+import { useUserData } from '@/hooks/useUserData';
+import { ThemeProvider } from '@/lib/theme-provider';
+import Onboarding from '@/pages/Onboarding';
+import LandingPage from '@/pages/LandingPage';
+import { CampusOverview, CampusFeaturePage, AcademicOverview, CurrentSemester, Layout, Desk, Courses } from '@/features/desk';
+import { OfflinePage } from '@/pages/OfflinePage';
+import { SimpleLoader } from '@/components';
+import '@/lib/route-config';
 
 function App() {
   const [session, setSession] = useState<Session | null>(null);

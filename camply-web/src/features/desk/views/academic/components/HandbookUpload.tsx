@@ -3,7 +3,7 @@ import { CheckCircle, Book } from "lucide-react";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import type { UserHandbook } from "@/types/database";
-import { FileUpload } from "@/components/ui/file-upload";
+import { FileUpload } from "@/components/ui";
 import SimpleLoader from "@/components/SimpleLoader";
 import { uploadHandbook } from '../lib/handbookUpload';
 
