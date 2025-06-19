@@ -59,8 +59,9 @@ export const createSemester = async (userId: string, formData: SemesterFormData)
         status: 'ongoing',
         start_date: formData.start_date,
         end_date: formData.end_date,
-        ia_dates: formData.ia_dates,
-        sem_end_dates: formData.sem_end_dates
+        ia1_date: formData.ia1_date,
+        ia2_date: formData.ia2_date,
+        sem_exam_date: formData.sem_exam_date
       })
       .select()
       .single();

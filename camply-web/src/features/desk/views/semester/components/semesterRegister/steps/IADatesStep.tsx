@@ -32,20 +32,6 @@ export function IADatesStep({
     }
   }, [autoFocus]);
 
-  // Ensure IA dates have fixed names
-  useEffect(() => {
-    const updatedIADates = [
-      { name: 'Internal Assignment - 1', start: formData.ia_dates[0]?.start || '', end: '' },
-      { name: 'Internal Assignment - 2', start: formData.ia_dates[1]?.start || '', end: '' }
-    ];
-    
-    // Only update if names are different
-    if (formData.ia_dates[0]?.name !== 'Internal Assignment - 1' || 
-        formData.ia_dates[1]?.name !== 'Internal Assignment - 2') {
-      onFieldChange('ia_dates', updatedIADates);
-    }
-  }, []);
-
   const stepVariants = {
     initial: { 
       opacity: 0, 
@@ -64,21 +50,21 @@ export function IADatesStep({
     }
   };
 
-  const handleIADateChange = (index: number, value: string) => {
-    const newIADates = formData.ia_dates.map((ia, i) => 
-      i === index ? { ...ia, start: value } : ia
-    );
-    // Trigger validation for the entire ia_dates array to validate cross-dependencies
-    onFieldChange('ia_dates', newIADates);
+  const handleIA1DateChange = (value: string) => {
+    onFieldChange('ia1_date', value);
+  };
+
+  const handleIA2DateChange = (value: string) => {
+    onFieldChange('ia2_date', value);
   };
 
   // Calculate min/max dates for validation
-  const getMinDate = (index: number) => {
-    if (index === 0) {
-      return formData.start_date || '';
-    } else {
-      return formData.ia_dates[0]?.start || formData.start_date || '';
-    }
+  const getMinDateIA1 = () => {
+    return formData.start_date || '';
+  };
+
+  const getMinDateIA2 = () => {
+    return formData.ia1_date || formData.start_date || '';
   };
 
   const getMaxDate = () => {
@@ -117,15 +103,15 @@ export function IADatesStep({
           <input
             ref={firstInputRef}
             type="date"
-            value={formData.ia_dates[0]?.start || ''}
-            onChange={(e) => handleIADateChange(0, e.target.value)}
-            min={getMinDate(0)}
+            value={formData.ia1_date || ''}
+            onChange={(e) => handleIA1DateChange(e.target.value)}
+            min={getMinDateIA1()}
             max={getMaxDate()}
             className={cn(
               "w-full px-4 py-3 rounded-xl transition-all duration-300",
               "focus:outline-none focus:ring-2 focus:ring-offset-0",
               "shadow-lg",
-              validationErrors.ia_0_start
+              validationErrors.ia1_date
                 ? isDark
                   ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
                   : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
@@ -134,13 +120,13 @@ export function IADatesStep({
                   : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
             )}
           />
-          {validationErrors.ia_0_start && (
+          {validationErrors.ia1_date && (
             <motion.p 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-sm text-destructive font-medium"
             >
-              {validationErrors.ia_0_start}
+              {validationErrors.ia1_date}
             </motion.p>
           )}
         </div>
@@ -155,15 +141,15 @@ export function IADatesStep({
           </label>
           <input
             type="date"
-            value={formData.ia_dates[1]?.start || ''}
-            onChange={(e) => handleIADateChange(1, e.target.value)}
-            min={getMinDate(1)}
+            value={formData.ia2_date || ''}
+            onChange={(e) => handleIA2DateChange(e.target.value)}
+            min={getMinDateIA2()}
             max={getMaxDate()}
             className={cn(
               "w-full px-4 py-3 rounded-xl transition-all duration-300",
               "focus:outline-none focus:ring-2 focus:ring-offset-0",
               "shadow-lg",
-              validationErrors.ia_1_start
+              validationErrors.ia2_date
                 ? isDark
                   ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
                   : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
@@ -172,13 +158,13 @@ export function IADatesStep({
                   : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
             )}
           />
-          {validationErrors.ia_1_start && (
+          {validationErrors.ia2_date && (
             <motion.p 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-sm text-destructive font-medium"
             >
-              {validationErrors.ia_1_start}
+              {validationErrors.ia2_date}
             </motion.p>
           )}
         </div>

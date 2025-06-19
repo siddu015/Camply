@@ -38,11 +38,9 @@ export function SemesterRegistrationForm({ onSubmit, onCancel, loading }: Semest
     semester_number: 1,
     start_date: '',
     end_date: '',
-    ia_dates: [
-      { name: 'IA-1', start: '', end: '' },
-      { name: 'IA-2', start: '', end: '' }
-    ],
-    sem_end_dates: { start: '', end: '' }
+    ia1_date: '',
+    ia2_date: '',
+    sem_exam_date: ''
   });
 
   const { validateField, canProceedFromStep } = useSemesterFormValidation(formData);
@@ -75,25 +73,7 @@ export function SemesterRegistrationForm({ onSubmit, onCancel, loading }: Semest
 
   const handleFieldChange = (name: string, value: any) => {
     // Clear relevant validation errors based on field name
-    if (name === 'ia_dates') {
-      // For IA dates, clear all IA-related validation errors
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        // Clear all IA-related errors
-        delete newErrors.ia_0_start;
-        delete newErrors.ia_1_start;
-        return newErrors;
-      });
-    } else if (name === 'sem_end_dates') {
-      // For semester exam dates, clear all exam-related validation errors
-      setValidationErrors(prev => {
-        const newErrors = { ...prev };
-        // Clear all exam-related errors
-        delete newErrors.sem_end_start;
-        delete newErrors.sem_end_end;
-        return newErrors;
-      });
-    } else if (validationErrors[name]) {
+    if (validationErrors[name]) {
       setValidationErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[name];
@@ -114,10 +94,7 @@ export function SemesterRegistrationForm({ onSubmit, onCancel, loading }: Semest
       const fieldErrors = validateField(name, value);
       
       setValidationErrors(prev => {
-        const hasChanges = Object.keys(fieldErrors).length > 0 || 
-          (name === 'ia_dates' && (prev.ia_0_start || prev.ia_1_start)) ||
-          (name === 'sem_end_dates' && (prev.sem_end_start || prev.sem_end_end)) ||
-          prev[name];
+        const hasChanges = Object.keys(fieldErrors).length > 0 || prev[name];
         if (!hasChanges) return prev;
         
         return {

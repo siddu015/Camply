@@ -132,7 +132,7 @@ export function ConfirmationStep({
                 "font-semibold",
                 isDark ? "text-white" : "text-foreground"
               )}>
-                {formatDate(formData.ia_dates[0]?.start)}
+                {formatDate(formData.ia1_date)}
               </span>
             </div>
 
@@ -148,39 +148,23 @@ export function ConfirmationStep({
                 "font-semibold",
                 isDark ? "text-white" : "text-foreground"
               )}>
-                {formatDate(formData.ia_dates[1]?.start)}
+                {formatDate(formData.ia2_date)}
               </span>
             </div>
 
-            {/* Semester End Exam Start */}
+            {/* Semester End Exam */}
             <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
               <span className={cn(
                 "font-medium",
                 isDark ? "text-white/90" : "text-foreground"
               )}>
-                Final Exam Start
+                Semester End Exam
               </span>
               <span className={cn(
                 "font-semibold",
                 isDark ? "text-white" : "text-foreground"
               )}>
-                {formatDate(formData.sem_end_dates.start)}
-              </span>
-            </div>
-
-            {/* Semester End Exam End */}
-            <div className="flex justify-between items-center p-3 rounded-lg bg-white/5">
-              <span className={cn(
-                "font-medium",
-                isDark ? "text-white/90" : "text-foreground"
-              )}>
-                Final Exam End
-              </span>
-              <span className={cn(
-                "font-semibold",
-                isDark ? "text-white" : "text-foreground"
-              )}>
-                {formatDate(formData.sem_end_dates.end)}
+                {formatDate(formData.sem_exam_date)}
               </span>
             </div>
 

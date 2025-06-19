@@ -34,84 +34,79 @@ export function useSemesterFormValidation(formData: SemesterFormData) {
         }
         break;
 
-      case 'ia_dates':
-        if (Array.isArray(value)) {
-          // Validate all IA dates whenever ia_dates array changes
-          value.forEach((ia, index) => {
-            if (!ia.start) {
-              errors[`ia_${index}_start`] = `Internal Assignment ${index + 1} date is required`;
-            } else {
-              const iaDate = new Date(ia.start);
-              
-              // Validate IA dates are within semester range
-              if (formData.start_date) {
-                const semStartDate = new Date(formData.start_date);
-                if (iaDate < semStartDate) {
-                  errors[`ia_${index}_start`] = `IA date must be after semester start date (${formData.start_date})`;
-                }
-              }
-              
-              if (formData.end_date) {
-                const semEndDate = new Date(formData.end_date);
-                if (iaDate > semEndDate) {
-                  errors[`ia_${index}_start`] = `IA date must be before semester end date (${formData.end_date})`;
-                }
-              }
-              
-              // Validate IA-1 comes before IA-2
-              if (index === 1 && value[0]?.start) {
-                const ia1Date = new Date(value[0].start);
-                if (iaDate <= ia1Date) {
-                  errors[`ia_${index}_start`] = 'Internal Assignment 2 date must be after Internal Assignment 1';
-                }
-              }
+      case 'ia1_date':
+        if (!value) {
+          errors.ia1_date = 'Internal Assignment 1 date is required';
+        } else {
+          const iaDate = new Date(value);
+          
+          // Validate IA dates are within semester range
+          if (formData.start_date) {
+            const semStartDate = new Date(formData.start_date);
+            if (iaDate < semStartDate) {
+              errors.ia1_date = `IA-1 date must be after semester start date (${formData.start_date})`;
             }
-          });
+          }
+          
+          if (formData.end_date) {
+            const semEndDate = new Date(formData.end_date);
+            if (iaDate > semEndDate) {
+              errors.ia1_date = `IA-1 date must be before semester end date (${formData.end_date})`;
+            }
+          }
         }
         break;
 
-      case 'sem_end_dates':
-        if (value && typeof value === 'object') {
-          if (!value.start) {
-            errors.sem_end_start = 'Exam start date is required';
-          }
-          if (!value.end) {
-            errors.sem_end_end = 'Exam end date is required';
-          }
+      case 'ia2_date':
+        if (!value) {
+          errors.ia2_date = 'Internal Assignment 2 date is required';
+        } else {
+          const iaDate = new Date(value);
           
-          // Validate exam end date is after start date
-          if (value.start && value.end) {
-            const examStartDate = new Date(value.start);
-            const examEndDate = new Date(value.end);
-            if (examEndDate <= examStartDate) {
-              errors.sem_end_end = 'Exam end date must be after start date';
+          // Validate IA dates are within semester range
+          if (formData.start_date) {
+            const semStartDate = new Date(formData.start_date);
+            if (iaDate < semStartDate) {
+              errors.ia2_date = `IA-2 date must be after semester start date (${formData.start_date})`;
             }
           }
           
-          // Validate exam dates are after IA-2
-          if (value.start && formData.ia_dates[1]?.start) {
-            const examStartDate = new Date(value.start);
-            const ia2Date = new Date(formData.ia_dates[1].start);
-            if (examStartDate <= ia2Date) {
-              errors.sem_end_start = `Exam start date must be after Internal Assignment 2 (${formData.ia_dates[1].start})`;
-            }
-          }
-          
-          // Validate exam dates are within semester range
-          if (value.start && formData.end_date) {
-            const examStartDate = new Date(value.start);
+          if (formData.end_date) {
             const semEndDate = new Date(formData.end_date);
-            if (examStartDate > semEndDate) {
-              errors.sem_end_start = `Exam start date must be before semester end date (${formData.end_date})`;
+            if (iaDate > semEndDate) {
+              errors.ia2_date = `IA-2 date must be before semester end date (${formData.end_date})`;
             }
           }
           
-          // Validate exam end date is within semester range
-          if (value.end && formData.end_date) {
-            const examEndDate = new Date(value.end);
+          // Validate IA-2 comes after IA-1
+          if (formData.ia1_date) {
+            const ia1Date = new Date(formData.ia1_date);
+            if (iaDate <= ia1Date) {
+              errors.ia2_date = 'Internal Assignment 2 date must be after Internal Assignment 1';
+            }
+          }
+        }
+        break;
+
+      case 'sem_exam_date':
+        if (!value) {
+          errors.sem_exam_date = 'Semester end exam date is required';
+        } else {
+          const examDate = new Date(value);
+          
+          // Validate exam date is after IA-2
+          if (formData.ia2_date) {
+            const ia2Date = new Date(formData.ia2_date);
+            if (examDate <= ia2Date) {
+              errors.sem_exam_date = `Exam date must be after Internal Assignment 2 (${formData.ia2_date})`;
+            }
+          }
+          
+          // Validate exam date is within semester range
+          if (formData.end_date) {
             const semEndDate = new Date(formData.end_date);
-            if (examEndDate > semEndDate) {
-              errors.sem_end_end = `Exam end date must be before semester end date (${formData.end_date})`;
+            if (examDate > semEndDate) {
+              errors.sem_exam_date = `Exam date must be before semester end date (${formData.end_date})`;
             }
           }
         }
@@ -123,12 +118,15 @@ export function useSemesterFormValidation(formData: SemesterFormData) {
 
   // Helper function to validate all IA dates when individual IA date changes
   const validateAllIADates = (): Record<string, string> => {
-    return validateField('ia_dates', formData.ia_dates);
+    const errors: Record<string, string> = {};
+    const ia1Errors = validateField('ia1_date', formData.ia1_date);
+    const ia2Errors = validateField('ia2_date', formData.ia2_date);
+    return { ...errors, ...ia1Errors, ...ia2Errors };
   };
 
-  // Helper function to validate all semester exam dates when individual exam date changes
-  const validateAllSemesterExamDates = (): Record<string, string> => {
-    return validateField('sem_end_dates', formData.sem_end_dates);
+  // Helper function to validate semester exam date
+  const validateSemesterExamDate = (): Record<string, string> => {
+    return validateField('sem_exam_date', formData.sem_exam_date);
   };
 
   const canProceedFromStep = (step: number, validationErrors: Record<string, string>): boolean => {
@@ -151,18 +149,14 @@ export function useSemesterFormValidation(formData: SemesterFormData) {
 
       case 2: // IA Dates Step
         // Check that all IA dates exist and have no validation errors
-        const hasAllIADates = formData.ia_dates.every(ia => Boolean(ia.start));
-        const hasNoIAErrors = formData.ia_dates.every((_, index) => 
-          !validationErrors[`ia_${index}_start`]
-        );
+        const hasAllIADates = Boolean(formData.ia1_date && formData.ia2_date);
+        const hasNoIAErrors = !validationErrors.ia1_date && !validationErrors.ia2_date;
         return hasAllIADates && hasNoIAErrors;
 
       case 3: // Semester Exam Step
         return Boolean(
-          formData.sem_end_dates.start &&
-          formData.sem_end_dates.end &&
-          !validationErrors.sem_end_start &&
-          !validationErrors.sem_end_end
+          formData.sem_exam_date &&
+          !validationErrors.sem_exam_date
         );
 
       case 4: // Confirmation Step
@@ -184,13 +178,13 @@ export function useSemesterFormValidation(formData: SemesterFormData) {
       return false;
     }
 
-    // Check IA dates (only start dates required)
-    if (!formData.ia_dates.every(ia => ia.start)) {
+    // Check IA dates are present
+    if (!formData.ia1_date || !formData.ia2_date) {
       return false;
     }
 
-    // Check semester end dates
-    if (!formData.sem_end_dates.start || !formData.sem_end_dates.end) {
+    // Check semester end exam date
+    if (!formData.sem_exam_date) {
       return false;
     }
 
@@ -204,31 +198,23 @@ export function useSemesterFormValidation(formData: SemesterFormData) {
     }
 
     // Check IA date order and within semester range
-    if (formData.ia_dates[0]?.start && formData.ia_dates[1]?.start) {
-      const ia1Date = new Date(formData.ia_dates[0].start);
-      const ia2Date = new Date(formData.ia_dates[1].start);
-      
-      // IA-2 must be after IA-1
-      if (ia2Date <= ia1Date) {
-        return false;
-      }
-      
-      // IA dates must be within semester range
-      if (ia1Date < startDate || ia1Date > endDate || ia2Date < startDate || ia2Date > endDate) {
-        return false;
-      }
+    const ia1Date = new Date(formData.ia1_date);
+    const ia2Date = new Date(formData.ia2_date);
+    
+    // IA-2 must be after IA-1
+    if (ia2Date <= ia1Date) {
+      return false;
     }
-
-    // Check exam dates
-    if (new Date(formData.sem_end_dates.end) <= new Date(formData.sem_end_dates.start)) {
+    
+    // IA dates must be within semester range
+    if (ia1Date < startDate || ia1Date > endDate || ia2Date < startDate || ia2Date > endDate) {
       return false;
     }
 
-    // Check exam dates are after IA-2
-    if (formData.ia_dates[1]?.start && formData.sem_end_dates.start) {
-      if (new Date(formData.sem_end_dates.start) <= new Date(formData.ia_dates[1].start)) {
-        return false;
-      }
+    // Check exam date is after IA-2 and before semester end
+    const examDate = new Date(formData.sem_exam_date);
+    if (examDate <= ia2Date || examDate > endDate) {
+      return false;
     }
 
     return true;
@@ -237,7 +223,7 @@ export function useSemesterFormValidation(formData: SemesterFormData) {
   return {
     validateField,
     validateAllIADates,
-    validateAllSemesterExamDates,
+    validateSemesterExamDate,
     canProceedFromStep,
     isFormValid
   };

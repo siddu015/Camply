@@ -50,28 +50,16 @@ export function SemesterExamStep({
     }
   };
 
-  const handleSemEndDateChange = (field: 'start' | 'end', value: string) => {
-    const newSemEndDates = {
-      ...formData.sem_end_dates,
-      [field]: value
-    };
-    onFieldChange('sem_end_dates', newSemEndDates);
+  const handleSemExamDateChange = (value: string) => {
+    onFieldChange('sem_exam_date', value);
   };
 
-  // Calculate min/max dates for validation
-  const getMinStartDate = () => {
-    return formData.ia_dates[1]?.start || '';
+  const getMinDate = () => {
+    return formData.ia2_date || '';
   };
 
   const getMaxDate = () => {
     return formData.end_date || '';
-  };
-
-  const getMinEndDate = () => {
-    if (!formData.sem_end_dates.start) return '';
-    const startDate = new Date(formData.sem_end_dates.start);
-    startDate.setDate(startDate.getDate() + 1);
-    return startDate.toISOString().split('T')[0];
   };
 
   return (
@@ -89,32 +77,32 @@ export function SemesterExamStep({
             "text-1xl font-semibold",
             isDark ? "text-white" : "text-foreground"
           )}>
-            When are your semester end exams?
+            When do your semester end exams start?
           </h3>
         </div>
       </div>
 
       <div className="space-y-6 max-w-md mx-auto">
-        {/* Semester End Exam Start Date */}
+        {/* Semester End Exam Date */}
         <div className="space-y-3">
           <label className={cn(
             "block text-sm font-medium",
             isDark ? "text-white/90" : "text-muted-foreground"
           )}>
-            Semester End Examination Starts *
+            Semester End Examination Date *
           </label>
           <input
             ref={firstInputRef}
             type="date"
-            value={formData.sem_end_dates.start || ''}
-            onChange={(e) => handleSemEndDateChange('start', e.target.value)}
-            min={getMinStartDate()}
+            value={formData.sem_exam_date || ''}
+            onChange={(e) => handleSemExamDateChange(e.target.value)}
+            min={getMinDate()}
             max={getMaxDate()}
             className={cn(
               "w-full px-4 py-3 rounded-xl transition-all duration-300",
               "focus:outline-none focus:ring-2 focus:ring-offset-0",
               "shadow-lg",
-              validationErrors.sem_end_start
+              validationErrors.sem_exam_date
                 ? isDark
                   ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
                   : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
@@ -123,51 +111,13 @@ export function SemesterExamStep({
                   : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
             )}
           />
-          {validationErrors.sem_end_start && (
+          {validationErrors.sem_exam_date && (
             <motion.p 
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-sm text-destructive font-medium"
             >
-              {validationErrors.sem_end_start}
-            </motion.p>
-          )}
-        </div>
-
-        {/* Semester End Exam End Date */}
-        <div className="space-y-3">
-          <label className={cn(
-            "block text-sm font-medium",
-            isDark ? "text-white/90" : "text-muted-foreground"
-          )}>
-            Semester End Examination Ends *
-          </label>
-          <input
-            type="date"
-            value={formData.sem_end_dates.end || ''}
-            onChange={(e) => handleSemEndDateChange('end', e.target.value)}
-            min={getMinEndDate()}
-            max={getMaxDate()}
-            className={cn(
-              "w-full px-4 py-3 rounded-xl transition-all duration-300",
-              "focus:outline-none focus:ring-2 focus:ring-offset-0",
-              "shadow-lg",
-              validationErrors.sem_end_end
-                ? isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-red-400/60 text-white focus:border-red-400 focus:ring-red-400/30"
-                  : "backdrop-blur-lg bg-black/5 border border-red-500/60 text-gray-900 focus:border-red-500 focus:ring-red-500/30"
-                : isDark
-                  ? "backdrop-blur-lg bg-white/8 border border-white/25 text-white focus:border-white/40 focus:ring-white/20 hover:bg-white/10"
-                  : "backdrop-blur-lg bg-black/5 border border-black/10 text-gray-900 focus:border-black/20 focus:ring-black/10 hover:bg-black/10"
-            )}
-          />
-          {validationErrors.sem_end_end && (
-            <motion.p 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-sm text-destructive font-medium"
-            >
-              {validationErrors.sem_end_end}
+              {validationErrors.sem_exam_date}
             </motion.p>
           )}
         </div>
