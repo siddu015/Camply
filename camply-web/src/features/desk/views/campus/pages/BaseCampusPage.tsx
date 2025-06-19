@@ -99,16 +99,18 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
 
       const response: ChatResponse = await camplyBot.sendMessage(chatRequest);
 
-      if (response.success && response.response) {
+      if (response.response) {
         setContent(response.response);
-        cacheService.setCachedContent(featureId, session.user.id, response.response, college.college_id);
+        if (response.success) {
+          cacheService.setCachedContent(featureId, session.user.id, response.response, college.college_id);
+        }
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        setError(response.error || 'Failed to fetch content');
+        setError(response.error || 'Backend provided no response content');
       }
     } catch (error) {
-      console.error('Error fetching campus information:', error);
-      setError('Failed to load content. Please try again.');
+      console.error('Connection error while fetching campus information:', error);
+      setError(error instanceof Error ? error.message : 'Unable to connect to the backend server. Please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -127,18 +129,12 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
     return <SimpleLoader />;
   }
 
-  const gradientStyle = {
-    background: isDark
-      ? `linear-gradient(135deg, ${gradient.split('from-')[1].split(' ')[0]} 0%, ${gradient.split('to-')[1]} 100%)`
-      : `linear-gradient(135deg, ${gradient.replace('from-', '').replace('to-', ', ')})`,
-  };
-
   return (
     <div className="min-h-screen bg-background w-full overflow-x-hidden">
       <div 
         className="relative h-72 -mt-6 mb-0 overflow-hidden w-full"
       >
-
+        
         <div className="relative z-10 px-8 h-full flex flex-col max-w-7xl mx-auto">
           <div className="flex-1 flex items-center justify-between">
             <div className="flex items-center space-x-6">

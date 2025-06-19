@@ -109,16 +109,16 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
       setMessages(prev => prev.filter(msg => !msg.loading).concat([botMessage]));
       
     } catch (error) {
-      console.error('Error sending message:', error);
+      console.error('Connection error:', error);
       
-      const errorMessage: ChatMessage = {
-        id: `error_${Date.now()}`,
-        text: "I'm having trouble connecting right now. Please try again in a moment.",
+      const connectionErrorMessage: ChatMessage = {
+        id: `connection_error_${Date.now()}`,
+        text: error instanceof Error ? error.message : "Unable to connect to the backend server. Please check your connection.",
         isUser: false,
         timestamp: new Date(),
       };
       
-      setMessages(prev => prev.filter(msg => !msg.loading).concat([errorMessage]));
+      setMessages(prev => prev.filter(msg => !msg.loading).concat([connectionErrorMessage]));
     } finally {
       setIsLoading(false);
     }

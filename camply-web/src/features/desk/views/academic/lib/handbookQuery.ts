@@ -41,7 +41,6 @@ export const createErrorResponse = (errorMessage: string): QueryResponse => {
 export const validateHandbookQuery = (question: string): { isValid: boolean; error?: string; suggestion?: string } => {
   const query = question.trim().toLowerCase();
   
-  // Handbook-related keywords
   const handbookKeywords = [
     'attendance', 'policy', 'rule', 'regulation', 'examination', 'exam', 'ia', 'internal assessment',
     'grading', 'grade', 'cgpa', 'gpa', 'marking', 'assessment', 'evaluation', 'criteria',
@@ -51,7 +50,6 @@ export const validateHandbookQuery = (question: string): { isValid: boolean; err
     'assignment', 'project', 'how to', 'when', 'what', 'where', 'why'
   ];
   
-  // Non-handbook keywords that should be redirected
   const nonHandbookKeywords = [
     'placement', 'company', 'job', 'recruit', 'package', 'salary', 'career', 'opportunity',
     'campus life', 'social', 'event', 'festival', 'celebration', 'party', 'fun',
@@ -60,11 +58,9 @@ export const validateHandbookQuery = (question: string): { isValid: boolean; err
     'library building', 'campus tour', 'hostel life', 'food court'
   ];
   
-  // Check for handbook-related content
   const hasHandbookKeywords = handbookKeywords.some(keyword => query.includes(keyword));
   const hasNonHandbookKeywords = nonHandbookKeywords.some(keyword => query.includes(keyword));
-  
-  // If it has non-handbook keywords and no handbook keywords, redirect
+
   if (hasNonHandbookKeywords && !hasHandbookKeywords) {
     let suggestion = "general chat or campus assistant";
     
@@ -83,7 +79,6 @@ export const validateHandbookQuery = (question: string): { isValid: boolean; err
     };
   }
   
-  // Allow if it has handbook keywords or seems like a valid handbook question
   return { isValid: true };
 };
 
@@ -94,7 +89,6 @@ export const queryHandbookBackend = async (
   try {
     const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
     
-    // Use more specific handbook query format
     const response = await fetch(`${backendUrl}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -110,20 +104,59 @@ export const queryHandbookBackend = async (
       }),
     });
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+    let data: any;
+    try {
+      data = await response.json();
+    } catch (parseError) {
+      return `Backend responded with HTTP ${response.status} but response could not be parsed. The server may have sent a non-JSON response.`;
+    }
+    
+    console.log('Raw backend response:', JSON.stringify(data, null, 2));
+    
+    if (data.response) {
+      return data.response;
+    }
+    
+    if (data.candidates && Array.isArray(data.candidates) && data.candidates.length > 0) {
+      const candidate = data.candidates[0];
+      if (candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
+        const textPart = candidate.content.parts.find((part: any) => part.text);
+        if (textPart && textPart.text) {
+          return textPart.text;
+        }
+      }
+    }
+    
+    if (typeof data === 'string') {
+      return data;
+    }
+    
+    if (data.error) {
+      return `Backend error: ${data.error}`;
+    }
+    
+    if (data.message) {
+      return data.message;
+    }
+    
+    if (data.success === false && data.message) {
+      return data.message;
     }
 
-    const data = await response.json();
+    return `Backend responded (HTTP ${response.status}) with data but no readable content was found. Raw response: ${JSON.stringify(data)}`.substring(0, 500);
     
-    if (!data.success) {
-      throw new Error(data.error || "Failed to process handbook query");
-    }
-    
-    return data.response || "Sorry, I could not find information about that in your handbook.";
   } catch (err) {
     console.error('Error querying handbook:', err);
-    throw new Error("Sorry, there was an error processing your question. Please try again.");
+    
+    if (err instanceof TypeError && err.message.includes('fetch')) {
+      throw new Error("Unable to connect to the backend server. Please check your internet connection and ensure the backend is running.");
+    }
+    
+    if (err instanceof Error && (err.message.includes('NetworkError') || err.message.includes('ECONNREFUSED'))) {
+      throw new Error("Cannot reach the backend server. Please ensure the server is running and accessible.");
+    }
+    
+    throw new Error(`Connection error: ${err instanceof Error ? err.message : 'Unknown connection issue'}`);
   }
 };
 
@@ -192,7 +225,6 @@ export const processHandbookQuery = async (
       };
     }
 
-    // Validate basic query format
     const basicValidation = validateQuery(question);
     if (!basicValidation.isValid) {
       return {
@@ -201,7 +233,6 @@ export const processHandbookQuery = async (
       };
     }
 
-    // Validate handbook relevance
     const handbookValidation = validateHandbookQuery(question);
     if (!handbookValidation.isValid) {
       return {
