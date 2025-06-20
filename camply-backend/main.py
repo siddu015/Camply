@@ -47,6 +47,11 @@ class ProcessingStatus(BaseModel):
     progress: Optional[int] = None
     error: Optional[str] = None
 
+class SyllabusProcessRequest(BaseModel):
+    course_id: str
+    user_id: str
+    storage_path: str
+
 class ValidationResult(BaseModel):
     is_valid: bool
     message: str
@@ -448,6 +453,130 @@ async def validate_handbook(file: UploadFile = File(...)):
             Path(temp_path).unlink()
         except:
             pass
+
+@app.post("/process-syllabus")
+async def process_syllabus(request: SyllabusProcessRequest):
+    """Process syllabus PDF using the ADK syllabus agent."""
+    try:
+        print(f"Processing syllabus for course_id: {request.course_id}, user_id: {request.user_id}")
+        
+        # Create session for syllabus processing
+        session_id = f"syllabus_processing_{request.course_id}_{hash(request.user_id) % 10000}"
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Ensure session exists
+            try:
+                session_response = await client.post(
+                    f"{Config.ADK_SERVER_URL}/apps/{Config.ADK_APP_NAME}/users/{request.user_id}/sessions/{session_id}",
+                    json={
+                        "user_id": request.user_id,
+                        "session_type": "syllabus_processing",
+                        "created_from": "syllabus_bridge"
+                    },
+                    headers={"Content-Type": "application/json"}
+                )
+                print(f"Session created/accessed: {session_response.status_code}")
+            except Exception as e:
+                print(f"Session handling (might already exist): {e}")
+                pass
+            
+            # Send syllabus processing request through ADK with both course_id and user_id
+            processing_message = f"Process the syllabus PDF for course ID: {request.course_id} for user ID: {request.user_id}. Extract and structure the syllabus content into JSON format and update the course database."
+            
+            adk_response = await client.post(
+                f"{Config.ADK_SERVER_URL}/run",
+                json={
+                    "appName": Config.ADK_APP_NAME,
+                    "userId": request.user_id,
+                    "sessionId": session_id,
+                    "newMessage": {
+                        "role": "user",
+                        "parts": [{"text": processing_message}]
+                    }
+                },
+                headers={"Content-Type": "application/json"}
+            )
+            
+            print(f"ADK Response Status: {adk_response.status_code}")
+            
+            if adk_response.status_code != 200:
+                error_text = adk_response.text
+                print(f"ADK Error Response: {error_text}")
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "success": False,
+                        "error": f"ADK server error: {adk_response.status_code}",
+                        "message": "Failed to process syllabus through ADK"
+                    }
+                )
+            
+            adk_data = adk_response.json()
+            print(f"ADK Data received, type: {type(adk_data)}")
+            
+            # Extract the agent response
+            agent_response = "Syllabus processing initiated. Please check back in a moment."
+            
+            if isinstance(adk_data, list) and len(adk_data) > 0:
+                for event in reversed(adk_data):
+                    if (event.get("content", {}).get("role") == "model" and 
+                        event.get("content", {}).get("parts")):
+                        parts = event["content"]["parts"]
+                        for part in parts:
+                            if "text" in part:
+                                agent_response = part["text"]
+                                break
+                        if len(agent_response) > 50:  # Got meaningful response
+                            break
+            
+            # Try to parse if the response contains JSON with success status
+            try:
+                import json
+                if "success" in agent_response.lower() and "{" in agent_response:
+                    # Extract JSON from response if present
+                    json_start = agent_response.find("{")
+                    json_end = agent_response.rfind("}") + 1
+                    if json_start != -1 and json_end > json_start:
+                        json_str = agent_response[json_start:json_end]
+                        result_data = json.loads(json_str)
+                        if result_data.get("success"):
+                            return JSONResponse(
+                                status_code=200,
+                                content={
+                                    "success": True,
+                                    "message": result_data.get("message", "Syllabus processed successfully"),
+                                    "agent_response": agent_response,
+                                    "data": {
+                                        "course_id": result_data.get("course_id"),
+                                        "course_name": result_data.get("course_name"),
+                                        "syllabus_data": result_data.get("syllabus_data")
+                                    }
+                                }
+                            )
+            except:
+                pass
+            
+            # Return successful response with agent message
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "success": True,
+                    "message": "Syllabus processing request sent to agent",
+                    "agent_response": agent_response,
+                    "course_id": request.course_id
+                }
+            )
+        
+    except Exception as e:
+        print(f"Error processing syllabus: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e),
+                "message": "Internal server error while processing syllabus"
+            }
+        )
 
 async def process_handbook_background(
     handbook_id: str, 

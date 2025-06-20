@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
-import { BookOpen, Plus, Search, Filter, GraduationCap, Calendar, Award } from 'lucide-react';
+import { BookOpen, Plus, GraduationCap, Calendar, Award } from 'lucide-react';
 import { SimpleLoader } from '@/components';
 import { CourseCard } from '../components/CourseCard';
 import { useAllCourses } from '../hooks/useAllCourses';
@@ -14,20 +14,10 @@ export function Courses() {
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
   const { courses, loading, error, refreshCourses } = useAllCourses();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [selectedSemester, setSelectedSemester] = useState<string>('all');
 
   // Get unique semesters from courses
   const semesters = Array.from(new Set(courses.map(course => course.semester_number)))
     .sort((a, b) => a - b);
-
-  // Filter courses based on search and semester
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (course.course_code?.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesSemester = selectedSemester === 'all' || course.semester_number.toString() === selectedSemester;
-    return matchesSearch && matchesSemester;
-  });
 
   const handleCourseClick = (course: Course) => {
     console.log('Navigating to course:', course.course_id); // Debug log
@@ -37,7 +27,7 @@ export function Courses() {
   };
 
   if (loading) {
-    return <SimpleLoader fullScreen={false} text="Loading your courses..." />;
+    return <SimpleLoader text="Loading your courses..." />;
   }
 
   if (error) {
@@ -90,29 +80,9 @@ export function Courses() {
           </div>
         </div>
 
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-4 mt-6">
-          {/* Search */}
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Search courses..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className={cn(
-                "w-full pl-10 pr-4 py-2 rounded-lg border transition-all",
-                "bg-background border-border text-foreground",
-                "placeholder:text-muted-foreground",
-                "focus:outline-none focus:ring-2 focus:ring-ring focus:border-ring"
-              )}
-            />
-          </div>
-        </div>
-
         {/* Courses Grid */}
         <div className="mt-6">
-        {filteredCourses.length === 0 ? (
+        {courses.length === 0 ? (
           <div className="flex flex-col items-center justify-center min-h-[300px] gap-4">
             <div className={cn(
               "p-6 rounded-full",
@@ -148,8 +118,8 @@ export function Courses() {
           <div className="grid gap-4">
             {/* Group courses by semester */}
             {semesters.map(semesterNumber => {
-              const semesterCourses = filteredCourses.filter(
-                course => course.semester_number === semesterNumber
+              const semesterCourses = courses.filter(
+                (course: Course) => course.semester_number === semesterNumber
               );
               
               if (semesterCourses.length === 0) return null;
@@ -167,7 +137,7 @@ export function Courses() {
                   </div>
                   
                   <div className="grid gap-3">
-                    {semesterCourses.map(course => (
+                    {semesterCourses.map((course: Course) => (
                       <CourseCard
                         key={course.course_id}
                         course={course}

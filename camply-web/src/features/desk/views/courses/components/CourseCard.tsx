@@ -46,10 +46,9 @@ export const CourseCard = ({ course, onClick, showSemester = true }: CourseCardP
             </div>
           )}
           
-          {course.credits && (
+          {course.course_type && (
             <div className="flex items-center gap-1">
-              <Award className="h-3 w-3" />
-              <span>{course.credits} {course.credits === 1 ? 'Credit' : 'Credits'}</span>
+              <span className="capitalize">{course.course_type}</span>
             </div>
           )}
         </div>

@@ -12,11 +12,16 @@ import {
   FileText, 
   Clock,
   AlertCircle,
-  Plus
+  Plus,
+  Eye
 } from 'lucide-react';
 import { SimpleLoader } from '@/components';
 import { useCourseDetail } from '../hooks/useCourseDetail';
 import { EditCourseModal } from '../components/EditCourseModal';
+import { CourseHeader } from '../components/CourseHeader';
+import { SyllabusUpload } from '../components/SyllabusUpload';
+import { SyllabusDisplay } from '../components/SyllabusDisplay';
+import { supabase } from '@/lib/supabase';
 
 export function CourseDetail() {
   const { courseId } = useParams<{ courseId: string }>();
@@ -26,8 +31,21 @@ export function CourseDetail() {
 
   console.log('CourseDetail - courseId from params:', courseId); // Debug log
 
-  const { course, loading, error, updateCourse } = useCourseDetail(courseId);
+  const { course, loading, error, updateCourse, refreshCourse } = useCourseDetail(courseId);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleBack = () => {
     navigate('/semester/courses');
@@ -45,8 +63,69 @@ export function CourseDetail() {
     return result;
   };
 
+  const handleSyllabusUploadSuccess = (storagePath: string) => {
+    // Refresh course data to show the new syllabus
+    refreshCourse?.();
+  };
+
+  const handleViewSyllabus = async () => {
+    if (!course?.syllabus_storage_path) return;
+    
+    try {
+      const { data, error } = await supabase.storage
+        .from('course_documents')
+        .createSignedUrl(course.syllabus_storage_path, 3600); // 1 hour expiry
+
+      if (error) {
+        console.error('Error creating signed URL:', error);
+        return;
+      }
+
+      // Open PDF in new tab
+      window.open(data.signedUrl, '_blank');
+    } catch (err) {
+      console.error('Error viewing syllabus:', err);
+    }
+  };
+
+  const handleProcessSyllabus = async (courseId: string, userId: string) => {
+    if (!course?.syllabus_storage_path) {
+      console.error('No syllabus storage path found');
+      return;
+    }
+
+    try {
+      console.log('Processing syllabus for course:', courseId);
+      
+      // Call the backend to process the syllabus
+      const response = await fetch('http://localhost:8001/process-syllabus', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          course_id: courseId,
+          user_id: userId,
+          storage_path: course.syllabus_storage_path // Use the existing storage path
+        }),
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('Syllabus processed successfully:', result);
+        // Refresh course data to get the processed syllabus JSON
+        refreshCourse();
+      } else {
+        console.error('Failed to process syllabus:', result.error);
+      }
+    } catch (error) {
+      console.error('Error processing syllabus:', error);
+    }
+  };
+
   if (loading) {
-    return <SimpleLoader fullScreen={false} text="Loading course details..." />;
+    return <SimpleLoader text="Loading course details..." />;
   }
 
   if (error || !course) {
@@ -75,31 +154,12 @@ export function CourseDetail() {
   if (!course.credits) missingData.push('Credits');
 
   return (
-    <div className="animate-in fade-in-50 duration-300 slide-in-from-bottom-2 w-full pt-6">
+    <div className="animate-in fade-in-50 duration-300 slide-in-from-bottom-2 w-full">
       <div className="space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="flex-1">
-            <div className="flex items-center gap-3 mb-1">
-              <h1 className="text-2xl font-bold text-foreground">
-                {course.course_name}
-              </h1>
-            </div>
-            <p className="text-muted-foreground">
-              Course details and information
-            </p>
-          </div>
-
-          <button
-            onClick={handleEdit}
-            className={cn(
-              "flex items-center gap-2 px-4 py-2 rounded-lg transition-all",
-              "bg-accent text-accent-foreground hover:bg-accent/80"
-            )}
-          >
-            <Edit className="h-4 w-4" />
-            Edit Course
-          </button>
-        </div>
+        <CourseHeader 
+          course={course}
+          onViewSyllabus={handleViewSyllabus}
+        />
 
         {missingData.length > 0 && (
           <div className={cn(
@@ -130,139 +190,52 @@ export function CourseDetail() {
           </div>
         )}
 
-        <div className={cn(
-          "bg-background border border-border rounded-lg p-6 space-y-6"
-        )}>
-          <h2 className="text-lg font-semibold text-foreground mb-4">
-            Course Information
-          </h2>
-
-          <div className="grid gap-6 md:grid-cols-2">
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Course Name</label>
-                <div className="mt-1 p-3 bg-muted/50 rounded-lg">
-                  <span className="text-foreground">{course.course_name}</span>
-                </div>
+        {/* Syllabus Section */}
+        <div className="bg-background border border-border rounded-xl p-6">
+          <h2 className="text-xl font-semibold text-foreground mb-6">Course Syllabus</h2>
+          
+          {!course.syllabus_storage_path ? (
+            session?.user?.id && courseId && (
+              <SyllabusUpload
+                courseId={courseId}
+                userId={session.user.id}
+                onUploadSuccess={handleSyllabusUploadSuccess}
+              />
+            )
+          ) : course.syllabus_json ? (
+            <SyllabusDisplay syllabusData={course.syllabus_json} />
+          ) : (
+            <div className="text-center py-8">
+              <div className={cn(
+                "w-16 h-16 mx-auto mb-4 rounded-full flex items-center justify-center",
+                isDark ? "bg-yellow-500/20" : "bg-yellow-500/10"
+              )}>
+                <Clock className="h-8 w-8 text-yellow-500" />
               </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Course Code</label>
-                <div className="mt-1 p-3 bg-muted/50 rounded-lg">
-                  {course.course_code ? (
-                    <div className="flex items-center gap-2">
-                      <Hash className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">{course.course_code}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground italic">Not added</span>
-                      <button
-                        onClick={handleEdit}
-                        className={cn(
-                          "flex items-center gap-1 px-2 py-1 rounded text-xs",
-                          "bg-primary/10 text-primary hover:bg-primary/20"
-                        )}
-                      >
-                        <Plus className="h-3 w-3" />
-                        Add
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Credits</label>
-                <div className="mt-1 p-3 bg-muted/50 rounded-lg">
-                  {course.credits ? (
-                    <div className="flex items-center gap-2">
-                      <Award className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">
-                        {course.credits} {course.credits === 1 ? 'Credit' : 'Credits'}
-                      </span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground italic">Not added</span>
-                      <button
-                        onClick={handleEdit}
-                        className={cn(
-                          "flex items-center gap-1 px-2 py-1 rounded text-xs",
-                          "bg-primary/10 text-primary hover:bg-primary/20"
-                        )}
-                      >
-                        <Plus className="h-3 w-3" />
-                        Add
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
+              <h3 className="text-lg font-semibold text-foreground mb-2">
+                Processing Syllabus
+              </h3>
+              <p className="text-muted-foreground mb-6">
+                Your syllabus is being processed. This may take a few moments.
+              </p>
+              <button
+                onClick={() => {
+                  // Trigger processing
+                  if (session?.user?.id && courseId) {
+                    handleProcessSyllabus(courseId, session.user.id);
+                  }
+                }}
+                className={cn(
+                  "flex items-center gap-2 px-6 py-3 rounded-lg font-medium transition-all mx-auto",
+                  "bg-primary text-primary-foreground hover:bg-primary/90",
+                  "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+                )}
+              >
+                <FileText className="h-5 w-5" />
+                Process Syllabus
+              </button>
             </div>
-
-            <div className="space-y-4">
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Semester</label>
-                <div className="mt-1 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">Semester {course.semester_number}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Syllabus</label>
-                <div className="mt-1 p-3 bg-muted/50 rounded-lg">
-                  {course.syllabus_storage_path ? (
-                    <div className="flex items-center gap-2">
-                      <FileText className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-foreground">Syllabus uploaded</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground italic">No syllabus uploaded</span>
-                      <button
-                        className={cn(
-                          "flex items-center gap-1 px-2 py-1 rounded text-xs",
-                          "bg-primary/10 text-primary hover:bg-primary/20"
-                        )}
-                        disabled
-                      >
-                        <Plus className="h-3 w-3" />
-                        Upload
-                      </button>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <label className="text-sm font-medium text-muted-foreground">Added On</label>
-                <div className="mt-1 p-3 bg-muted/50 rounded-lg">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-foreground">
-                      {new Date(course.created_at).toLocaleDateString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className={cn(
-          "bg-background border border-border rounded-lg p-6 text-center"
-        )}>
-          <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold text-foreground mb-2">
-            Course Content Coming Soon
-          </h3>
-          <p className="text-muted-foreground">
-            Advanced course features like units, topics, assignments, and study materials will be available soon.
-          </p>
+          )}
         </div>
       </div>
 
