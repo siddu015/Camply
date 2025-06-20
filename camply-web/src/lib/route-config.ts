@@ -6,6 +6,7 @@ export const deskRouteConfig: Record<string, RouteConfig> = {
   "/profile/academics": { title: "Academics", parent: "Desk", parentPath: "/desk" },
   "/semester/overview": { title: "Overview", parent: "Desk", parentPath: "/desk" },
   "/semester/courses": { title: "Courses", parent: "Desk", parentPath: "/desk" },
+  "/courses/:courseId": { title: "Course Details", parent: "Courses", parentPath: "/semester/courses" },
   "/profile/campus/:feature": { title: "Feature", parent: "Campus", parentPath: "/profile/campus" },
   "/profile/campus/news": { title: "News", parent: "Campus", parentPath: "/profile/campus" },
   "/profile/campus/placements": { title: "Placements", parent: "Campus", parentPath: "/profile/campus" },

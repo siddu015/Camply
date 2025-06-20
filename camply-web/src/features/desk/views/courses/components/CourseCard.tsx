@@ -1,27 +1,24 @@
 import { useTheme } from '@/lib/theme-provider';
-import { useNavigate } from 'react-router-dom';
 import { cn } from '@/lib/utils';
-import { BookOpen, Hash, Award, Eye } from 'lucide-react';
-import type { Course } from '../hooks/useCourses';
+import { BookOpen, Hash, Award, Calendar, Eye } from 'lucide-react';
+import type { Course } from '../types';
 
 interface CourseCardProps {
   course: Course;
   onClick?: (course: Course) => void;
+  showSemester?: boolean;
 }
 
-export const CourseCard = ({ course, onClick }: CourseCardProps) => {
+export const CourseCard = ({ course, onClick, showSemester = true }: CourseCardProps) => {
   const { theme } = useTheme();
-  const navigate = useNavigate();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
 
   const handleCardClick = () => {
-    navigate(`/courses/${course.course_id}`);
     onClick?.(course);
   };
 
   const handleView = (e: React.MouseEvent) => {
     e.stopPropagation();
-    navigate(`/courses/${course.course_id}`);
     onClick?.(course);
   };
 
@@ -33,43 +30,31 @@ export const CourseCard = ({ course, onClick }: CourseCardProps) => {
         "cursor-pointer"
       )}
       onClick={handleCardClick}
-    >
-      <div className={cn(
-        "flex-shrink-0 p-2.5 rounded-lg",
-        isDark ? "bg-primary/10" : "bg-primary/5"
-      )}>
-        <BookOpen className="h-5 w-5 text-primary" />
-      </div>
-      
+    > 
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2 mb-1">
           <h3 className="font-semibold text-foreground truncate">
             {course.course_name}
           </h3>
-          {course.course_code && (
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <Hash className="h-3 w-3 text-muted-foreground" />
-              <span className="text-sm text-muted-foreground">
-                {course.course_code}
-              </span>
-            </div>
-          )}
         </div>
         
         <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          {showSemester && (
+            <div className="flex items-center gap-1">
+              <Calendar className="h-3 w-3" />
+              <span>Semester {course.semester_number}</span>
+            </div>
+          )}
+          
           {course.credits && (
             <div className="flex items-center gap-1">
               <Award className="h-3 w-3" />
               <span>{course.credits} {course.credits === 1 ? 'Credit' : 'Credits'}</span>
             </div>
           )}
-          
-          <span className="text-xs opacity-75">
-            Course
-          </span>
         </div>
       </div>
-                    
+
       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         {onClick && (
           <button
@@ -86,7 +71,7 @@ export const CourseCard = ({ course, onClick }: CourseCardProps) => {
           </button>
         )}
       </div>
-
+        
       <div className={cn(
         "absolute inset-0 rounded-lg border-2 border-primary/20 opacity-0 transition-opacity pointer-events-none",
         "group-hover:opacity-100"

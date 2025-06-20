@@ -77,8 +77,8 @@
 **Semester/Overview Enhancements**
 
 <!-- - Display comprehensive semester details including timeline -->
-- Show all courses with routing to semester/courses for detailed views
-- Individual course pages accessible through semester/courses
+<!-- - Show all courses with routing to semester/courses for detailed views -->
+<!-- - Individual course pages accessible through semester/courses -->
 - Implement score tracking systems
 - Provide performance improvement suggestions:
   - "How to perform better in IA-1" recommendations

@@ -50,11 +50,13 @@ create table public.semesters (
   ia2_date date,
   sem_exam_date date,
   marksheet_storage_path text,
+  sgpa numeric(4, 2),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 comment on column public.semesters.status is 'Status of the semester (e.g., planned, ongoing, completed)';
+comment on column public.semesters.sgpa is 'Semester Grade Point Average';
 comment on column public.semesters.ia1_date is 'Date for IA-1 examination';
 comment on column public.semesters.ia2_date is 'Date for IA-2 examination';
 comment on column public.semesters.sem_exam_date is 'Start date for semester end examination';
@@ -66,11 +68,17 @@ create table public.courses (
   semester_id uuid references public.semesters not null,
   course_name varchar not null,
   course_code varchar,
+  course_type varchar not null check (course_type in ('theory', 'lab')),
   syllabus_storage_path text,
+  syllabus_json jsonb,
   credits integer,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
+
+-- Add comments for new columns in courses table
+comment on column public.courses.course_type is 'Type of course (theory or lab)';
+comment on column public.courses.syllabus_json is 'Structured syllabus data in JSON format';
 
 -- Assessments table
 create table public.assessments (
@@ -140,23 +148,22 @@ create table public.user_handbooks (
 
 -- Create storage buckets
 -- Create handbooks storage bucket (for handbook file storage)
-insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types) 
+insert into storage.buckets (id, name, file_size_limit, allowed_mime_types) 
 values (
   'handbooks', 
   'handbooks', 
-  false, 
   104857600, -- 100MB limit
   array['application/pdf']
 );
 
 -- Create marksheets storage bucket
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('marksheets', 'marksheets', false, 10485760) -- 10MB limit
+insert into storage.buckets (id, name, file_size_limit)
+values ('marksheets', 'marksheets', 10485760) -- 10MB limit
 on conflict (id) do nothing;
 
 -- Create course_documents storage bucket
-insert into storage.buckets (id, name, public, file_size_limit)
-values ('course_documents', 'course_documents', false, 10485760) -- 10MB limit
+insert into storage.buckets (id, name, file_size_limit)
+values ('course_documents', 'course_documents', 10485760) -- 10MB limit
 on conflict (id) do nothing;
 
 -- Enable RLS

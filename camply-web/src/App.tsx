@@ -6,7 +6,7 @@ import { useUserData } from '@/hooks/useUserData';
 import { ThemeProvider } from '@/lib/theme-provider';
 import Onboarding from '@/pages/Onboarding';
 import LandingPage from '@/pages/LandingPage';
-import { CampusOverview, CampusFeaturePage, AcademicOverview, CurrentSemester, Layout, Desk, Courses } from '@/features/desk';
+import { CampusOverview, CampusFeaturePage, AcademicOverview, CurrentSemester, Layout, Desk, Courses, CourseDetail } from '@/features/desk';
 import { OfflinePage } from '@/pages/OfflinePage';
 import { SimpleLoader } from '@/components';
 import '@/lib/route-config';
@@ -100,6 +100,8 @@ const AuthenticatedRoutes = ({ session }: { session: Session }) => {
   return (
     <Layout user={user} appConfig={deskConfig} key={`user-${userStatus.exists}-${userStatus.hasAcademicDetails}`}>
       <Routes>
+        {/* Course detail route should come before wildcard routes */}
+        <Route path="/courses/:courseId" element={<CourseDetail />} />
         <Route path="/desk" element={<Desk />} />
         <Route path="/profile/campus" element={<CampusOverview />} />
         <Route path="/profile/campus/:feature" element={<CampusFeaturePage />} />
