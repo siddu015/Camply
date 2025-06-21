@@ -1,12 +1,12 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, Loader2, Bot, User, FileText, Eye, Clock } from "lucide-react";
+import { Send, MessageCircle, Loader2, Bot, User, Eye, Clock } from "lucide-react";
 import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "motion/react";
 import { useHandbook } from '../hooks/useHandbook';
 import { useHandbookFiles } from '../hooks/useHandbookFiles';
 import { HandbookUpload } from './HandbookUpload';
-import { AIResponse } from '@/components/ui/ai-response';
+import { AIResponse } from '@/components/ui';
 import { 
   processHandbookQuery, 
   getSuggestedQuestions 

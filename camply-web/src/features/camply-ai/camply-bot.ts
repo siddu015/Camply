@@ -1,4 +1,8 @@
-const API_BASE_URL = 'http://localhost:8001';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL;
+
+if (!API_BASE_URL) {
+  throw new Error('VITE_BACKEND_URL environment variable is required');
+}
 
 export interface ChatMessage {
   id: string;

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { checkUserStatus, createUserWithAcademicDetails, updateUserAcademicDetails } from '../lib/database';
-import type { UserStatus, UserFormData, User, UserAcademicDetails } from '../types/database';
+import { checkUserStatus, createUserWithAcademicDetails, updateUserAcademicDetails } from '@/lib/database';
+import type { UserStatus, UserFormData, User, UserAcademicDetails } from '@/types/database';
 
 const USER_STATUS_CACHE_KEY = 'camply_user_status';
 

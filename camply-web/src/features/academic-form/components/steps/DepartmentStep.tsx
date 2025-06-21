@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import { LargeSelect, LargeLabel } from '../form-inputs';
-import type { StepComponentProps } from '../../types';
-import type { DepartmentData } from '../../../../types/database';
+import type { StepComponentProps } from '../../types/types';
+import type { DepartmentData } from '@/types/database';
 
 interface DepartmentStepProps extends StepComponentProps {
   departments: DepartmentData;

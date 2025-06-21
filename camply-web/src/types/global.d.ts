@@ -1,4 +1,4 @@
-import { RouteConfig } from '../components/sidebar/components/breadcrumb';
+import { RouteConfig } from '@/components/sidebar/components/breadcrumb';
 
 declare global {
   interface Window {
@@ -6,4 +6,4 @@ declare global {
   }
 }
 
-export {}; 
+export {};

@@ -2,7 +2,6 @@ import { useEffect, useState, useRef } from 'react';
 import { 
   RefreshCw, 
   AlertCircle,
-  Bot,
   Loader2,
 } from 'lucide-react';
 import { useCampusData } from '../hooks/useCampusData';
@@ -14,7 +13,7 @@ import { CampusCacheService } from '../lib/campus-cache';
 import type { ChatRequest, ChatResponse } from '@/features/camply-ai/camply-bot';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/theme-provider';
-import { TracingBeam } from '@/components/ui/tracing-beam';
+import { TracingBeam } from '@/components/ui';
 import SimpleLoader from '@/components/SimpleLoader';
 
 interface BaseCampusPageProps {
@@ -23,7 +22,7 @@ interface BaseCampusPageProps {
   gradient: string;
 }
 
-export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: BaseCampusPageProps) {
+export function BaseCampusPage({ featureId, icon: IconComponent }: BaseCampusPageProps) {
   const [session, setSession] = useState<any>(null);
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);

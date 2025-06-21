@@ -92,7 +92,7 @@ export function CampusOverview() {
   };
 
   if (loading) {
-    return <SimpleLoader />;
+    return <SimpleLoader text="Setting up your campus space..." />;
   }
 
   if (error) {

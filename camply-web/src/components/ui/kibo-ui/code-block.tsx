@@ -224,10 +224,9 @@ export function CodeBlockFiles({ children }: {
 }
 
 export function CodeBlockFilename({ 
-  value, 
   children 
 }: { 
-  value: string; 
+  value?: string; 
   children: ReactNode 
 }) {
   return <span className="text-sm font-medium">{children}</span>;
@@ -256,20 +255,18 @@ export function CodeBlockSelectContent({ children }: {
 }
 
 export function CodeBlockSelectItem({ 
-  value, 
   children 
 }: { 
-  value: string; 
+  value?: string; 
   children: ReactNode 
 }) {
   return <div className="px-2 py-1 text-sm">{children}</div>;
 }
 
 export function CodeBlockItem({ 
-  value, 
   children 
 }: { 
-  value: string; 
+  value?: string; 
   children: ReactNode 
 }) {
   return <div className="p-4 overflow-x-auto">{children}</div>;
@@ -282,8 +279,7 @@ export const CodeBlock = memo(({
   children, 
   ...props 
 }: CodeBlockProps & { children?: ReactNode }) => {
-  const [currentValue, setCurrentValue] = useState(defaultValue || data[0]?.language);
-  const currentItem = data.find(item => item.language === currentValue) || data[0];
+  const [, ] = useState(defaultValue || data[0]?.language);
 
   return (
     <div

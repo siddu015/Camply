@@ -1,6 +1,6 @@
 import React from 'react';
 import { useTheme } from '@/lib/theme-provider';
-import { cn } from '@/components/sidebar/lib/utils';
+import { cn } from '@/lib/utils';
 import { 
   AlertCircle, 
   Info, 
@@ -157,7 +157,7 @@ export const CampusMarkdownRenderer: React.FC<CampusMarkdownRendererProps> = ({ 
     };
 
     const processInlineFormatting = (text: string) => {
-      let parts = text.split(/(\*\*[^*]+\*\*)/g);
+      const parts = text.split(/(\*\*[^*]+\*\*)/g);
       
       return parts.map((part, index) => {
         if (part.startsWith('**') && part.endsWith('**')) {

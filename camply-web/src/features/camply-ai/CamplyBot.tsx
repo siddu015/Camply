@@ -1,13 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose, IoRefresh, IoExpand, IoContract } from 'react-icons/io5';
-import { useTheme } from '../../lib/theme-provider';
-import { cn } from '../../components/sidebar/lib/utils';
+import { useTheme } from '@/lib/theme-provider';
+import { cn } from '@/lib/utils';
 import { CamplyBotService, type ChatMessage, type ChatRequest } from './camply-bot';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { useCampusData } from '../desk/views/campus/hooks/useCampusData';
-import { AIResponse } from '../../components/ui/ai-response';
-import { PlaceholdersAndVanishInput } from '../../components/ui/placeholders-and-vanish-input';
+import { AIResponse, PlaceholdersAndVanishInput } from '@/components/ui';
 
 interface CamplyBotProps {
   className?: string;

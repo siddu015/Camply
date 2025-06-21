@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import type { AcademicFormData } from '../types';
+import type { AcademicFormData } from '../types/types';
 
 export const useFormValidation = (formData: AcademicFormData) => {
   const validateField = useCallback((name: string, value: any): Record<string, string> => {

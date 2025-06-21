@@ -87,7 +87,11 @@ export const queryHandbookBackend = async (
   userId: string
 ): Promise<string> => {
   try {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    
+    if (!backendUrl) {
+      throw new Error('VITE_BACKEND_URL environment variable is required');
+    }
     
     const response = await fetch(`${backendUrl}/chat`, {
       method: 'POST',
