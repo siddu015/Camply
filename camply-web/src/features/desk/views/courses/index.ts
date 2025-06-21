@@ -1,6 +1,7 @@
 export { Courses } from './pages/Courses';
 
 export { CourseDetail } from './pages/CourseDetail';
+export { UnitDetail } from './pages/UnitDetail';
 
 export { CourseCard } from './components/CourseCard';
 export { EditCourseModal } from './components/EditCourseModal';

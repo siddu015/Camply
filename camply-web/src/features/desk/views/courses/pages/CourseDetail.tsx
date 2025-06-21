@@ -203,7 +203,10 @@ export function CourseDetail() {
               />
             )
           ) : course.syllabus_json ? (
-            <SyllabusDisplay syllabusData={course.syllabus_json} />
+            <SyllabusDisplay 
+              syllabusData={course.syllabus_json} 
+              courseId={courseId}
+            />
           ) : (
             <div className="text-center py-8">
               <div className={cn(

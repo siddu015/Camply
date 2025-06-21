@@ -2,7 +2,7 @@
 
 from google.adk.agents import LlmAgent
 from google.adk.tools.agent_tool import AgentTool
-from .sub_agents import campus_agent, handbook_agent, syllabus_agent
+from .sub_agents import campus_agent, handbook_agent, syllabus_agent, course_agent
 from .tools import ADK_TOOLS
 
 from . import prompt
@@ -31,6 +31,7 @@ student_desk = LlmAgent(
         AgentTool(agent=campus_agent),
         AgentTool(agent=handbook_agent),
         AgentTool(agent=syllabus_agent),
+        AgentTool(agent=course_agent),
         *ADK_TOOLS
     ],
 )

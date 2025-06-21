@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks
+from fastapi import FastAPI, HTTPException, UploadFile, File, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
@@ -7,6 +7,8 @@ import httpx
 from contextlib import asynccontextmanager
 import tempfile
 from pathlib import Path
+import logging
+import json
 
 from shared import Config
 
@@ -575,6 +577,143 @@ async def process_syllabus(request: SyllabusProcessRequest):
                 "success": False,
                 "error": str(e),
                 "message": "Internal server error while processing syllabus"
+            }
+        )
+
+@app.post("/course/learn")
+async def learn_course_topic(request: Request):
+    """Handle course topic learning requests through ADK root agent."""
+    try:
+        body = await request.json()
+        
+        # Extract data from request
+        topic = body.get("topic", "")
+        unit_number = body.get("unit_number")
+        course_name = body.get("course_name", "")
+        course_id = body.get("course_id")
+        prompt_options = body.get("prompt_options", [])
+        custom_requirements = body.get("custom_requirements", "")
+        user_id = body.get("user_id")
+        
+        if not user_id:
+            return JSONResponse(
+                status_code=400,
+                content={
+                    "success": False,
+                    "error": "User ID is required"
+                }
+            )
+        
+        # Build structured message for the root agent to route to course agent
+        learning_request = f"""Generate educational content for course learning:
+
+Topic: "{topic}"
+Course Name: "{course_name}"
+Unit Number: {unit_number}
+Course ID: {course_id}
+Learning Preferences: {', '.join(prompt_options) if prompt_options else 'Standard explanation'}
+Custom Requirements: {custom_requirements if custom_requirements else 'None'}
+
+Please provide comprehensive educational content for this topic with explanations, examples, and learning materials. This is a course learning request that should be handled by the course agent."""
+        
+        # Create session for course learning
+        session_id = f"course_learning_{course_id}_{hash(user_id + topic) % 10000}"
+        
+        print(f"Processing course learning request for user: {user_id}")
+        print(f"Topic: {topic}, Course: {course_name}")
+        
+        async with httpx.AsyncClient(timeout=60.0) as client:
+            # Ensure session exists
+            try:
+                session_response = await client.post(
+                    f"{Config.ADK_SERVER_URL}/apps/{Config.ADK_APP_NAME}/users/{user_id}/sessions/{session_id}",
+                    json={
+                        "user_id": user_id,
+                        "session_type": "course_learning",
+                        "created_from": "course_bridge"
+                    },
+                    headers={"Content-Type": "application/json"}
+                )
+                print(f"Session created/accessed: {session_response.status_code}")
+            except Exception as e:
+                print(f"Session handling (might already exist): {e}")
+                pass
+            
+            # Send learning request through ADK
+            adk_response = await client.post(
+                f"{Config.ADK_SERVER_URL}/run",
+                json={
+                    "appName": Config.ADK_APP_NAME,
+                    "userId": user_id,
+                    "sessionId": session_id,
+                    "newMessage": {
+                        "role": "user",
+                        "parts": [{"text": learning_request}]
+                    }
+                },
+                headers={"Content-Type": "application/json"}
+            )
+            
+            print(f"ADK Response Status: {adk_response.status_code}")
+            
+            if adk_response.status_code != 200:
+                error_text = adk_response.text
+                print(f"ADK Error Response: {error_text}")
+                return JSONResponse(
+                    status_code=500,
+                    content={
+                        "success": False,
+                        "error": f"ADK server error: {adk_response.status_code}",
+                        "message": "Failed to generate learning content"
+                    }
+                )
+            
+            adk_data = adk_response.json()
+            print(f"ADK Data Type: {type(adk_data)}, Length: {len(adk_data) if isinstance(adk_data, list) else 'N/A'}")
+            
+            # Extract the agent response
+            agent_response = "Learning content is being generated. Please try again in a moment."
+            
+            if isinstance(adk_data, list) and len(adk_data) > 0:
+                for event in reversed(adk_data):
+                    if (event.get("content", {}).get("role") == "model" and 
+                        event.get("content", {}).get("parts")):
+                        parts = event["content"]["parts"]
+                        for part in parts:
+                            if "text" in part:
+                                agent_response = part["text"]
+                                print(f"Found agent response: {agent_response[:100]}...")
+                                break
+                        if len(agent_response) > 100:  # Got meaningful response
+                            break
+            
+            print(f"Final agent response: {agent_response[:200]}...")
+            
+            return JSONResponse(
+                status_code=200,
+                content={
+                    "success": True,
+                    "response": agent_response,
+                    "agent_used": "course_agent",
+                    "topic": topic,
+                    "course_name": course_name,
+                    "metadata": {
+                        "unit_number": unit_number,
+                        "preferences": prompt_options,
+                        "course_id": course_id,
+                        "timestamp": "2025-01-01T00:00:00Z"
+                    }
+                }
+            )
+        
+    except Exception as e:
+        print(f"Error in course learning: {e}")
+        return JSONResponse(
+            status_code=500,
+            content={
+                "success": False,
+                "error": str(e),
+                "message": "Internal server error while generating learning content"
             }
         )
 
