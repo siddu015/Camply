@@ -84,19 +84,10 @@ export function CodeBlockContent({ language, children }: CodeBlockContentProps) 
     });
   };
 
-  if (language === 'text' || language === 'markdown') {
-    return (
-      <pre className="text-sm leading-relaxed p-4 overflow-x-auto">
-        <code className="font-mono">
-          {processInlineFormatting(children)}
-        </code>
-      </pre>
-    );
-  }
-
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (language === 'text' || language === 'markdown') return;
     if (!containerRef.current) return;
 
     const styleNumbers = () => {
@@ -112,7 +103,7 @@ export function CodeBlockContent({ language, children }: CodeBlockContentProps) 
 
       const textNodes: Text[] = [];
       let node;
-      while (node = walker.nextNode()) {
+      while ((node = walker.nextNode())) {
         textNodes.push(node as Text);
       }
 
@@ -145,6 +136,16 @@ export function CodeBlockContent({ language, children }: CodeBlockContentProps) 
     const timer = setTimeout(styleNumbers, 100);
     return () => clearTimeout(timer);
   }, [children, isDark, theme]);
+
+  if (language === 'text' || language === 'markdown') {
+    return (
+      <pre className="text-sm leading-relaxed p-4 overflow-x-auto">
+        <code className="font-mono">
+          {processInlineFormatting(children)}
+        </code>
+      </pre>
+    );
+  }
 
   return (
     <div ref={containerRef} className="relative">
@@ -179,7 +180,7 @@ export function CodeBlockCopyButton({
       setCopied(true);
       onCopy();
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       onError();
     }
   }, [onCopy, onError]);

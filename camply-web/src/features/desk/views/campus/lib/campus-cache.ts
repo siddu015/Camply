@@ -190,7 +190,7 @@ export class CampusCacheService {
                 keysToRemove.push(key.replace('_meta', ''));
               }
             }
-          } catch (error) {
+          } catch {
             keysToRemove.push(key);
           }
         }

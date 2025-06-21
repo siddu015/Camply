@@ -46,7 +46,6 @@ export function NavUser({
       const { error } = await signOut()
       if (error) {
         console.error('Error signing out:', error)
-      } else {
       }
     } catch (error) {
       console.error('Error during logout:', error)

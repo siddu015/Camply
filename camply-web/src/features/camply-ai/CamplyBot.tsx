@@ -7,6 +7,7 @@ import { CamplyBotService, type ChatMessage, type ChatRequest } from './camply-b
 import { supabase } from '@/lib/supabase';
 import { useCampusData } from '../desk/views/campus/hooks/useCampusData';
 import { AIResponse, PlaceholdersAndVanishInput } from '@/components/ui';
+import type { Session } from '@supabase/supabase-js';
 
 interface CamplyBotProps {
   className?: string;
@@ -18,7 +19,7 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
@@ -59,7 +60,7 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
     };
     
     return camplyBotService.getQuickSuggestions(context);
-  }, [college, academicDetails]);
+  }, [college, academicDetails, camplyBotService]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

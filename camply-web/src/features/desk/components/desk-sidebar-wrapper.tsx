@@ -8,27 +8,20 @@ import type { NavigationGroup } from "@/components/sidebar/components/nav-menu"
 import type { User } from "@/components/sidebar/components/nav-user"
 import deskRouteConfig from "@/lib/route-config"
 
-interface DeskSidebarWrapperProps extends Partial<ComponentProps<typeof AppSidebar>> {
+interface DeskSidebarWrapperProps {
   user: User
   campusItems: Array<{ name: string; url: string }>
   semesterItems: Array<{ name: string; url: string }>
+  variant?: ComponentProps<typeof AppSidebar>['variant']
 }
 
 export function DeskSidebarWrapper({ 
   user, 
   campusItems, 
   semesterItems,
-  variant,
-  // These props are ignored in favor of desk-specific implementations
-  navigationGroups: _,
-  onLogout: __,
-  onProfileClick: ___,
-  onSettingsClick: ____,
-  homeRoute: _____,
-  homeIcon: ______,
-  appName: _______,
-  ...restProps
+  variant
 }: DeskSidebarWrapperProps) {
+
   const navigationGroups: NavigationGroup[] = [
     {
       label: "Profile",
@@ -75,7 +68,6 @@ export function DeskSidebarWrapper({
       onLogout={handleLogout}
       onProfileClick={handleProfileClick}
       onSettingsClick={handleSettingsClick}
-      {...restProps}
     />
   )
 }

@@ -4,6 +4,7 @@ import {
   AlertCircle,
   Loader2,
 } from 'lucide-react';
+import type { Session } from '@supabase/supabase-js';
 import { useCampusData } from '../hooks/useCampusData';
 import { supabase } from '@/lib/supabase.ts';
 import { CamplyBotService } from '@/features/camply-ai/camply-bot';
@@ -23,7 +24,7 @@ interface BaseCampusPageProps {
 }
 
 export function BaseCampusPage({ featureId, icon: IconComponent }: BaseCampusPageProps) {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -91,8 +92,8 @@ export function BaseCampusPage({ featureId, icon: IconComponent }: BaseCampusPag
           department: academicDetails?.department_name,
           branch: academicDetails?.branch_name,
           query_type: featureId,
-          feature_button: true,
-          prompt_config: promptConfig
+          feature_button: "true",
+          prompt_config: JSON.stringify(promptConfig)
         }
       };
 

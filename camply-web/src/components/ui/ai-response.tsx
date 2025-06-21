@@ -56,17 +56,17 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
   const isLight = theme === 'light';
 
   const components: Options['components'] = {
-    ol: ({ node, children, className, ...props }) => (
+    ol: ({ children, className, ...props }) => (
       <ol className={cn('space-y-1 list-none', className)} {...props}>
         {children}
       </ol>
     ),
     li: ({ node, children, className, ...props }) => {
-      const nodeData = node as any;
+      const nodeData = node as { tagName?: string; parent?: { tagName?: string; children?: { tagName?: string }[] } };
       const isOrderedList = nodeData?.tagName === 'li' && nodeData?.parent?.tagName === 'ol';
       
       if (isOrderedList) {
-        const siblings = nodeData?.parent?.children?.filter((child: any) => child.tagName === 'li') || [];
+        const siblings = nodeData?.parent?.children?.filter((child) => child.tagName === 'li') || [];
         const itemIndex = siblings.indexOf(nodeData) + 1;
         
         return (
@@ -98,23 +98,23 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         </li>
       );
     },
-    ul: ({ node, children, className, ...props }) => (
+    ul: ({ children, className, ...props }) => (
       <ul className={cn('space-y-1 list-none', className)} {...props}>
         {children}
       </ul>
     ),
-    strong: ({ node, children, className, ...props }) => (
+    strong: ({ children, className, ...props }) => (
       <span className={cn('font-semibold', className)} {...props}>
         {children}
       </span>
     ),
-    p: ({ node, children, className, ...props }) => {
-      const processContent = (content: any): any => {
+    p: ({ children, className, ...props }) => {
+      const processContent = (content: React.ReactNode): React.ReactNode => {
         if (typeof content === 'string') {
           return enhanceTextWithNumbers(content, isLight);
         }
         if (Array.isArray(content)) {
-          return content.map((item, _) => 
+          return content.map((item) => 
             typeof item === 'string' ? enhanceTextWithNumbers(item, isLight) : item
           );
         }
@@ -127,7 +127,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         </p>
       );
     },
-    a: ({ node, children, className, ...props }) => (
+    a: ({ children, className, ...props }) => (
       <a
         className={cn('font-medium text-primary underline hover:text-primary/80 transition-colors', className)}
         target="_blank"
@@ -137,7 +137,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {children}
       </a>
     ),
-    h1: ({ node, children, className, ...props }) => (
+    h1: ({ children, className, ...props }) => (
       <h1
         className={cn('mt-6 mb-3 font-bold text-xl', isLight ? 'text-gray-900' : 'text-gray-50', className)}
         {...props}
@@ -145,7 +145,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {children}
       </h1>
     ),
-    h2: ({ node, children, className, ...props }) => (
+    h2: ({ children, className, ...props }) => (
       <h2
         className={cn('mt-5 mb-2 font-bold text-lg', isLight ? 'text-gray-900' : 'text-gray-50', className)}
         {...props}
@@ -153,17 +153,17 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {children}
       </h2>
     ),
-    h3: ({ node, children, className, ...props }) => (
+    h3: ({ children, className, ...props }) => (
       <h3 className={cn('mt-4 mb-2 font-semibold text-base', isLight ? 'text-gray-900' : 'text-gray-100', className)} {...props}>
         {children}
       </h3>
     ),
-    h4: ({ node, children, className, ...props }) => (
+    h4: ({ children, className, ...props }) => (
       <h4 className={cn('mt-3 mb-2 font-semibold text-sm', isLight ? 'text-gray-800' : 'text-gray-200', className)} {...props}>
         {children}
       </h4>
     ),
-    h5: ({ node, children, className, ...props }) => (
+    h5: ({ children, className, ...props }) => (
       <h5
         className={cn('mt-3 mb-1 font-semibold text-sm', isLight ? 'text-gray-800' : 'text-gray-200', className)}
         {...props}
@@ -171,12 +171,12 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {children}
       </h5>
     ),
-    h6: ({ node, children, className, ...props }) => (
+    h6: ({ children, className, ...props }) => (
       <h6 className={cn('mt-2 mb-1 font-semibold text-xs', isLight ? 'text-gray-700' : 'text-gray-300', className)} {...props}>
         {children}
       </h6>
     ),
-    blockquote: ({ node, children, className, ...props }) => (
+    blockquote: ({ children, className, ...props }) => (
       <blockquote 
         className={cn(
           'my-6 border-l-4 pl-6 italic',
@@ -188,7 +188,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {children}
       </blockquote>
     ),
-    table: ({ node, children, className, ...props }) => (
+    table: ({ children, className, ...props }) => (
       <div className="my-6 overflow-x-auto">
         <table 
           className={cn(
@@ -202,7 +202,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         </table>
       </div>
     ),
-    th: ({ node, children, className, ...props }) => (
+    th: ({ children, className, ...props }) => (
       <th 
         className={cn(
           'border py-2 px-4 text-left font-semibold',
@@ -214,7 +214,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {children}
       </th>
     ),
-    td: ({ node, children, className, ...props }) => (
+    td: ({ children, className, ...props }) => (
       <td 
         className={cn(
           'border py-2 px-4',
@@ -226,7 +226,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {children}
       </td>
     ),
-    hr: ({ node, className, ...props }) => (
+    hr: ({ className, ...props }) => (
       <hr 
         className={cn(
           'my-8 border-t',
@@ -236,16 +236,13 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {...props} 
       />
     ),
-    pre: ({ node, className, children }) => {
-      let language = 'javascript';
-      if (typeof node?.properties?.className === 'string') {
-        language = node.properties.className.replace('language-', '');
-      }
+    pre: ({ children }) => {
+      const language = 'javascript';
       const childrenIsCode =
         typeof children === 'object' &&
         children !== null &&
         'type' in children &&
-        children.type === 'code';
+        (children as { type: string }).type === 'code';
       if (!childrenIsCode) {
         return <pre>{children}</pre>;
       }
@@ -253,7 +250,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         {
           language,
           filename: 'index.js',
-          code: (children.props as { children: string }).children,
+          code: ((children as { props: { children: string } }).props).children,
         },
       ];
       
@@ -302,7 +299,7 @@ const AIResponseComponent = ({ className, options, children, ...props }: AIRespo
         </CodeBlock>
       );
     },
-    code: ({ node, className, children, ...props }) => (
+    code: ({ className, children, ...props }) => (
       <code
         className={cn(
           'px-1.5 py-0.5 rounded text-sm font-mono',

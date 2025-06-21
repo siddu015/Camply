@@ -15,7 +15,7 @@ export function ThemeToggle() {
     setMounted(true)
     setCurrentIcon(theme === "dark" ? "sun" : "moon")
     setNextIcon(theme === "dark" ? "moon" : "sun")
-  }, [])
+  }, [theme])
 
   useEffect(() => {
     if (!mounted || isAnimating || isInternalChange.current) return

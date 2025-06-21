@@ -20,7 +20,7 @@ export interface ChatRequest {
     college_name?: string;
     department?: string;
     branch?: string;
-    [key: string]: any;
+    [key: string]: string | undefined;
   };
 }
 
@@ -95,7 +95,7 @@ export class CamplyBotService {
       
       const processingTime = Date.now() - startTime;
       
-      let data: any;
+      let data: Record<string, unknown>;
       try {
         data = await response.json();
       } catch (parseError) {
@@ -112,14 +112,14 @@ export class CamplyBotService {
       let responseText = '';
       
       if (data.response) {
-        responseText = data.response;
+        responseText = String(data.response);
       }
       else if (data.candidates && Array.isArray(data.candidates) && data.candidates.length > 0) {
         const candidate = data.candidates[0];
-        if (candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
-          const textPart = candidate.content.parts.find((part: any) => part.text);
-          if (textPart && textPart.text) {
-            responseText = textPart.text;
+        if (candidate && typeof candidate === 'object' && candidate.content && typeof candidate.content === 'object' && candidate.content.parts && Array.isArray(candidate.content.parts)) {
+          const textPart = candidate.content.parts.find((part: unknown) => part && typeof part === 'object' && 'text' in part && typeof part.text === 'string');
+          if (textPart && typeof textPart === 'object' && 'text' in textPart) {
+            responseText = String(textPart.text);
           }
         }
       }
@@ -127,10 +127,10 @@ export class CamplyBotService {
         responseText = data;
       }
       else if (data.error) {
-        responseText = `Backend error: ${data.error}`;
+        responseText = `Backend error: ${String(data.error)}`;
       }
       else if (data.message) {
-        responseText = data.message;
+        responseText = String(data.message);
       }         
       else {
         responseText = `Backend responded with HTTP ${response.status} but no readable content found. Raw: ${JSON.stringify(data)}`.substring(0, 500);
@@ -138,11 +138,11 @@ export class CamplyBotService {
       
       return {
         response: responseText,
-        agent_used: data.agent_used || "backend_response",
-        success: data.success !== undefined ? data.success : response.ok,
-        error: data.error,
+        agent_used: typeof data.agent_used === 'string' ? data.agent_used : "backend_response",
+        success: data.success !== undefined ? Boolean(data.success) : response.ok,
+        error: data.error ? String(data.error) : undefined,
         metadata: {
-          ...data.metadata,
+          ...(data.metadata && typeof data.metadata === 'object' ? data.metadata : {}),
           processing_time: processingTime,
           http_status: response.status,
           http_status_text: response.statusText,

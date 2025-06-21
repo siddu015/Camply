@@ -3,7 +3,10 @@ import { useMotionTemplate, useMotionValue, motion } from "framer-motion";
 import { cn } from '@/lib/utils';
 
 interface LargeInputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  disabled?: boolean;
+  label?: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
 export const LargeInput = ({ disabled = false, ...props }: LargeInputProps) => {
@@ -13,7 +16,7 @@ export const LargeInput = ({ disabled = false, ...props }: LargeInputProps) => {
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const handleMouseMove = ({ currentTarget, clientX, clientY }: any) => {
+  const handleMouseMove = ({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) => {
     const { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);

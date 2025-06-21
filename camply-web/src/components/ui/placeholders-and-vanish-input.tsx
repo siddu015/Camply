@@ -28,26 +28,27 @@ export function PlaceholdersAndVanishInput({
   const mouseX = useMotionValue(0);
   const mouseY = useMotionValue(0);
 
-  const handleMouseMove = ({ currentTarget, clientX, clientY }: any) => {
+  const handleMouseMove = ({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLFormElement>) => {
     const { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);
   };
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const startAnimation = () => {
+  const startAnimation = useCallback(() => {
     intervalRef.current = setInterval(() => {
       setCurrentPlaceholder((prev) => (prev + 1) % placeholders.length);
     }, 3000);
-  };
-  const handleVisibilityChange = () => {
+  }, [placeholders.length]);
+  
+  const handleVisibilityChange = useCallback(() => {
     if (document.visibilityState !== "visible" && intervalRef.current) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     } else if (document.visibilityState === "visible") {
       startAnimation();
     }
-  };
+  }, [startAnimation]);
 
   useEffect(() => {
     startAnimation();
@@ -59,10 +60,10 @@ export function PlaceholdersAndVanishInput({
       }
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
-  }, [placeholders]);
+  }, [placeholders, handleVisibilityChange, startAnimation]);
 
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const newDataRef = useRef<any[]>([]);
+  const newDataRef = useRef<{ x: number; y: number; r: number; color: string }[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const [value, setValue] = useState("");
   const [animating, setAnimating] = useState(false);
@@ -86,7 +87,7 @@ export function PlaceholdersAndVanishInput({
 
     const imageData = ctx.getImageData(0, 0, 800, 800);
     const pixelData = imageData.data;
-    const newData: any[] = [];
+    const newData: { x: number; y: number; color: [number, number, number, number] }[] = [];
 
     for (let t = 0; t < 800; t++) {
       const i = 4 * t * 800;
@@ -192,7 +193,7 @@ export function PlaceholdersAndVanishInput({
     e.preventDefault();
     if (!disabled) {
       vanishAndSubmit();
-      onSubmit && onSubmit(e);
+      onSubmit?.(e);
     }
   };
 
@@ -235,7 +236,7 @@ export function PlaceholdersAndVanishInput({
           onChange={(e) => {
             if (!animating && !disabled) {
               setValue(e.target.value);
-              onChange && onChange(e);
+              onChange?.(e);
             }
           }}
           onKeyDown={handleKeyDown}

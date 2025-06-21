@@ -4,7 +4,7 @@ import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from "motion/react";
 import { useHandbook } from '../hooks/useHandbook';
-import { useHandbookFiles } from '../hooks/useHandbookFiles';
+import { useHandbookFiles, type HandbookFile } from '../hooks/useHandbookFiles';
 import { HandbookUpload } from './HandbookUpload';
 import { AIResponse } from '@/components/ui';
 import { 
@@ -39,7 +39,6 @@ export function HandbookQuery({
 
   const { 
     handbooks, 
-    loading: loadingHandbooks, 
     openHandbook 
   } = useHandbookFiles(userId);
 
@@ -136,7 +135,7 @@ export function HandbookQuery({
     setQuestion(suggestedQuestion);
   };
 
-  const handleViewHandbook = async (handbook: any) => {
+  const handleViewHandbook = async (handbook: HandbookFile) => {
     setViewingHandbook(handbook.handbook_id);
     try {
       await openHandbook(handbook);

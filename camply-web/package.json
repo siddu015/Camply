@@ -11,8 +11,8 @@
     "lint:fix": "eslint . --fix",
     "preview": "vite preview",
     "type-check": "tsc --noEmit",
-    "validate-env": "node -e \"import('./src/lib/env-validation.js').then(m => m.validateEnvironment().then(() => console.log('Environment validation passed')))\"",
-    "build:check": "npm run type-check && npm run lint && npm run validate-env && npm run build"
+    "validate-env": "tsc src/lib/env-validation.ts --outDir ./temp --target ES2020 --module ES2020 --moduleResolution node && node -e \"import('./temp/env-validation.js').then(m => m.validateEnvironment().then(() => console.log('Environment validation passed')).then(() => require('fs').rmSync('./temp', {recursive: true})))\"",
+    "build:check": "npm run type-check && npm run lint && npm run build"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.20.0",

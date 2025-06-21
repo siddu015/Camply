@@ -145,7 +145,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     }
   };
 
-  const handleFieldChange = (name: string, value: any) => {
+  const handleFieldChange = (name: string, value: string | number) => {
     if (validationErrors[name]) {
       setValidationErrors(prev => {
         const newErrors = { ...prev };

@@ -24,7 +24,7 @@ export const validateEnvironment = (): RequiredEnvVars & OptionalEnvVars => {
   ];
 
   const missingVars: string[] = [];
-  const envVars: any = {};
+  const envVars: Partial<RequiredEnvVars & OptionalEnvVars> = {};
 
   for (const varName of requiredVars) {
     const value = import.meta.env[varName];
@@ -46,9 +46,9 @@ export const validateEnvironment = (): RequiredEnvVars & OptionalEnvVars => {
   }
 
   try {
-    new URL(envVars.VITE_SUPABASE_URL);
-    new URL(envVars.VITE_BACKEND_URL);
-  } catch (error) {
+    if (envVars.VITE_SUPABASE_URL) new URL(envVars.VITE_SUPABASE_URL);
+    if (envVars.VITE_BACKEND_URL) new URL(envVars.VITE_BACKEND_URL);
+  } catch {
     throw new EnvironmentError(
       'Invalid URL format in environment variables. Please check VITE_SUPABASE_URL and VITE_BACKEND_URL.'
     );

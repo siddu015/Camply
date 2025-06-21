@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { 
   checkHandbookExists, 
   subscribeToHandbookChanges 
@@ -9,7 +9,7 @@ export const useHandbook = (userId: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const checkUserHandbook = async () => {
+  const checkUserHandbook = useCallback(async () => {
     if (!userId) return;
     
     try {
@@ -23,7 +23,7 @@ export const useHandbook = (userId: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
   const refreshHandbook = () => {
     setLoading(true);
@@ -45,7 +45,7 @@ export const useHandbook = (userId: string) => {
     return () => {
       subscription.unsubscribe();
     };
-  }, [userId]);
+  }, [userId, checkUserHandbook]);
 
   return {
     handbookExists,

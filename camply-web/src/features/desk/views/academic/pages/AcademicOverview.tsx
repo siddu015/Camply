@@ -10,7 +10,7 @@ import { GraduationCap } from 'lucide-react';
 import SimpleLoader from '@/components/SimpleLoader';
 
 export function AcademicOverview() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<{ user: { id: string } } | null>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   

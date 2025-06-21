@@ -4,7 +4,6 @@ import { useTheme } from '@/lib/theme-provider';
 import { cn } from '@/lib/utils';
 import type { UserHandbook } from "@/types/database";
 import { FileUpload } from "@/components/ui";
-import SimpleLoader from "@/components/SimpleLoader";
 import { uploadHandbook } from '../lib/handbookUpload';
 
 interface HandbookUploadProps {
@@ -18,6 +17,7 @@ export function HandbookUpload({
   academicId,
   onUploadSuccess,
 }: HandbookUploadProps) {
+  // academicId is used in handleFileUpload function
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -85,10 +85,22 @@ export function HandbookUpload({
           </ul>
         </div>
 
+        {error && (
+          <div className="flex items-center space-x-3 text-red-600 bg-red-50 dark:bg-red-950/30 p-4 rounded-lg border border-red-200 dark:border-red-900">
+            <span className="text-sm font-medium">{error}</span>
+          </div>
+        )}
+
         {success && (
           <div className="flex items-center space-x-3 text-green-600 bg-green-50 dark:bg-green-950/30 p-4 rounded-lg border border-green-200 dark:border-green-900">
             <CheckCircle className="h-5 w-5 flex-shrink-0" />
             <span className="text-sm font-medium">{success}</span>
+          </div>
+        )}
+
+        {uploading && (
+          <div className="flex items-center space-x-3 text-blue-600 bg-blue-50 dark:bg-blue-950/30 p-4 rounded-lg border border-blue-200 dark:border-blue-900">
+            <span className="text-sm font-medium">Uploading...</span>
           </div>
         )}
       </div>
