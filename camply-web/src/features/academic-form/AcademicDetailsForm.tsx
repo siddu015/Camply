@@ -1,10 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { AnimatePresence } from "framer-motion";
-import { supabase } from '../../lib/supabase';
-import { AuroraBackground } from '../../components/ui/aurora-background';
+import { supabase } from '@/lib/supabase';
+import { AuroraBackground, ProgressIndicator, NavigationControls } from '@/components/ui';
 import { useFormValidation } from './hooks/useFormValidation';
-import { ProgressIndicator } from './components/ProgressIndicator';
-import { NavigationControls } from './components/NavigationControls';
 import {
   NameStep,
   PhoneStep,
@@ -16,8 +14,8 @@ import {
 import type { 
   AcademicDetailsFormProps,
   AcademicFormData 
-} from './types';
-import type { College, DepartmentData } from '../../types/database';
+} from './types/types';
+import type { College, DepartmentData } from '@/types/database';
 
 const TOTAL_STEPS = 6;
 
@@ -147,7 +145,7 @@ const AcademicDetailsForm = ({ onSubmit, loading, error, initialData }: Academic
     }
   };
 
-  const handleFieldChange = (name: string, value: any) => {
+  const handleFieldChange = (name: string, value: string | number) => {
     if (validationErrors[name]) {
       setValidationErrors(prev => {
         const newErrors = { ...prev };

@@ -1,5 +1,5 @@
 "use client";
-import { SparklesCore } from "@/components/ui/sparkles";
+import { SparklesCore } from "@/components/ui";
 import { signInWithGoogle } from '@/lib/supabase';
 
 const LandingPage = () => {
@@ -94,9 +94,6 @@ const LandingPage = () => {
         <div className="absolute inset-0 w-full h-full bg-black [mask-image:radial-gradient(350px_200px_at_top,transparent_20%,white)]"></div>
       </div>
 
-      <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto px-4 text-center relative z-20 mt-8">
-        Discover and book amazing camping experiences
-      </p>
     </div>
   );
 };

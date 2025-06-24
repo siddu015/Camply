@@ -1,4 +1,4 @@
-import { ComingSoon } from "../components/coming-soon"
+import { ComingSoon } from "@/features/desk/components/coming-soon"
 
 export function Courses() {
   return (

@@ -1,5 +1,5 @@
 import { Moon, Sun } from "lucide-react"
-import { Button } from "./sidebar/components/ui/button"
+import { Button } from "@/components/sidebar/components/ui/button"
 import { useTheme } from "@/lib/theme-provider"
 import { useEffect, useState, useRef } from "react"
 
@@ -15,7 +15,7 @@ export function ThemeToggle() {
     setMounted(true)
     setCurrentIcon(theme === "dark" ? "sun" : "moon")
     setNextIcon(theme === "dark" ? "moon" : "sun")
-  }, [])
+  }, [theme])
 
   useEffect(() => {
     if (!mounted || isAnimating || isInternalChange.current) return

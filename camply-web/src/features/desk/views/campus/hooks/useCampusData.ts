@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import type { User, UserAcademicDetails, College } from '../../../../../types/database';
-import { getUserCampusData } from '../../../../../lib/database';
+import type { User, UserAcademicDetails, College } from '@/types/database';
+import { getUserCampusData } from '@/lib/database';
 
 interface CampusData {
   user: User | null;
@@ -17,7 +17,7 @@ export const useCampusData = (userId: string | undefined) => {
     currentSemester: null,
   });
   const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [, setError] = useState<string | null>(null);
   const [initialized, setInitialized] = useState(false);
 
   useEffect(() => {

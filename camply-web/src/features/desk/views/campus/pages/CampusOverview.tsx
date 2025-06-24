@@ -66,7 +66,7 @@ const CAMPUS_FEATURES = [
 ];
 
 export function CampusOverview() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<{ user: { id: string } } | null>(null);
   const navigate = useNavigate();
   
   const { user, academicDetails, college, loading, error } = useCampusData(session?.user?.id);
@@ -92,7 +92,7 @@ export function CampusOverview() {
   };
 
   if (loading) {
-    return <SimpleLoader />;
+    return <SimpleLoader text="Setting up your campus space..." />;
   }
 
   if (error) {

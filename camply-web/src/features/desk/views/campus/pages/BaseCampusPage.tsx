@@ -2,9 +2,9 @@ import { useEffect, useState, useRef } from 'react';
 import { 
   RefreshCw, 
   AlertCircle,
-  Bot,
   Loader2,
 } from 'lucide-react';
+import type { Session } from '@supabase/supabase-js';
 import { useCampusData } from '../hooks/useCampusData';
 import { supabase } from '@/lib/supabase.ts';
 import { CamplyBotService } from '@/features/camply-ai/camply-bot';
@@ -14,7 +14,7 @@ import { CampusCacheService } from '../lib/campus-cache';
 import type { ChatRequest, ChatResponse } from '@/features/camply-ai/camply-bot';
 import { cn } from '@/lib/utils';
 import { useTheme } from '@/lib/theme-provider';
-import { TracingBeam } from '@/components/ui/tracing-beam';
+import { TracingBeam } from '@/components/ui';
 import SimpleLoader from '@/components/SimpleLoader';
 
 interface BaseCampusPageProps {
@@ -23,8 +23,8 @@ interface BaseCampusPageProps {
   gradient: string;
 }
 
-export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: BaseCampusPageProps) {
-  const [session, setSession] = useState<any>(null);
+export function BaseCampusPage({ featureId, icon: IconComponent }: BaseCampusPageProps) {
+  const [session, setSession] = useState<Session | null>(null);
   const [content, setContent] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -92,8 +92,8 @@ export function BaseCampusPage({ featureId, icon: IconComponent, gradient }: Bas
           department: academicDetails?.department_name,
           branch: academicDetails?.branch_name,
           query_type: featureId,
-          feature_button: true,
-          prompt_config: promptConfig
+          feature_button: "true",
+          prompt_config: JSON.stringify(promptConfig)
         }
       };
 

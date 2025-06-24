@@ -1,33 +1,27 @@
 import type { ComponentProps } from "react"
 import { BookOpenIcon, CalendarIcon, GraduationCapIcon } from "lucide-react"
-import { signOut } from "../../../lib/supabase"
+import { signOut } from "@/lib/supabase"
 
-import { AppSidebar } from "../../../components/sidebar/app-sidebar"
-import { SiteHeader } from "../../../components/sidebar/components/site-header"
-import type { NavigationGroup } from "../../../components/sidebar/components/nav-menu"
-import type { User } from "../../../components/sidebar/components/nav-user"
-import deskRouteConfig from "../../../lib/route-config"
+import { AppSidebar } from "@/components/sidebar/app-sidebar"
+import { SiteHeader } from "@/components/sidebar/components/site-header"
+import type { NavigationGroup } from "@/components/sidebar/components/nav-menu"
+import type { User } from "@/components/sidebar/components/nav-user"
+import deskRouteConfig from "@/lib/route-config"
 
-interface DeskSidebarWrapperProps extends Partial<ComponentProps<typeof AppSidebar>> {
+interface DeskSidebarWrapperProps {
   user: User
   campusItems: Array<{ name: string; url: string }>
   semesterItems: Array<{ name: string; url: string }>
+  variant?: ComponentProps<typeof AppSidebar>['variant']
 }
 
 export function DeskSidebarWrapper({ 
   user, 
   campusItems, 
   semesterItems,
-  variant,
-  navigationGroups: _ignoredNavGroups,
-  onLogout: _ignoredOnLogout,
-  onProfileClick: _ignoredOnProfile,
-  onSettingsClick: _ignoredOnSettings,
-  homeRoute: _ignoredHomeRoute,
-  homeIcon: _ignoredHomeIcon,
-  appName: _ignoredAppName,
-  ...restProps
+  variant
 }: DeskSidebarWrapperProps) {
+
   const navigationGroups: NavigationGroup[] = [
     {
       label: "Profile",
@@ -74,7 +68,6 @@ export function DeskSidebarWrapper({
       onLogout={handleLogout}
       onProfileClick={handleProfileClick}
       onSettingsClick={handleSettingsClick}
-      {...restProps}
     />
   )
 }

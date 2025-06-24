@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
-import type { User, UserAcademicDetails, UserFormData, UserStatus, College } from '../types/database';
+import type { User, UserAcademicDetails, UserFormData, UserStatus, College } from '@/types/database';
+
 
 export const checkUserStatus = async (userId: string): Promise<UserStatus> => {
   try {

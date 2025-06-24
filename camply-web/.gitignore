@@ -33,3 +33,13 @@ lerna-debug.log*
 # Build
 dist/
 build/
+
+# Environment files - CRITICAL: Don't commit sensitive environment variables
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Supabase
+.supabase
+.vercel

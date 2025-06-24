@@ -84,19 +84,10 @@ export function CodeBlockContent({ language, children }: CodeBlockContentProps) 
     });
   };
 
-  if (language === 'text' || language === 'markdown') {
-    return (
-      <pre className="text-sm leading-relaxed p-4 overflow-x-auto">
-        <code className="font-mono">
-          {processInlineFormatting(children)}
-        </code>
-      </pre>
-    );
-  }
-
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (language === 'text' || language === 'markdown') return;
     if (!containerRef.current) return;
 
     const styleNumbers = () => {
@@ -112,7 +103,7 @@ export function CodeBlockContent({ language, children }: CodeBlockContentProps) 
 
       const textNodes: Text[] = [];
       let node;
-      while (node = walker.nextNode()) {
+      while ((node = walker.nextNode())) {
         textNodes.push(node as Text);
       }
 
@@ -145,6 +136,16 @@ export function CodeBlockContent({ language, children }: CodeBlockContentProps) 
     const timer = setTimeout(styleNumbers, 100);
     return () => clearTimeout(timer);
   }, [children, isDark, theme]);
+
+  if (language === 'text' || language === 'markdown') {
+    return (
+      <pre className="text-sm leading-relaxed p-4 overflow-x-auto">
+        <code className="font-mono">
+          {processInlineFormatting(children)}
+        </code>
+      </pre>
+    );
+  }
 
   return (
     <div ref={containerRef} className="relative">
@@ -179,7 +180,7 @@ export function CodeBlockCopyButton({
       setCopied(true);
       onCopy();
       setTimeout(() => setCopied(false), 2000);
-    } catch (error) {
+    } catch {
       onError();
     }
   }, [onCopy, onError]);
@@ -224,10 +225,9 @@ export function CodeBlockFiles({ children }: {
 }
 
 export function CodeBlockFilename({ 
-  value, 
   children 
 }: { 
-  value: string; 
+  value?: string; 
   children: ReactNode 
 }) {
   return <span className="text-sm font-medium">{children}</span>;
@@ -256,20 +256,18 @@ export function CodeBlockSelectContent({ children }: {
 }
 
 export function CodeBlockSelectItem({ 
-  value, 
   children 
 }: { 
-  value: string; 
+  value?: string; 
   children: ReactNode 
 }) {
   return <div className="px-2 py-1 text-sm">{children}</div>;
 }
 
 export function CodeBlockItem({ 
-  value, 
   children 
 }: { 
-  value: string; 
+  value?: string; 
   children: ReactNode 
 }) {
   return <div className="p-4 overflow-x-auto">{children}</div>;
@@ -282,8 +280,7 @@ export const CodeBlock = memo(({
   children, 
   ...props 
 }: CodeBlockProps & { children?: ReactNode }) => {
-  const [currentValue, setCurrentValue] = useState(defaultValue || data[0]?.language);
-  const currentItem = data.find(item => item.language === currentValue) || data[0];
+  const [, ] = useState(defaultValue || data[0]?.language);
 
   return (
     <div

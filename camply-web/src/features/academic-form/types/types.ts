@@ -1,6 +1,25 @@
-import type { UserFormData, College, DepartmentData } from '../../types/database';
+import type { UserFormData, DepartmentData } from '@/types/database';
 
-export interface AcademicFormData extends UserFormData {}
+export interface College {
+  college_id: string;
+  name: string;
+  city?: string;
+  state?: string;
+  university_name?: string;
+}
+
+export interface AcademicFormData {
+  name: string;
+  phone_number: string;
+  college_id: string;
+  department_name: string;
+  branch_name: string;
+  roll_number: string;
+  admission_year: number;
+  graduation_year: number;
+  colleges?: College[];
+  departments?: DepartmentData;
+}
 
 export interface FormStep {
   id: number;
@@ -11,7 +30,7 @@ export interface FormStep {
 export interface StepComponentProps {
   formData: AcademicFormData;
   validationErrors: Record<string, string>;
-  onFieldChange: (name: string, value: any) => void;
+  onFieldChange: (name: string, value: string | number) => void;
   autoFocus?: boolean;
   direction?: 'next' | 'prev' | null;
 }

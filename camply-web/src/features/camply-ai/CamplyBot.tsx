@@ -1,13 +1,13 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { IoClose, IoRefresh, IoExpand, IoContract } from 'react-icons/io5';
-import { useTheme } from '../../lib/theme-provider';
-import { cn } from '../../components/sidebar/lib/utils';
+import { useTheme } from '@/lib/theme-provider';
+import { cn } from '@/lib/utils';
 import { CamplyBotService, type ChatMessage, type ChatRequest } from './camply-bot';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '@/lib/supabase';
 import { useCampusData } from '../desk/views/campus/hooks/useCampusData';
-import { AIResponse } from '../../components/ui/ai-response';
-import { PlaceholdersAndVanishInput } from '../../components/ui/placeholders-and-vanish-input';
+import { AIResponse, PlaceholdersAndVanishInput } from '@/components/ui';
+import type { Session } from '@supabase/supabase-js';
 
 interface CamplyBotProps {
   className?: string;
@@ -19,7 +19,7 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<Session | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { theme } = useTheme();
@@ -60,7 +60,7 @@ export const CamplyBot: React.FC<CamplyBotProps> = ({ className }) => {
     };
     
     return camplyBotService.getQuickSuggestions(context);
-  }, [college, academicDetails]);
+  }, [college, academicDetails, camplyBotService]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

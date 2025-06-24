@@ -1,23 +1,23 @@
 import { useCallback } from 'react';
-import type { AcademicFormData } from '../types';
+import type { AcademicFormData } from '../types/types';
 
 export const useFormValidation = (formData: AcademicFormData) => {
-  const validateField = useCallback((name: string, value: any): Record<string, string> => {
+  const validateField = useCallback((name: string, value: string | number): Record<string, string> => {
     const errors: Record<string, string> = {};
     
     switch (name) {
       case 'name':
-        if (!value || value.trim().length < 2) {
+        if (!value || String(value).trim().length < 2) {
           errors.name = 'Full name must be at least 2 characters long';
-        } else if (!/^[a-zA-Z\s.]+$/.test(value)) {
+        } else if (!/^[a-zA-Z\s.]+$/.test(String(value))) {
           errors.name = 'Name can only contain letters, spaces, and dots';
         }
         break;
         
       case 'phone_number':
-        if (value && value !== '+91 ') {
+        if (value && String(value) !== '+91 ') {
           const phoneRegex = /^\+91\s?\d{10}$/;
-          if (!phoneRegex.test(value.replace(/\s/g, ''))) {
+          if (!phoneRegex.test(String(value).replace(/\s/g, ''))) {
             errors.phone_number = 'Phone number must be exactly 10 digits with +91 prefix';
           }
         }
@@ -42,41 +42,45 @@ export const useFormValidation = (formData: AcademicFormData) => {
         break;
         
       case 'roll_number':
-        if (value && value.trim().length > 20) {
+        if (value && String(value).trim().length > 20) {
           errors.roll_number = 'Roll number cannot exceed 20 characters';
         }
         break;
         
-      case 'admission_year':
+      case 'admission_year': {
         const currentYear = new Date().getFullYear();
-        if (!value || value < 2000) {
+        const numValue = Number(value);
+        if (!value || numValue < 2000) {
           errors.admission_year = 'Please enter a valid admission year (minimum 2000)';
-        } else if (value > currentYear) {
+        } else if (numValue > currentYear) {
           errors.admission_year = `Admission year cannot be greater than current year (${currentYear})`;
-        } else if (value.toString().length !== 4) {
+        } else if (String(value).length !== 4) {
           errors.admission_year = 'Admission year must be exactly 4 digits';
-        } else if (!value.toString().startsWith('2')) {
+        } else if (!String(value).startsWith('2')) {
           errors.admission_year = 'Admission year must start with 2';
         }
         break;
+      }
         
-      case 'graduation_year':
-        if (!value || value < 2020) {
+      case 'graduation_year': {
+        const numValue = Number(value);
+        if (!value || numValue < 2020) {
           errors.graduation_year = 'Please enter a valid graduation year (minimum 2020)';
-        } else if (value > 2040) {
+        } else if (numValue > 2040) {
           errors.graduation_year = 'Graduation year cannot exceed 2040';
-        } else if (value.toString().length !== 4) {
+        } else if (String(value).length !== 4) {
           errors.graduation_year = 'Graduation year must be exactly 4 digits';
-        } else if (!value.toString().startsWith('2')) {
+        } else if (!String(value).startsWith('2')) {
           errors.graduation_year = 'Graduation year must start with 2';
-        } else if (formData.admission_year && value <= formData.admission_year) {
+        } else if (formData.admission_year && numValue <= formData.admission_year) {
           errors.graduation_year = 'Graduation year must be after admission year';
-        } else if (formData.admission_year && (value - formData.admission_year) < 1) {
+        } else if (formData.admission_year && (numValue - formData.admission_year) < 1) {
           errors.graduation_year = 'There must be at least 1 year gap between admission and graduation';
-        } else if (formData.admission_year && value === formData.admission_year) {
+        } else if (formData.admission_year && numValue === formData.admission_year) {
           errors.graduation_year = 'Graduation year cannot be the same as admission year';
         }
         break;
+      }
     }
     
     return errors;

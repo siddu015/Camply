@@ -10,7 +10,7 @@ import { GraduationCap } from 'lucide-react';
 import SimpleLoader from '@/components/SimpleLoader';
 
 export function AcademicOverview() {
-  const [session, setSession] = useState<any>(null);
+  const [session, setSession] = useState<{ user: { id: string } } | null>(null);
   const { theme } = useTheme();
   const isDark = theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches);
   
@@ -36,25 +36,11 @@ export function AcademicOverview() {
   }, []);
 
   if (loading || !session) {
-    return <SimpleLoader />;
+    return <SimpleLoader text="Loading your academic profile..." />;
   }
 
-  if (error) {
-    return (
-      <div className="bg-destructive/10 border border-destructive/20 rounded-xl p-6 max-w-3xl mx-auto">
-        <h3 className="text-lg font-semibold text-destructive mb-2">Error loading academic data</h3>
-        <p className="text-destructive">{error}</p>
-      </div>
-    );
-  }
-
-  if (!user || !academicDetails) {
-    return (
-      <div className="bg-background border border-border rounded-xl p-6 max-w-3xl mx-auto">
-        <h3 className="text-lg font-semibold text-foreground mb-2">Academic Profile Not Found</h3>
-        <p className="text-muted-foreground">Please complete your academic profile setup.</p>
-      </div>
-    );
+  if (error || !user || !academicDetails) {
+    return <SimpleLoader text="Setting up your academic workspace..." />;
   }
 
   return (

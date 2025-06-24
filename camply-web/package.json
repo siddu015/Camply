@@ -4,10 +4,15 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
+    "dev": "vite --mode development",
+    "build": "tsc -b && vite build --mode production",
+    "build:staging": "tsc -b && vite build --mode staging",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "lint:fix": "eslint . --fix",
+    "preview": "vite preview",
+    "type-check": "tsc --noEmit",
+    "validate-env": "tsc src/lib/env-validation.ts --outDir ./temp --target ES2020 --module ES2020 --moduleResolution node && node -e \"import('./temp/env-validation.js').then(m => m.validateEnvironment().then(() => console.log('Environment validation passed')).then(() => require('fs').rmSync('./temp', {recursive: true})))\"",
+    "build:check": "npm run type-check && npm run lint && npm run build"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.20.0",

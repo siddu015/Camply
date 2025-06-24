@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { BaseCampusPage } from './BaseCampusPage';
 import { useEffect } from 'react';
-import { deskRouteConfig } from '../../../../../lib/route-config';
+import { deskRouteConfig } from '@/lib/route-config';
 
 const CAMPUS_FEATURES = {
   'news': {

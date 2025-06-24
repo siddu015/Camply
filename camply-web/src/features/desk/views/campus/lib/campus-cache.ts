@@ -34,9 +34,7 @@ export class CampusCacheService {
     return `${this.getCacheKey(type, userId, collegeId)}_meta`;
   }
 
-  /**
-   * Check if cached content exists and is valid
-   */
+
   isCached(type: string, userId: string, collegeId?: string): boolean {
     try {
       const cacheKey = this.getCacheKey(type, userId, collegeId);
@@ -64,9 +62,6 @@ export class CampusCacheService {
     }
   }
 
-  /**
-   * Get cached content if available and valid
-   */
   getCachedContent(type: string, userId: string, collegeId?: string): CachedContent | null {
     try {
       if (!this.isCached(type, userId, collegeId)) {
@@ -87,9 +82,7 @@ export class CampusCacheService {
     }
   }
 
-  /**
-   * Cache content with metadata
-   */
+
   setCachedContent(
     type: string, 
     userId: string, 
@@ -122,9 +115,7 @@ export class CampusCacheService {
     }
   }
 
-  /**
-   * Clear specific cache entry
-   */
+
   clearCache(type: string, userId: string, collegeId?: string): void {
     try {
       const cacheKey = this.getCacheKey(type, userId, collegeId);
@@ -132,14 +123,11 @@ export class CampusCacheService {
       
       localStorage.removeItem(cacheKey);
       localStorage.removeItem(metaKey);
-    } catch (error) {
-      console.error('Error clearing cache:', error);
+    } catch (err) {
+      console.error('Error clearing cache:', err);
     }
   }
 
-  /**
-   * Clear all campus cache for a user
-   */
   clearUserCache(userId: string): void {
     try {
       const keysToRemove: string[] = [];
@@ -157,9 +145,7 @@ export class CampusCacheService {
     }
   }
 
-  /**
-   * Get cache info for display
-   */
+
   getCacheInfo(type: string, userId: string, collegeId?: string): {
     isCached: boolean;
     lastFetch?: Date;
@@ -186,9 +172,7 @@ export class CampusCacheService {
     }
   }
 
-  /**
-   * Clean up expired cache entries
-   */
+
   private cleanupOldCache(): void {
     try {
       const now = Date.now();
@@ -206,7 +190,7 @@ export class CampusCacheService {
                 keysToRemove.push(key.replace('_meta', ''));
               }
             }
-          } catch (error) {
+          } catch {
             keysToRemove.push(key);
           }
         }

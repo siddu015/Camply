@@ -87,7 +87,11 @@ export const queryHandbookBackend = async (
   userId: string
 ): Promise<string> => {
   try {
-    const backendUrl = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8001';
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    
+    if (!backendUrl) {
+      throw new Error('VITE_BACKEND_URL environment variable is required');
+    }
     
     const response = await fetch(`${backendUrl}/chat`, {
       method: 'POST',
@@ -104,25 +108,25 @@ export const queryHandbookBackend = async (
       }),
     });
 
-    let data: any;
+    let data: Record<string, unknown>;
     try {
       data = await response.json();
-    } catch (parseError) {
+    } catch {
       return `Backend responded with HTTP ${response.status} but response could not be parsed. The server may have sent a non-JSON response.`;
     }
     
     console.log('Raw backend response:', JSON.stringify(data, null, 2));
     
     if (data.response) {
-      return data.response;
+      return String(data.response);
     }
     
     if (data.candidates && Array.isArray(data.candidates) && data.candidates.length > 0) {
       const candidate = data.candidates[0];
-      if (candidate.content && candidate.content.parts && Array.isArray(candidate.content.parts)) {
-        const textPart = candidate.content.parts.find((part: any) => part.text);
-        if (textPart && textPart.text) {
-          return textPart.text;
+      if (candidate && typeof candidate === 'object' && candidate.content && typeof candidate.content === 'object' && candidate.content.parts && Array.isArray(candidate.content.parts)) {
+        const textPart = candidate.content.parts.find((part: unknown) => part && typeof part === 'object' && 'text' in part && typeof part.text === 'string');
+        if (textPart && typeof textPart === 'object' && 'text' in textPart) {
+          return String(textPart.text);
         }
       }
     }
@@ -132,15 +136,15 @@ export const queryHandbookBackend = async (
     }
     
     if (data.error) {
-      return `Backend error: ${data.error}`;
+      return `Backend error: ${String(data.error)}`;
     }
     
     if (data.message) {
-      return data.message;
+      return String(data.message);
     }
     
     if (data.success === false && data.message) {
-      return data.message;
+      return String(data.message);
     }
 
     return `Backend responded (HTTP ${response.status}) with data but no readable content was found. Raw response: ${JSON.stringify(data)}`.substring(0, 500);

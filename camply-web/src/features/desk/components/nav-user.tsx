@@ -1,11 +1,11 @@
 "use client"
 
 import { LogOutIcon, MoreVerticalIcon, SettingsIcon, UserCircleIcon, Moon, Sun } from "lucide-react"
-import { signOut } from "../../../lib/supabase"
+import { signOut } from "@/lib/supabase"
 import { useState } from "react"
-import { useTheme } from "../../../lib/theme-provider"
+import { useTheme } from "@/lib/theme-provider"
 
-import { Avatar, AvatarFallback, AvatarImage } from "../../../components/sidebar/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/sidebar/components/ui/avatar"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,7 +13,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "../../../components/sidebar/components/ui/dropdown-menu"
+} from "@/components/sidebar/components/ui/dropdown-menu"
 import {
   LogoutDialog,
   LogoutDialogAction,
@@ -23,8 +23,8 @@ import {
   LogoutDialogFooter,
   LogoutDialogHeader,
   LogoutDialogTitle,
-} from "../../../components/ui/logout-dialog-adaptive"
-import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "../../../components/sidebar/components/ui/sidebar"
+} from "@/components/ui/logout-dialog-adaptive"
+import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/sidebar/components/ui/sidebar"
 
 export function NavUser({
   user,
@@ -46,7 +46,6 @@ export function NavUser({
       const { error } = await signOut()
       if (error) {
         console.error('Error signing out:', error)
-      } else {
       }
     } catch (error) {
       console.error('Error during logout:', error)

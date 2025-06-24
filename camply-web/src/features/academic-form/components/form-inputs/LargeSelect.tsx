@@ -1,9 +1,14 @@
 import { useState } from 'react';
 import { useMotionTemplate, useMotionValue, motion } from "framer-motion";
 import { ChevronRight } from 'lucide-react';
-import { cn } from '../../../../lib/utils';
+import { cn } from '@/lib/utils';
 
 interface LargeSelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+  label?: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  children: React.ReactNode;
   disabled?: boolean;
 }
 
@@ -11,11 +16,11 @@ export const LargeSelect = ({ children, disabled = false, ...props }: LargeSelec
   const radius = 100;
   const [visible, setVisible] = useState(false);
 
-  let mouseX = useMotionValue(0);
-  let mouseY = useMotionValue(0);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
 
-  function handleMouseMove({ currentTarget, clientX, clientY }: any) {
-    let { left, top } = currentTarget.getBoundingClientRect();
+  function handleMouseMove({ currentTarget, clientX, clientY }: React.MouseEvent<HTMLDivElement>) {
+    const { left, top } = currentTarget.getBoundingClientRect();
     mouseX.set(clientX - left);
     mouseY.set(clientY - top);
   }
@@ -58,4 +63,4 @@ export const LargeSelect = ({ children, disabled = false, ...props }: LargeSelec
       </div>
     </motion.div>
   );
-}; 
+};

@@ -1,7 +1,6 @@
-import { useLocation } from "react-router-dom"
 import { Separator } from "./ui/separator"
 import { SidebarTrigger } from "./ui/sidebar"
-import { ThemeToggle } from "../../../components/theme-toggle"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Breadcrumbs, type RouteConfig } from "./breadcrumb"
 
 export interface SiteHeaderProps {

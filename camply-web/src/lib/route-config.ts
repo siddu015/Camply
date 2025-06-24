@@ -1,4 +1,4 @@
-import type { RouteConfig } from '../components/sidebar/components/breadcrumb';
+import type { RouteConfig } from '@/components/sidebar/components/breadcrumb';
 
 export const deskRouteConfig: Record<string, RouteConfig> = {
   "/desk": { title: "Desk", parent: "Camply" },
@@ -19,4 +19,4 @@ if (typeof window !== 'undefined') {
   window.__CAMPLY_ROUTE_CONFIG = deskRouteConfig;
 }
 
-export default deskRouteConfig; 
+export default deskRouteConfig;
