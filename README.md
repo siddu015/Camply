@@ -1,6 +1,6 @@
 # Camply 🎓
 
-Camply is where college students manage everything that matters — from exams to events, friends to clubs, all in one place. It's not another study app or social network — it's the space built just for your college life. Quiet when you need it, active when you want it. Whether you're trying to pass or make a mark, Camply fits how you move through college.
+Camply is where college students manage everything that matters — from exams to events, friends to clubs, all in one place. It's not another study app or social network — it's the space built just for your college life. Quiet when you need it, active when you want it. Whether you're trying to pass or make a mark, Camply fits how you move through college
 
 ## Project Structure
 
